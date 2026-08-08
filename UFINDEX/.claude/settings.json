@@ -18,7 +18,9 @@
       "WebFetch(domain:claude.ai)",
       "Bash(awk 'NR>=1500 && NR<=1548' index.html)",
       "Bash(curl -s -o /tmp/manifest.txt -w 'HTTP %{http_code}\\\\n' -H 'expo-platform: ios' -H 'expo-runtime-version: exposdk:54.0.0' -H 'expo-channel-name: preview' -H 'expo-protocol-version: 1' -H 'expo-expect-signature: false' -H 'accept: multipart/mixed' https://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3)",
-      "Bash(xargs -0 du -ck)"
+      "Bash(xargs -0 du -ck)",
+      "Bash(sed -n '/export interface AppState/,/^};/p' src/lib/store.tsx)",
+      "Bash(sed -n '/export interface ScoreResult/,/^}/p' src/lib/scoring.ts)"
     ]
   }
 }

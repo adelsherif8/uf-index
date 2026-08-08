@@ -57,6 +57,11 @@ Static HTML, no build step. Deployed at **uf-index-prototype.vercel.app**.
 | `sri.html` | Backend guide for Sriharini: tools, GitHub workflow, build order |
 | `privacy.html` | Privacy policy & disclaimer (the URL the app stores require) |
 
+## Backend
+
+Not started. The full plan — architecture, schema fixes, API surface, sync design, and Sri's
+build order — is in **[BACKEND_PLAN.md](BACKEND_PLAN.md)**.
+
 ## Brand
 
 Four colours, nothing else: Auburn `#741610` · Gold `#D29133` · Black `#0D0D0D` · White `#FFFFFF`.
