@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:ufaslive.com)",
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Macintosh; Intel Mac OS X 10_15_7\\) AppleWebKit/537.36 Chrome/120 Safari/537.36\" \"https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap\" -o fonts.css)",
+      "Bash(node --check check.js)",
+      "Bash(npx --yes vercel@latest whoami)",
+      "Bash(mkdir -p \"/Users/adel/Desktop/wordpress/UFAS/UFINDEX/uf-index-prototype\")",
+      "Bash(cp \"/private/tmp/claude-502/-Users-adel-Desktop-wordpress-UFAS-UFINDEX/0c96881d-fe8e-459e-aed7-c0a300529e94/scratchpad/uf-index-prototype.html\" \"/Users/adel/Desktop/wordpress/UFAS/UFINDEX/uf-index-prototype/index.html\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download} bytes\" https://uf-index-prototype.vercel.app)",
+      "Bash(curl -s https://uf-index-prototype.vercel.app)",
+      "Bash(node --check /tmp/check.js)",
+      "Bash(curl -s \"https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&color=45101B&bgcolor=F4EAD7&data=https%3A%2F%2Fuf-index-prototype.vercel.app\" -o /tmp/qr.png)",
+      "Bash(curl -s -o /dev/null -w \"xlsx: %{http_code}\\\\n\" https://uf-index-prototype.vercel.app/UF_Index_Test_Cases.xlsx)",
+      "Bash(curl -s \"https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&color=741610&bgcolor=FFFFFF&data=https%3A%2F%2Fuf-index-prototype.vercel.app\" -o /tmp/qr2.png)",
+      "WebFetch(domain:claude.ai)",
+      "Bash(awk 'NR>=1500 && NR<=1548' index.html)",
+      "Bash(curl -s -o /tmp/manifest.txt -w 'HTTP %{http_code}\\\\n' -H 'expo-platform: ios' -H 'expo-runtime-version: exposdk:54.0.0' -H 'expo-channel-name: preview' -H 'expo-protocol-version: 1' -H 'expo-expect-signature: false' -H 'accept: multipart/mixed' https://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3)",
+      "Bash(xargs -0 du -ck)"
+    ]
+  }
+}

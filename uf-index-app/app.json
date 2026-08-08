@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "UF Index",
+    "slug": "uf-index",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ufas.ufindex"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#741610"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ufas.ufindex",
+      "backgroundColor": "#0D0D0D"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "backgroundColor": "#0D0D0D",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0D0D"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "90004b25-e083-4ec4-bca3-5516db4182f3"
+      }
+    },
+    "owner": "adelsherif8",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3"
+    }
+  }
+}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sri's Backend Guide · UF Index Phase 1</title>
+<style>
+:root{
+  --auburn:#741610; --gold:#D29133; --bg:#0D0D0D; --card:rgba(116,22,16,.24); --card2:rgba(116,22,16,.4);
+  --line:#741610; --ink:#FFFFFF; --mut:#FFFFFFA6; --dim:#FFFFFF73;
+  --disp:Georgia,'Times New Roman',serif; --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:780px;margin:0 auto;padding:48px 20px 80px}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(28px,5vw,38px);margin:10px 0 8px;line-height:1.15}
+.lead{color:var(--mut);font-size:15px;max-width:60ch}
+h2{font-family:var(--disp);font-weight:600;font-size:22px;margin:44px 0 6px;color:var(--gold)}
+h2 span{color:var(--dim);font-size:14px;font-family:var(--ui)}
+p{color:var(--mut);font-size:14px;max-width:68ch}
+b{color:var(--ink)}
+a{color:var(--gold)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px}
+.notbuilding{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media (max-width:600px){ .notbuilding{grid-template-columns:1fr} .tools{grid-template-columns:1fr 1fr} }
+.notbuilding .card{margin-top:0}
+.notbuilding h3{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--ui)}
+.notbuilding .yes h3{color:var(--gold)}
+.notbuilding .no h3{color:var(--dim)}
+.notbuilding ul{margin:0;padding-left:18px;font-size:13px;color:var(--mut)}
+.notbuilding li{margin:4px 0}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media (max-width:600px){ .tools{grid-template-columns:1fr 1fr} }
+.tool{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;color:var(--mut)}
+.tool i{font-style:normal;color:var(--gold);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;display:block}
+.tool b{display:block;font-size:13.5px;margin:2px 0 4px}
+ol.steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+ol.steps>li{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.sn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#0D0D0D;font-family:var(--disp);font-weight:600;display:grid;place-items:center;font-size:14px}
+ol.steps b.t{display:block;font-family:var(--disp);font-size:15px;margin-bottom:3px}
+ol.steps p{margin:0;font-size:13px}
+code{background:#0D0D0D;border:1px solid rgba(116,22,16,.5);border-radius:6px;padding:1px 7px;font-family:var(--mono);font-size:11.5px;color:var(--gold)}
+.cmd{background:#0D0D0D;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--ink);line-height:1.9;overflow-x:auto;white-space:pre}
+.cmd em{font-style:normal;color:var(--dim)}
+.prompt{background:#0D0D0D;border:1.5px dashed rgba(210,145,51,.35);border-radius:12px;padding:14px 16px;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:#FFFFFFD9;line-height:1.75;white-space:pre-wrap}
+.prompt b{color:var(--gold)}
+.rules{border-color:rgba(210,145,51,.5)}
+.rules li{margin:6px 0;font-size:13px;color:var(--mut)}
+.dl{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.dl a{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:11px 18px;border-radius:999px;border:1.5px solid var(--gold);background:var(--card);color:var(--ink);text-decoration:none}
+.foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">UF Index · Phase 1 · Backend</div>
+  <h1>Sri's guide — building your first backend</h1>
+  <p class="lead">Adel handles the app and the backend architecture. Your job is to build the Phase 1 API, step by step, with Claude Code as your tutor. Nobody expects you to know this already — the whole guide assumes you're starting from zero.</p>
+
+  <h2>What we're building <span>· Phase 1 only</span></h2>
+  <p>Only the app you saw in the prototype. Nothing else exists yet.</p>
+  <div class="notbuilding">
+    <div class="card yes">
+      <h3>In Phase 1 — your scope</h3>
+      <ul>
+        <li>Sign-up / login + consent records</li>
+        <li>Save an assessment (the form answers)</li>
+        <li>Compute the UF Index score + 5 pillars</li>
+        <li>Score history (for the trend chart)</li>
+        <li>Plus questionnaires: WHO-5, PSS-10, PSQI</li>
+        <li>Push notifications (Sunday reminder)</li>
+        <li>Subscriptions table — free-trial rows only, no payments yet</li>
+      </ul>
+    </div>
+    <div class="card no">
+      <h3>Not now — don't build these</h3>
+      <ul>
+        <li>Coach dashboard (Phase 2)</li>
+        <li>Razorpay / real payments (Phase 2)</li>
+        <li>AI insights & chat (Phase 3)</li>
+        <li>Wearables (Phase 3)</li>
+        <li>Org reports & leaderboards (Phase 2–3)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>The tools <span>· already chosen — just install them</span></h2>
+  <div class="tools">
+    <div class="tool"><i>Database + login</i><b>Supabase</b>A website that hosts our PostgreSQL database and handles user login for us. Free. supabase.com</div>
+    <div class="tool"><i>Language</i><b>Node.js + TypeScript</b>The language the API is written in. Install "LTS" from nodejs.org</div>
+    <div class="tool"><i>Your AI tutor</i><b>Claude Code</b>An AI that writes code with you in the terminal and explains it. Install: <code>npm i -g @anthropic-ai/claude-code</code></div>
+    <div class="tool"><i>Teamwork</i><b>Git + GitHub</b>How you and Adel work on the same code at the same time without overwriting each other. Explained below.</div>
+    <div class="tool"><i>Testing by hand</i><b>Postman</b>A free app that lets you call your API and see what it returns, before the app uses it.</div>
+    <div class="tool"><i>See it live</i><b>Expo Go</b>Phone app that runs the real UF Index app against your backend.</div>
+  </div>
+  <p style="font-size:12.5px;margin-top:10px">The rest of the stack, so you know the whole picture: the app itself is <b>React Native + Expo</b> (Adel's side), payments will be <b>Razorpay</b> when Plus goes paid in Phase 2, and AI will be the <b>Claude or OpenAI API</b> in Phase 3. All decided — nothing to choose.</p>
+
+  <h2>GitHub <span>· so we can work at the same time</span></h2>
+  <p>Think of GitHub as a shared folder with a memory. You never edit the shared copy directly — you make your own copy of the work (<b>a branch</b>), change it, and then ask for it to be merged in (<b>a pull request</b>). Adel reviews it, and only then does it join the main code. That's how two people work simultaneously without breaking each other's work.</p>
+  <div class="card">
+    <b>Your daily loop — five commands, always in this order:</b>
+    <div class="cmd">git pull origin main            <em># 1 · get the latest code first, every day</em>
+git checkout -b sri/scoring     <em># 2 · make your own branch (name it after the task)</em>
+<em>… work, test, repeat …</em>
+git add -A && git commit -m "scoring engine passes 8/16 tests"   <em># 3 · save a snapshot</em>
+git push origin sri/scoring     <em># 4 · upload your branch</em>
+<em># 5 · on github.com → "Open pull request" → Adel reviews & merges</em></div>
+    <p style="margin-top:10px;font-size:12.5px">Commit small and often — a commit is a save point you can always go back to. If anything ever feels broken, stop and ask Adel <b>before</b> deleting anything.</p>
+  </div>
+
+  <h2>The build order <span>· one step at a time, in order</span></h2>
+  <ol class="steps">
+    <li><span class="sn">1</span><div><b class="t">Set up (one sitting)</b><p>Install Node LTS and Git. Make a GitHub account and accept Adel's repo invite. Create a free project on supabase.com. Install Claude Code and sign in. Done for day one.</p></div></li>
+    <li><span class="sn">2</span><div><b class="t">Load the database</b><p>Download <code>uf_index_schema.sql</code> below. In Supabase → SQL Editor, paste and run the <b>Phase 1 tables</b> (listed at the top of the file). Then look at each table in the Table Editor until you can say what each one stores — that's the app's whole memory.</p></div></li>
+    <li><span class="sn">3</span><div><b class="t">First endpoint, with Claude</b><p>Open Claude Code in the project folder and paste the starter prompt below. Goal: <code>POST /assessments</code> — the app sends form answers, you store them. <b>Read every line it writes before accepting.</b> Ask it "why?" whenever something is unclear — that's the tutoring.</p></div></li>
+    <li><span class="sn">4</span><div><b class="t">The scoring engine — your exam</b><p>The score must be a pure function tagged <code>formula_version</code>. Download the QA Excel below: you are done when <b>all 16 expected results match</b>. Not 15. This is the same check as the "Verify all" button on the main page.</p></div></li>
+    <li><span class="sn">5</span><div><b class="t">Login + consent</b><p>Turn on Supabase email login. When someone signs up, write their consent rows (health-data processing + optional coach visibility). This is a legal requirement, not a nice-to-have.</p></div></li>
+    <li><span class="sn">6</span><div><b class="t">History</b><p><code>GET /me/latest-score</code> and <code>GET /me/history</code> — exactly what the dashboard score card and trend chart need.</p></div></li>
+    <li><span class="sn">7</span><div><b class="t">Plus questionnaires</b><p>Endpoints to save WHO-5, PSS-10, and PSQI answers and compute their official scores (WHO-5 ×4 → /100 · PSS-10 with 4 reversed items → /40 · PSQI's 7 components → /21). The prototype's Plus screens show exactly which questions and scales.</p></div></li>
+    <li><span class="sn">8</span><div><b class="t">Notifications + subscriptions</b><p>Store Expo push tokens in <code>devices</code>. One scheduled job sends the Sunday 6 pm reminder. Subscriptions: when a user starts Plus, insert a <code>trial</code> row — no payment code in Phase 1.</p></div></li>
+    <li><span class="sn">9</span><div><b class="t">Hand it over</b><p>Supabase is already hosted — share the API URL and keys with Adel. He connects the app, and the prototype's two-phone demo becomes the real thing.</p></div></li>
+  </ol>
+
+  <h2>Starter prompt <span>· paste into Claude Code at step 3</span></h2>
+  <div class="prompt"><b># Copy from here</b>
+You're helping me build the UF Index backend. I am learning backend development —
+explain what you're doing as you go, in simple terms, and keep changes small.
+
+Stack: Supabase (PostgreSQL) + TypeScript Edge Functions.
+Schema: uf_index_schema.sql in this folder — Phase 1 tables only (listed at the top).
+
+Task 1: build POST /assessments.
+- Validate inputs against the ranges in UF_Index_Test_Cases.xlsx ("How to test" sheet)
+- Store raw inputs in `assessments`, metric units
+- Compute the score ("Formula" sheet), tag it formula_version "proto-1",
+  store in `assessment_scores`, return score + band + the five pillars
+- Write tests asserting all 16 expected results from the Excel — done means 16/16 green.</div>
+
+  <div class="card rules">
+    <b>Golden rules</b>
+    <ul style="margin:8px 0 0;padding-left:18px">
+      <li>Raw answers are <b>never edited or deleted</b> — history is sacred.</li>
+      <li>Every stored score carries <code>formula_version</code> — the formula will change, and old scores must be recomputable.</li>
+      <li>Claude is the tutor, <b>the 16 tests are the judge</b> — if tests pass, you're right, whoever wrote the code.</li>
+      <li>Small commits, small pull requests. Stuck for 30+ minutes → message Adel.</li>
+    </ul>
+  </div>
+
+  <h2>Your to-do list <span>· beyond the code</span></h2>
+  <p>Four things that are yours to own alongside the build. Each one says exactly what "done" looks like.</p>
+  <ol class="steps">
+    <li><span class="sn">A</span><div><b class="t">Plus pricing research</b><p>The app shows <b>₹399/mo as a placeholder</b> — nobody has decided the real price. Look up what 4–5 comparable India wellness apps charge (e.g. HealthifyMe, Cult.fit, Ultrahuman, Headspace India), and write one short page: their prices, your recommended Plus price, and how "free with UFAS coaching" should work. <b>Done =</b> that page sent to Adel. Until then, Phase 1 records every Plus user as a free-trial row — no payment code.</p></div></li>
+    <li><span class="sn">B</span><div><b class="t">The formula watch</b><p>The prototype scores with a <b>placeholder formula</b> (US Navy body-fat + weighted pillars — the Excel's "Formula" sheet). Build everything with <code>formula_version "proto-1"</code>. The day UFAS signs off the official formula, you implement it as <code>"uf-v1"</code>, Adel regenerates the 16 expected values, and your job is to make all tests green again. <b>Done =</b> 16/16 on the new formula. This is why formula_version exists — old scores stay recomputable.</p></div></li>
+    <li><span class="sn">C</span><div><b class="t">Store accounts — know the process, chase the parts that aren't yours</b><p><b>Apple (1–3 weeks, the critical path):</b> ① UFAS management gets a free <b>D-U-N-S number</b> at dnb.com (legal name + address must match exactly; 1–5 days). ② The person with signing authority (owner/executive — not you) makes an Apple ID with two-factor auth. ③ They enroll as an <b>Organization</b> in the <b>Apple Developer app</b> (required in India) — legal name, D-U-N-S, ufaslive.com, $99/yr. ④ Apple verifies in 3 days–2 weeks, sometimes with a phone call. ⑤ Then you accept your <b>Developer</b> invite in App Store Connect (Adel gets App Manager). <b>Google:</b> Play Console account, $25 once, verified in a day or two. <b>Your part =</b> steps ⑤ and Google, plus politely chasing management weekly until ①–④ are done. Both stores also need a <b>privacy policy URL</b> on ufaslive.com before submission.</p></div></li>
+    <li><span class="sn">D</span><div><b class="t">Keep us on free tiers</b><p>Everything below is ₹0 to start. Your job: don't turn on paid plans without telling Adel, and flag it the moment any dashboard warns about limits.</p>
+      <div class="cmd">Apple Developer (org)      $99 / yr · ~₹8,300     <em>UFAS pays</em>
+Google Play Console        $25 · once             <em>UFAS pays</em>
+Supabase                   ₹0 → ~₹2,100/mo        <em>free tier fits the pilot</em>
+Vercel                     ₹0                     <em>this page + coach dashboard later</em>
+Expo EAS (builds the app files for the stores)  ₹0 to start
+Claude / OpenAI API        ~₹500/mo               <em>Phase 3 only — not now</em>
+Razorpay                   ~2% per transaction    <em>Phase 2 only</em></div></div></li>
+  </ol>
+
+  <h2>Files you need</h2>
+  <div class="dl">
+    <a href="uf_index_schema.sql" download>⬇ uf_index_schema.sql</a>
+    <a href="UF_Index_Test_Cases.xlsx" download>⬇ UF_Index_Test_Cases.xlsx</a>
+    <a href="/">← The prototype (your spec for everything)</a>
+  </div>
+
+  <p class="foot">UF Index · Phase 1 backend guide · The prototype at uf-index-prototype.vercel.app is the behavioral spec — when in doubt, open it and look.</p>
+</div>
+</body>
+</html>
