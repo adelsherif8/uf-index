@@ -224,7 +224,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 body.mobile-view{background:#0D0D0D;padding:44px 0 16px;min-height:100vh}
 /* the frame is a fixed-height column: content scrolls, tabs stay pinned to the bottom of the phone */
 body.mobile-view .shell{display:flex;flex-direction:column;padding:0;width:340px;margin:0 auto;
-  height:min(580px,calc(100vh - 76px));overflow:hidden;position:relative;
+  height:min(580px,calc(100vh - 76px));min-height:0;max-height:calc(100vh - 76px);overflow:hidden;position:relative;
   border:2px solid var(--line);border-radius:32px;background:#0D0D0D;box-shadow:0 24px 64px rgba(0,0,0,.8)}
 body.mobile-view .side{display:none}
 body.mobile-view .main{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -269,8 +269,11 @@ body.mobile-view .mobExit{display:block;position:fixed;top:12px;left:50%;transfo
 @media (max-width:900px){
   .vt{display:none}
   body.mobile-view{padding:0}
-  body.mobile-view .shell{width:auto;margin:0;border:0;border-radius:0;max-height:none;min-height:100vh}
-  body.mobile-view .mobExit{display:none}
+  body.mobile-view .shell{width:auto;margin:0;border:0;border-radius:0;
+    height:auto;min-height:100vh;max-height:none;padding-bottom:76px}
+  body.mobile-view .main{overflow:visible}
+  body.mobile-view .tabs{position:fixed;left:0;right:0;bottom:0;border-radius:0;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom))}
   body.mobile-view .tabs{position:fixed;border-radius:0;padding-bottom:calc(9px + env(safe-area-inset-bottom))}
   body.mobile-view .phonePeek{left:auto;right:12px;bottom:88px}
 }
