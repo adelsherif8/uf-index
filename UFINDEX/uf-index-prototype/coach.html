@@ -285,27 +285,154 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
     border-radius:999px;font-size:9px;padding:0 5px;font-weight:700}
 }
 
+/* ══════ live client phone rail ══════ */
+.rail{width:270px;flex:none;border-left:1px solid var(--line);background:rgba(116,22,16,.12);
+  padding:18px 16px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.rail[hidden]{display:none}
+.railHead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.railTitle{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.railHide{margin-left:auto;background:none;border:0;color:var(--dim);cursor:pointer;font-size:15px}
+.phoneSel{width:100%;background:rgba(13,13,13,.6);border:1px solid var(--line);border-radius:9px;
+  color:var(--ink);font-size:12px;padding:6px 8px;margin-bottom:12px}
+.phoneSel:focus{outline:none;border-color:var(--gold)}
+.railHead .phoneSel{width:auto;flex:1;margin:0}
+.cphone{background:#0D0D0D;border:2px solid var(--line);border-radius:28px;padding:9px;box-shadow:0 18px 44px rgba(0,0,0,.7)}
+.cnotch{width:56px;height:14px;background:#0D0D0D;border-radius:9px;margin:0 auto 5px}
+.cscreen{background:radial-gradient(120% 70% at 50% 108%, rgba(116,22,16,.45), #0D0D0D 60%);
+  border-radius:20px;min-height:330px;padding:14px 11px 18px}
+.cTime{font-family:var(--disp);font-size:26px;text-align:center;color:#fff;margin-bottom:10px}
+.cNotif{display:flex;gap:8px;background:rgba(116,22,16,.65);border:1px solid var(--line);
+  border-radius:13px;padding:9px;margin-bottom:12px}
+.cNotif.in{animation:drop .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes drop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.pnIc{width:25px;height:25px;border-radius:7px;flex:none;background:linear-gradient(135deg,#F0D49A,#B8802F);
+  color:#0D0D0D;display:grid;place-items:center;font-family:var(--disp);font-size:10px;font-weight:600}
+.pnTop{display:flex;justify-content:space-between;font-size:8px;letter-spacing:.1em;color:var(--dim);font-weight:700}
+.cNotif b{display:block;font-size:11.5px;margin:1px 0}
+.cNotif p{margin:0;font-size:10.5px;color:var(--mut);line-height:1.4}
+.cApp{background:rgba(13,13,13,.55);border:1px solid rgba(116,22,16,.7);border-radius:15px;padding:12px}
+.cHello{font-size:10px;color:var(--dim);margin-bottom:8px}
+.cCard{background:linear-gradient(150deg,var(--auburn),rgba(116,22,16,.35));border:1px solid rgba(210,145,51,.4);
+  border-radius:12px;padding:11px;text-align:center;margin-bottom:9px}
+.cCard .cScore{font-family:var(--disp);font-size:32px;color:var(--gold);line-height:1}
+.cCard .cBand{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:3px;font-weight:600}
+.cTrend svg{display:block;width:100%;height:34px}
+.cRow{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);padding:5px 0;
+  border-top:1px solid rgba(116,22,16,.55)}
+.cRow b{color:var(--gold)}
+.cmid{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px}
+.mLbl{font-size:8.5px;letter-spacing:.3em;color:var(--gold);font-weight:700}
+.tower{display:flex;flex-direction:column-reverse;gap:3px}
+.seg{width:52px;height:7px;border-radius:4px;background:rgba(116,22,16,.5);animation:lit .9s ease infinite alternate}
+@keyframes lit{to{background:var(--gold)}}
+.mMsg{font-size:11px;color:var(--mut)}
+.ticket{background:#fff;border-radius:5px;padding:14px 12px;width:130px;text-align:center}
+.tkTop{font-family:var(--disp);font-size:10px;color:var(--auburn);letter-spacing:.1em}
+.tkScore{font-family:var(--disp);font-size:38px;color:var(--auburn);line-height:1.1}
+.tkOut{font-size:7px;letter-spacing:.2em;color:rgba(13,13,13,.5)}
+.tkStamp{display:inline-block;border:2px solid var(--auburn);border-radius:4px;padding:2px 8px;margin-top:7px;
+  font-family:var(--disp);font-size:9px;color:var(--auburn);transform:rotate(-4deg)}
+.tkBar{height:14px;margin-top:9px;background:repeating-linear-gradient(90deg,var(--auburn) 0 2px,transparent 2px 5px)}
+.railActs{margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.railLbl{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:2px}
+.act.sm{padding:9px 12px;font-size:12.5px;width:100%}
+.railTip{font-size:10.5px;color:var(--dim);margin:10px 0 0;line-height:1.5}
+.railShow{position:fixed;right:16px;bottom:16px;z-index:45;background:var(--gold);color:#0D0D0D;border:0;
+  border-radius:999px;padding:11px 18px;font-weight:700;font-size:12.5px;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.railShow[hidden]{display:none}
+
+/* ══════ since we last spoke ══════ */
+.since{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.since h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);
+  font-family:var(--ui);font-weight:700;margin-bottom:11px}
+.sinceGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px}
+.sinceGrid div span{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.sinceGrid div b{font-family:var(--disp);font-size:17px;color:var(--gold)}
+.sinceGrid b.dn{color:#fff}
+.agreed{margin:12px 0 0;font-size:12.5px;color:var(--mut);border-top:1px dashed rgba(116,22,16,.8);padding-top:10px}
+.agreed b{color:var(--gold)}
+
+/* ══════ sessions ══════ */
+.sess{border-bottom:1px solid rgba(116,22,16,.5);padding:10px 0}
+.sess:last-child{border-bottom:0}
+.sessTop{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.sessTop b{font-family:var(--disp);font-size:13px}
+.sess p{margin:0;font-size:12.5px;color:var(--mut)}
+.sessAgr{display:inline-block;margin-top:6px;font-size:11px;color:var(--gold);
+  border:1px solid rgba(210,145,51,.45);border-radius:999px;padding:2px 10px}
+
+/* ══════ bulk + read-only + misc ══════ */
+.bulkBar{display:flex;align-items:center;gap:10px;background:rgba(210,145,51,.12);
+  border:1px solid rgba(210,145,51,.5);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px}
+.bulkBar[hidden]{display:none}
+.bulkBar span{color:var(--gold);font-weight:700}
+.chk{display:grid;place-items:center;width:22px;flex:none}
+.chk input{width:16px;height:16px;accent-color:var(--gold)}
+.row.other{opacity:.85;border-style:dashed}
+.ro{background:rgba(210,145,51,.1);border:1px solid rgba(210,145,51,.45);border-radius:12px;
+  padding:11px 14px;font-size:12.5px;color:var(--gold);margin-bottom:12px}
+.who4{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mini{font-size:11px;background:rgba(13,13,13,.55);border:1px solid var(--line);border-radius:999px;
+  padding:3px 10px;color:var(--mut)}
+.mini.warn{border-color:var(--gold);color:var(--gold)}
+.chips.out .chip.on{background:var(--gold);color:#0D0D0D;border-color:var(--gold)}
+
+/* ══════ cohorts ══════ */
+.cohort{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:11px}
+.cohHead{display:flex;align-items:flex-start;gap:14px}
+.cohHead b{font-family:var(--disp);font-size:17px;display:block}
+.cohHead span{font-size:11.5px;color:var(--dim)}
+.cohAvg{margin-left:auto;text-align:right;font-family:var(--disp);font-size:26px;color:var(--gold);line-height:1}
+.cohAvg span{display:block;font-family:var(--ui);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.cohLow{font-size:12.5px;color:var(--mut);margin-top:10px}
+.cohLow b{color:#fff}
+.cohMembers{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.cohTip{font-size:11.5px;color:var(--gold);margin:11px 0 0;border-top:1px dashed rgba(116,22,16,.8);padding-top:9px}
+
+/* ══════ future ══════ */
+.futGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.fut{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px}
+.futTag{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;
+  border:1px solid rgba(210,145,51,.45);border-radius:999px;padding:2px 10px;display:inline-block;margin-bottom:9px}
+.fut h4{font-family:var(--disp);font-size:17px;color:var(--ink);margin-bottom:6px;text-transform:none;letter-spacing:0}
+.fut>p{font-size:13px;color:var(--mut);margin:0 0 12px}
+.futMock{background:rgba(13,13,13,.6);border:1px solid rgba(116,22,16,.75);border-radius:11px;padding:12px}
+.fmHead{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px}
+.futMock p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}
+.futMock b{color:#fff}
+.futWhy{font-size:11.5px;color:var(--gold);margin-top:11px;border-top:1px dashed rgba(116,22,16,.8);padding-top:9px}
+
+@media (max-width:1180px){ .rail{display:none} }
+@media (max-width:900px){
+  .rail{display:none}
+  .railShow{bottom:84px}
+  .sinceGrid{grid-template-columns:1fr 1fr}
+  .futGrid{grid-template-columns:1fr}
+}
+body.mobile-view .rail{display:none}
+body.mobile-view .railShow{display:none}
+
 </style>
 </head>
 <body>
-<!-- ══════════ WELCOME OVERLAY ══════════ -->
+<!-- ══════════ WELCOME ══════════ -->
 <div class="overlay" id="welcome">
   <div class="ovcard">
     <div class="ovmark">UF</div>
     <h2>You're testing the coach dashboard</h2>
-    <p>Thanks for taking a look. This is a <b>prototype</b> — the clients aren't real, nothing you do
-    here affects anyone, and you can't break it. Click anything.</p>
+    <p>Thanks for looking. This is a <b>prototype</b> — the clients are invented, nothing you do reaches
+    a real person, and you can't break it. Click everything.</p>
     <div class="ovlist">
-      <div><b>What we'd love you to try</b></div>
-      <div>· Open a client and read their prep brief before an imaginary call</div>
-      <div>· Propose a call time to someone in the requests queue</div>
-      <div>· Send a client a message</div>
-      <div>· Assign a programme to whoever needs one</div>
+      <div><b>Worth trying</b></div>
+      <div>· Open a client and read the prep brief as if you had a call with them next</div>
+      <div>· Propose a call, send a message, assign a programme</div>
+      <div>· Log a session afterwards — that's the bit that feeds the next brief</div>
+      <div>· On the right there's <b>the client's phone</b>. Make them take a check-in and watch this screen react</div>
     </div>
-    <p class="ovq">The question we're really asking: <b>would this actually help you before a session?</b>
+    <p class="ovq">The real question: <b>would this actually help you before and after a session?</b>
     What's missing? What's noise?</p>
     <button class="btn" id="ovStart">Start</button>
-    <p class="ovfoot">Works on a laptop or your phone. Your changes are saved on this device only.</p>
+    <p class="ovfoot">Laptop or phone. Your changes save on this device only.</p>
   </div>
 </div>
 
@@ -316,28 +443,25 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
     <h1>UF Index <span>for coaches</span></h1>
     <p class="lead">Choose your account to begin.</p>
     <div class="whoGrid">
-      <button class="who" data-coach="Parina">
-        <span class="avatar">P</span>
-        <b>Parina</b><span class="sub">5 clients · 2 need attention</span>
-      </button>
-      <button class="who" data-coach="Manjula">
-        <span class="avatar">M</span>
-        <b>Manjula</b><span class="sub">3 clients · 1 call request</span>
-      </button>
+      <button class="who" data-coach="Parina"><span class="avatar">P</span><b>Parina</b><span class="sub">5 clients · 2 need attention</span></button>
+      <button class="who" data-coach="Manjula"><span class="avatar">M</span><b>Manjula</b><span class="sub">3 clients · 1 call request</span></button>
     </div>
     <p class="tiny">Prototype — no password, no real data.</p>
   </div>
 </section>
 
-<!-- ══════════ APP SHELL ══════════ -->
+<!-- ══════════ SHELL ══════════ -->
 <div class="shell" id="shell" hidden>
   <aside class="side">
     <div class="brand"><span class="bmark">UF</span><b>UF Index</b></div>
     <nav class="nav" id="nav">
       <button data-v="today" class="on"><i>◈</i>Today</button>
+      <button data-v="week"><i>▤</i>This week</button>
       <button data-v="clients"><i>☰</i>Clients</button>
       <button data-v="calls"><i>◉</i>Call requests<em id="callBadge">3</em></button>
+      <button data-v="cohorts"><i>⬢</i>Cohorts</button>
       <button data-v="programs"><i>✦</i>Programmes</button>
+      <button data-v="future"><i>✧</i>Coming next</button>
       <button data-v="help"><i>?</i>Help &amp; feedback</button>
     </nav>
     <div class="vt" id="vt">
@@ -348,11 +472,9 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
   </aside>
 
   <main class="main">
-    <!-- ── TODAY ── -->
+    <!-- TODAY -->
     <section class="view" id="v-today">
-      <header class="head">
-        <div><h2 id="greet">Good morning</h2><p class="sub" id="todayDate"></p></div>
-      </header>
+      <header class="head"><div><h2 id="greet">Good morning</h2><p class="sub" id="todayDate"></p></div></header>
       <div class="stats" id="stats"></div>
       <h3 class="sec">Needs you today</h3>
       <div id="attention"></div>
@@ -360,43 +482,141 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
       <div id="restList"></div>
     </section>
 
-    <!-- ── CLIENTS ── -->
+    <!-- WEEK -->
+    <section class="view" id="v-week">
+      <header class="head"><div><h2>This week</h2><p class="sub">Your Monday-morning read on all of it.</p></div></header>
+      <div class="stats" id="weekStats"></div>
+      <div id="weekBlocks"></div>
+    </section>
+
+    <!-- CLIENTS -->
     <section class="view" id="v-clients">
       <header class="head">
         <div><h2>Clients</h2><p class="sub" id="clientCount"></p></div>
-        <input class="search" id="search" placeholder="Search a name…">
+        <input class="search" id="search" placeholder="Search everyone at UFAS…">
       </header>
+      <div class="bulkBar" id="bulkBar" hidden>
+        <span id="bulkCount">0 selected</span>
+        <button class="act primary" id="bulkNudge">Send a reminder to all</button>
+        <button class="act" id="bulkClear">Clear</button>
+      </div>
       <div id="clientList"></div>
     </section>
 
-    <!-- ── CLIENT DETAIL ── -->
+    <!-- CLIENT -->
     <section class="view" id="v-client">
       <button class="back" id="backBtn">← Back</button>
       <div id="clientDetail"></div>
     </section>
 
-    <!-- ── CALLS ── -->
+    <!-- CALLS -->
     <section class="view" id="v-calls">
       <header class="head"><div><h2>Call requests</h2><p class="sub" id="callSub"></p></div></header>
       <div id="callList"></div>
     </section>
 
-    <!-- ── PROGRAMS ── -->
+    <!-- COHORTS -->
+    <section class="view" id="v-cohorts">
+      <header class="head"><div><h2>Cohorts</h2><p class="sub">Clients grouped by the organisation they came from.</p></div></header>
+      <div id="cohortList"></div>
+    </section>
+
+    <!-- PROGRAMS -->
     <section class="view" id="v-programs">
       <header class="head"><div><h2>Programmes</h2><p class="sub">Assign by whichever pillar is lowest.</p></div></header>
       <div class="progGrid" id="progGrid"></div>
     </section>
 
-    <!-- ── HELP ── -->
+    <!-- FUTURE -->
+    <section class="view" id="v-future">
+      <header class="head"><div><h2>Coming next</h2><p class="sub">Designed, not built. Tell us which of these you'd actually use.</p></div></header>
+      <div class="futGrid">
+        <div class="fut">
+          <span class="futTag">Phase 3 · AI</span>
+          <h4>Your call, summarised</h4>
+          <p>Record the session (with consent) and get the summary written for you — what was discussed, what
+          they committed to, what to check next time.</p>
+          <div class="futMock">
+            <div class="fmHead">Session with Rahul · 14 min</div>
+            <p><b>Discussed:</b> night-shift roster, 4–5 h sleep on weekdays, caffeine after 6 pm.<br>
+            <b>He agreed to:</b> lights out by 11 pm on off-days, no coffee after 4 pm.<br>
+            <b>Check next time:</b> whether the roster changed, and his sleep pillar.</p>
+          </div>
+          <div class="futWhy">Kills the note-taking. The summary becomes the next prep brief automatically.</div>
+        </div>
+
+        <div class="fut">
+          <span class="futTag">Phase 3 · AI</span>
+          <h4>A follow-up message, drafted</h4>
+          <p>After each session, a message written in your voice, referencing what they actually agreed —
+          you edit and send.</p>
+          <div class="futMock">
+            <div class="fmHead">Draft to Rahul</div>
+            <p>"Good talking today. One thing only this week — lights out by 11 on your off-days. I'll check
+            your sleep score on Sunday. You've got this."</p>
+          </div>
+          <div class="futWhy">The follow-up is the part that gets skipped when you're busy.</div>
+        </div>
+
+        <div class="fut">
+          <span class="futTag">Phase 3 · AI</span>
+          <h4>Who's about to slip</h4>
+          <p>Instead of showing you who already fell, flag who's <i>heading</i> there — from the pattern in
+          their pillars, not just the score.</p>
+          <div class="futMock">
+            <div class="fmHead">Predicted risk · next 2 weeks</div>
+            <p><b>Kavita Rao</b> — sleep down 3 weeks running while her score holds. Body comp is masking it.
+            Likely to drop below 3.0 by the 20th.</p>
+          </div>
+          <div class="futWhy">Prevention instead of rescue.</div>
+        </div>
+
+        <div class="fut">
+          <span class="futTag">Phase 3 · Wearables</span>
+          <h4>Real sleep, not remembered sleep</h4>
+          <p>When a client connects Apple Health, Google Fit or a ring, their sleep and steps fill themselves in —
+          and you see the gap between what they report and what actually happened.</p>
+          <div class="futMock">
+            <div class="fmHead">Rahul · reported vs measured</div>
+            <p>Says 6 h · Watch says <b>4 h 40 m</b> average across 7 nights.</p>
+          </div>
+          <div class="futWhy">That gap is often the whole conversation.</div>
+        </div>
+
+        <div class="fut">
+          <span class="futTag">Phase 2 · Org</span>
+          <h4>Cohort challenges</h4>
+          <p>Station vs station, school vs school. Team averages, streaks and a leaderboard the whole group sees.</p>
+          <div class="futMock">
+            <div class="fmHead">Maharashtra Police · Q3</div>
+            <p>1 · Pune City <b>3.4</b> · 7-week streak<br>2 · Nagpur HQ <b>3.1</b><br>3 · Thane Rural <b>2.8</b></p>
+          </div>
+          <div class="futWhy">Friendly rivalry is the cheapest engagement there is.</div>
+        </div>
+
+        <div class="fut">
+          <span class="futTag">Phase 2 · Coach</span>
+          <h4>Voice notes after a session</h4>
+          <p>Talk for twenty seconds in the car; it transcribes, files itself under the client, and shows up in
+          the next brief.</p>
+          <div class="futMock">
+            <div class="fmHead">Voice note · 22 s</div>
+            <p>"Rahul sounded flat but honest. Roster changes next month — revisit sleep then, don't push now."</p>
+          </div>
+          <div class="futWhy">Notes only get written if writing them is effortless.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HELP -->
     <section class="view" id="v-help">
       <header class="head"><div><h2>Help &amp; feedback</h2><p class="sub">What this is, and what we need from you.</p></div></header>
       <div class="card">
         <h4>What you're looking at</h4>
-        <p>A prototype of the coach side of UF Index. Clients take a 3-minute assessment on their phone
-        and get a score from 1 to 5. This is where you'd see those scores, prepare for a call, and
-        follow up.</p>
-        <p><b>None of it is connected yet.</b> The clients are invented. Messages and call times don't
-        go anywhere — they just show you what the client would receive.</p>
+        <p>The coach side of UF Index. Clients take a 3-minute assessment on their phone and get a score from
+        1 to 5. This is where you'd see it, prepare for a call, and follow up afterwards.</p>
+        <p><b>Nothing is connected yet.</b> Clients are invented; messages and call times only show you what
+        the client would receive.</p>
       </div>
       <div class="card">
         <h4>How to read a score</h4>
@@ -405,60 +625,65 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
         <div class="bandRow"><span class="pill y">Balanced</span><span>3.0 – 3.7 · steady</span></div>
         <div class="bandRow"><span class="pill g">Energized</span><span>3.8 – 4.4 · strong</span></div>
         <div class="bandRow"><span class="pill w">Peak</span><span>4.5 – 5.0 · near their potential</span></div>
-        <p>The score is built from four pillars — body composition, perceived energy, sleep, and how they
-        feel about their body. The <b>lowest pillar</b> is usually the conversation.</p>
+        <p>Four pillars build the score — body composition, energy, sleep, and how they feel about their body.
+        The <b>lowest pillar</b> is usually the conversation.</p>
+      </div>
+      <div class="card">
+        <h4>The client's phone</h4>
+        <p>The panel on the right is a simulated client phone. Anything you send appears on it. You can also
+        act <i>as</i> the client — make them check in or request a call — and watch this dashboard react. It's
+        there so you can see both sides of the loop.</p>
       </div>
       <div class="card">
         <h4>Tell us what you think</h4>
-        <p>The three questions we care about:</p>
         <div class="qList">
-          <div>1 · Before a session, does the prep brief tell you what you'd actually want to know?</div>
-          <div>2 · What's missing that you'd need?</div>
+          <div>1 · Before a session, does the prep brief tell you what you'd want to know?</div>
+          <div>2 · After a session, is logging it quick enough that you'd actually do it?</div>
           <div>3 · What's on screen that you'd never use?</div>
         </div>
         <a class="btn" id="feedbackBtn" href="#">Send feedback</a>
       </div>
       <div class="card">
         <h4>Start over</h4>
-        <p>Reset everything back to how it was — your messages, call times and notes disappear.</p>
+        <p>Clear your messages, sessions, notes and call times.</p>
         <button class="btn ghost" id="resetBtn">Reset the demo</button>
       </div>
     </section>
   </main>
 
-  <!-- ── MOBILE TAB BAR ── -->
+  <!-- ══════ LIVE CLIENT PHONE ══════ -->
+  <aside class="rail" id="rail">
+    <div class="railHead">
+      <span class="railTitle">Client's phone</span>
+      <select id="phoneWho" class="phoneSel"></select>
+      <button class="railHide" id="railHide" title="Hide">→</button>
+    </div>
+    <div class="cphone">
+      <div class="cnotch"></div>
+      <div class="cscreen" id="cscreen"></div>
+    </div>
+    <div class="railActs">
+      <div class="railLbl">Act as the client</div>
+      <button class="act sm" id="simCheckin">Take a check-in</button>
+      <button class="act sm" id="simCall">Ask for a call</button>
+    </div>
+    <p class="railTip">Their answers land on your dashboard straight away.</p>
+  </aside>
+  <button class="railShow" id="railShow" hidden>📱 Client phone</button>
+
+  <!-- MOBILE TABS -->
   <nav class="tabs" id="tabs">
     <button data-v="today" class="on"><i>◈</i><span>Today</span></button>
+    <button data-v="week"><i>▤</i><span>Week</span></button>
     <button data-v="clients"><i>☰</i><span>Clients</span></button>
     <button data-v="calls"><i>◉</i><span>Calls</span><em id="callBadge2">3</em></button>
-    <button data-v="programs"><i>✦</i><span>Plans</span></button>
-    <button data-v="help"><i>?</i><span>Help</span></button>
+    <button data-v="help"><i>?</i><span>More</span></button>
   </nav>
 </div>
 
-<!-- ══════════ CLIENT PHONE PREVIEW ══════════ -->
-<div class="phonePeek" id="peek" hidden>
-  <div class="peekHead">
-    <span>What <b id="peekWho">they</b> see on their phone</span>
-    <button id="peekClose">✕</button>
-  </div>
-  <div class="peekPhone">
-    <div class="peekNotch"></div>
-    <div class="peekScreen">
-      <div class="peekTime" id="peekTime">9:41</div>
-      <div class="peekNotif" id="peekNotif">
-        <div class="pnIc">UF</div>
-        <div>
-          <div class="pnTop"><span>UF INDEX</span><span>now</span></div>
-          <b id="peekTitle">Message from your coach</b>
-          <p id="peekBody">…</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<button class="mobExit" id="mobExit">← Back to desktop view</button>
 
-<!-- ══════════ MODAL ══════════ -->
+<!-- MODAL -->
 <div class="overlay" id="modal" hidden>
   <div class="ovcard modalCard">
     <h3 id="modalTitle"></h3>
@@ -470,465 +695,552 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
   </div>
 </div>
 
-<button class="mobExit" id="mobExit">← Back to desktop view</button>
 <div class="toast" id="toast"></div>
 
 <script>
-/* UF Index — coach prototype. No backend: all state lives in localStorage. */
+/* UF Index — coach prototype. No backend: state lives in localStorage. */
 (function () {
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-  const KEY = 'uf-coach-demo-v1';
+  const KEY = 'uf-coach-demo-v2';
 
-  /* ────────── seed data (invented clients) ────────── */
+  /* ══════════ seed ══════════ */
   const SEED = {
     coach: null,
     clients: [
-      { id: 'c1', name: 'Priya Sharma', coach: 'Parina', org: 'Gurgaon Police', since: 'Apr 2026',
-        score: 4.1, band: 'Energized', trend: [3.4, 3.5, 3.7, 3.8, 4.0, 4.1],
-        pillars: { Body: 4.2, Energy: 4.4, Sleep: 3.6, Feeling: 4.3 },
-        plus: { who5: 76, pss: 12, psqi: 4 }, program: 'Morning Charge',
-        notes: [], flag: null, checkins: 6, lastNote: '' },
-      { id: 'c2', name: 'Rahul Verma', coach: 'Parina', org: 'Gurgaon Police', since: 'May 2026',
-        score: 2.6, band: 'Strained', trend: [3.5, 3.4, 3.1, 2.9, 2.8, 2.6],
-        pillars: { Body: 3.2, Energy: 2.5, Sleep: 1.9, Feeling: 3.0 },
-        plus: { who5: 44, pss: 29, psqi: 13 }, program: null,
-        notes: [], flag: 'call', checkins: 7, lastNote: 'night shift week again' },
-      { id: 'c3', name: 'Dev Patel', coach: 'Parina', org: 'Thane Rural', since: 'Mar 2026',
-        score: 1.9, band: 'Depleted', trend: [2.9, 2.7, 2.4, 2.2, 2.0, 1.9],
-        pillars: { Body: 2.6, Energy: 1.8, Sleep: 1.4, Feeling: 2.0 },
-        plus: null, program: null,
-        notes: [], flag: 'alert', checkins: 6, lastNote: 'not sleeping much' },
-      { id: 'c4', name: 'Meera Iyer', coach: 'Parina', org: 'Pune City', since: 'Jun 2026',
-        score: 3.8, band: 'Energized', trend: [3.2, 3.3, 3.5, 3.6, 3.7, 3.8],
-        pillars: { Body: 3.9, Energy: 4.0, Sleep: 4.1, Feeling: 3.1 },
-        plus: null, program: null, notes: [], flag: 'call', checkins: 6, lastNote: '' },
-      { id: 'c5', name: 'Arjun Nair', coach: 'Parina', org: 'UFAS Corporate', since: 'Feb 2026',
-        score: 4.6, band: 'Peak', trend: [3.8, 4.0, 4.2, 4.3, 4.5, 4.6],
-        pillars: { Body: 4.5, Energy: 4.8, Sleep: 4.6, Feeling: 4.4 },
-        plus: { who5: 88, pss: 9, psqi: 3 }, program: 'The Anchor Practice',
-        notes: [], flag: null, checkins: 9, lastNote: '' },
-      { id: 'c6', name: 'Kavita Rao', coach: 'Manjula', org: 'Nagpur HQ', since: 'May 2026',
-        score: 3.6, band: 'Balanced', trend: [3.3, 3.4, 3.4, 3.5, 3.5, 3.6],
-        pillars: { Body: 2.9, Energy: 3.8, Sleep: 3.9, Feeling: 3.8 },
-        plus: null, program: null, notes: [], flag: null, checkins: 6, lastNote: '' },
-      { id: 'c7', name: 'Imran Sheikh', coach: 'Manjula', org: 'Nagpur HQ', since: 'Jun 2026',
-        score: 2.9, band: 'Strained', trend: [3.4, 3.2, 3.1, 3.0, 2.9, 2.9],
-        pillars: { Body: 3.4, Energy: 2.2, Sleep: 2.8, Feeling: 3.2 },
-        plus: null, program: null, notes: [], flag: 'call', checkins: 6, lastNote: 'long commute' },
-      { id: 'c8', name: 'Sana Qureshi', coach: 'Manjula', org: 'St. Xavier School', since: 'this week',
-        score: null, band: null, trend: [], pillars: null, plus: null, program: null,
-        notes: [], flag: 'new', checkins: 0, lastNote: '' },
+      { id:'c1', name:'Priya Sharma', coach:'Parina', org:'Gurgaon Police', since:'Apr 2026',
+        score:4.1, band:'Energized', trend:[3.4,3.5,3.7,3.8,4.0,4.1],
+        pillars:{Body:4.2,Energy:4.4,Sleep:3.6,Feeling:4.3}, plus:{who5:76,pss:12,psqi:4},
+        program:'Morning Charge', notes:[], sessions:[], flag:null, lastNote:'', lastSeen:'2 days ago' },
+      { id:'c2', name:'Rahul Verma', coach:'Parina', org:'Gurgaon Police', since:'May 2026',
+        score:2.6, band:'Strained', trend:[3.5,3.4,3.1,2.9,2.8,2.6],
+        pillars:{Body:3.2,Energy:2.5,Sleep:1.9,Feeling:3.0}, plus:{who5:44,pss:29,psqi:13},
+        program:null, notes:[],
+        sessions:[{ at:'Jul 12', outcome:'Went well', note:'Night shifts are the whole problem.',
+                    agreement:'Lights out by 11pm on off-days' }],
+        flag:'call', lastNote:'night shift week again', lastSeen:'yesterday' },
+      { id:'c3', name:'Dev Patel', coach:'Parina', org:'Thane Rural', since:'Mar 2026',
+        score:1.9, band:'Depleted', trend:[2.9,2.7,2.4,2.2,2.0,1.9],
+        pillars:{Body:2.6,Energy:1.8,Sleep:1.4,Feeling:2.0}, plus:null, program:null,
+        notes:[], sessions:[], flag:'alert', lastNote:'not sleeping much', lastSeen:'4 days ago' },
+      { id:'c4', name:'Meera Iyer', coach:'Parina', org:'Pune City', since:'Jun 2026',
+        score:3.8, band:'Energized', trend:[3.2,3.3,3.5,3.6,3.7,3.8],
+        pillars:{Body:3.9,Energy:4.0,Sleep:4.1,Feeling:3.1}, plus:null, program:null,
+        notes:[], sessions:[], flag:'call', lastNote:'', lastSeen:'today' },
+      { id:'c5', name:'Arjun Nair', coach:'Parina', org:'UFAS Corporate', since:'Feb 2026',
+        score:4.6, band:'Peak', trend:[3.8,4.0,4.2,4.3,4.5,4.6],
+        pillars:{Body:4.5,Energy:4.8,Sleep:4.6,Feeling:4.4}, plus:{who5:88,pss:9,psqi:3},
+        program:'The Anchor Practice', notes:[], sessions:[], flag:null, lastNote:'', lastSeen:'today' },
+      { id:'c6', name:'Kavita Rao', coach:'Manjula', org:'Nagpur HQ', since:'May 2026',
+        score:3.6, band:'Balanced', trend:[3.3,3.4,3.4,3.5,3.5,3.6],
+        pillars:{Body:2.9,Energy:3.8,Sleep:3.9,Feeling:3.8}, plus:null, program:null,
+        notes:[], sessions:[], flag:null, lastNote:'', lastSeen:'3 days ago' },
+      { id:'c7', name:'Imran Sheikh', coach:'Manjula', org:'Nagpur HQ', since:'Jun 2026',
+        score:2.9, band:'Strained', trend:[3.4,3.2,3.1,3.0,2.9,2.9],
+        pillars:{Body:3.4,Energy:2.2,Sleep:2.8,Feeling:3.2}, plus:null, program:null,
+        notes:[], sessions:[], flag:'call', lastNote:'long commute', lastSeen:'6 days ago' },
+      { id:'c8', name:'Sana Qureshi', coach:'Manjula', org:'St. Xavier School', since:'this week',
+        score:null, band:null, trend:[], pillars:null, plus:null, program:null,
+        notes:[], sessions:[], flag:'new', lastNote:'', lastSeen:'never' },
+      { id:'c9', name:'Rohit Menon', coach:'Parina', org:'Pune City', since:'Apr 2026',
+        score:3.2, band:'Balanced', trend:[3.6,3.5,3.4,3.3,3.2,3.2],
+        pillars:{Body:3.0,Energy:3.1,Sleep:3.4,Feeling:3.3}, plus:null, program:null,
+        notes:[], sessions:[], flag:null, lastNote:'', lastSeen:'12 days ago' },
     ],
-    log: [],
+    inbox: [],
   };
-
   const PROGRAMS = [
-    { n: 'URJA Sleep Reset', w: '4 weeks', d: 'Wind-down routine, light discipline, shift-work adaptations.', tag: 'Sleep' },
-    { n: 'Morning Charge', w: '3 weeks', d: 'Daylight, movement and breath before 9 am.', tag: 'Energy' },
-    { n: 'The Anchor Practice', w: '6 weeks', d: 'The UFAS core — movement, nutrition, recovery.', tag: 'All pillars' },
-    { n: 'Body Kindness', w: '4 weeks', d: 'Reframing body image with guided sessions.', tag: 'Feeling' },
-    { n: 'Station Strong', w: '8 weeks', d: 'Cohort programme built around police shifts.', tag: 'Cohort' },
-    { n: 'Recovery Basics', w: '2 weeks', d: 'The starter block for Depleted clients.', tag: 'Depleted' },
+    { n:'URJA Sleep Reset', w:'4 weeks', d:'Wind-down routine, light discipline, shift-work adaptations.', tag:'Sleep' },
+    { n:'Morning Charge', w:'3 weeks', d:'Daylight, movement and breath before 9 am.', tag:'Energy' },
+    { n:'The Anchor Practice', w:'6 weeks', d:'The UFAS core — movement, nutrition, recovery.', tag:'All pillars' },
+    { n:'Body Kindness', w:'4 weeks', d:'Reframing body image with guided sessions.', tag:'Feeling' },
+    { n:'Station Strong', w:'8 weeks', d:'Cohort programme built around police shifts.', tag:'Cohort' },
+    { n:'Recovery Basics', w:'2 weeks', d:'The starter block for Depleted clients.', tag:'Depleted' },
   ];
-
-  const PILLAR_TIP = {
-    Sleep: 'Sleep is the lever here. Ask about their week before anything else — shifts, screens, what time the lights go out.',
-    Energy: 'Their energy dips are the story. Morning light and 10 minutes of movement before 9 am move this fastest.',
-    Body: 'Body composition moves slowly. Do not lead with it — one better meal and one walk a day beats any crash plan.',
-    Feeling: 'How they feel about their body is dragging the score. This is a conversation, not a programme.',
+  const TIP = {
+    Sleep:'Sleep is the lever. Ask about their week first — shifts, screens, what time the lights go out.',
+    Energy:'Their energy dips are the story. Morning light and 10 minutes of movement before 9 am move this fastest.',
+    Body:'Body composition moves slowly. Do not lead with it — one better meal and one walk beats any crash plan.',
+    Feeling:'How they feel about their body is dragging the score. This is a conversation, not a programme.',
   };
 
-  /* ────────── state ────────── */
+  /* ══════════ state ══════════ */
   let S = load();
   function load() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
+    try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {}
     return JSON.parse(JSON.stringify(SEED));
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const mine = () => S.clients.filter(c => c.coach === S.coach);
   const byId = id => S.clients.find(c => c.id === id);
+  const isMine = c => c.coach === S.coach;
 
-  /* ────────── helpers ────────── */
-  const bandClass = b => ({ Depleted: 'r', Strained: 'o', Balanced: 'y', Energized: 'g', Peak: 'w' }[b] || 'y');
-  const weakest = c => c.pillars ? Object.entries(c.pillars).sort((a, b) => a[1] - b[1])[0] : null;
-  const trendDir = c => {
-    if (!c.trend || c.trend.length < 2) return 0;
-    return +(c.trend[c.trend.length - 1] - c.trend[c.trend.length - 2]).toFixed(1);
-  };
-  function spark(vals) {
-    if (!vals || vals.length < 2) return '';
-    const w = 70, h = 22, min = 1, max = 5;
-    const pts = vals.map((v, i) =>
-      `${(i * w) / (vals.length - 1)},${h - ((v - min) / (max - min)) * h}`).join(' ');
-    const down = vals[vals.length - 1] < vals[0];
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">
-      <polyline points="${pts}" fill="none" stroke="${down ? '#741610' : '#D29133'}" stroke-width="1.6"
-        stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  /* ══════════ helpers ══════════ */
+  const bandOf = s => s < 2 ? 'Depleted' : s < 3 ? 'Strained' : s < 3.8 ? 'Balanced' : s < 4.5 ? 'Energized' : 'Peak';
+  const bandClass = b => ({Depleted:'r',Strained:'o',Balanced:'y',Energized:'g',Peak:'w'}[b] || 'y');
+  const weakest = c => c.pillars ? Object.entries(c.pillars).sort((a,b)=>a[1]-b[1])[0] : null;
+  const delta = c => (!c.trend || c.trend.length < 2) ? 0
+    : +(c.trend[c.trend.length-1] - c.trend[c.trend.length-2]).toFixed(1);
+  const first = c => c.name.split(' ')[0];
+  const staleDays = c => { const m = /(\d+)\s*day/.exec(c.lastSeen); return m ? +m[1] : (c.lastSeen === 'never' ? 99 : 0); };
+
+  function spark(v, w = 70, h = 22) {
+    if (!v || v.length < 2) return '';
+    const pts = v.map((x,i)=>`${(i*w)/(v.length-1)},${h-((x-1)/4)*h}`).join(' ');
+    const down = v[v.length-1] < v[0];
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="${pts}" fill="none" stroke="${down?'#741610':'#D29133'}" stroke-width="1.6"
+      stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   }
-  let toastT;
-  function toast(msg) {
-    const t = $('#toast');
-    t.textContent = msg; t.classList.add('on');
-    clearTimeout(toastT);
-    toastT = setTimeout(() => t.classList.remove('on'), 2600);
-  }
-  function logAction(clientId, what) {
-    S.log.unshift({ clientId, what, at: Date.now() });
-    save();
+  let tT; function toast(m) {
+    const t = $('#toast'); t.textContent = m; t.classList.add('on');
+    clearTimeout(tT); tT = setTimeout(()=>t.classList.remove('on'), 2800);
   }
 
-  /* ────────── phone preview ────────── */
-  function peek(name, title, body) {
-    $('#peekWho').textContent = name.split(' ')[0];
-    $('#peekTitle').textContent = title;
-    $('#peekBody').textContent = body;
-    $('#peekTime').textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/ [AP]M/, '');
-    const p = $('#peek');
-    p.hidden = false;
-    const n = $('#peekNotif');
-    n.classList.remove('in'); void n.offsetWidth; n.classList.add('in');
+  /* ══════════ modal ══════════ */
+  let okFn = null;
+  function modal(title, body, ok, fn) {
+    $('#modalTitle').textContent = title; $('#modalBody').innerHTML = body;
+    $('#modalOk').textContent = ok; okFn = fn; $('#modal').hidden = false;
   }
-  $('#peekClose').addEventListener('click', () => { $('#peek').hidden = true; });
+  const close = () => { $('#modal').hidden = true; okFn = null; };
+  $('#modalCancel').addEventListener('click', close);
+  $('#modalOk').addEventListener('click', () => { if (okFn) okFn(); close(); });
 
-  /* ────────── modal ────────── */
-  let modalOk = null;
-  function modal(title, bodyHtml, okLabel, onOk) {
-    $('#modalTitle').textContent = title;
-    $('#modalBody').innerHTML = bodyHtml;
-    $('#modalOk').textContent = okLabel;
-    modalOk = onOk;
-    $('#modal').hidden = false;
-  }
-  const closeModal = () => { $('#modal').hidden = true; modalOk = null; };
-  $('#modalCancel').addEventListener('click', closeModal);
-  $('#modalOk').addEventListener('click', () => { if (modalOk) modalOk(); closeModal(); });
-
-  /* ────────── navigation ────────── */
-  let currentClient = null;
+  /* ══════════ nav ══════════ */
+  let cur = null;
   function show(v) {
     $$('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
     $$('#nav button, #tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (v === 'today') renderToday();
-    if (v === 'clients') renderClients();
-    if (v === 'calls') renderCalls();
-    if (v === 'programs') renderPrograms();
+    ({ today: renderToday, week: renderWeek, clients: renderClients,
+       calls: renderCalls, cohorts: renderCohorts, programs: renderPrograms }[v] || (()=>{}))();
   }
-  $$('#nav button, #tabs button').forEach(b =>
-    b.addEventListener('click', () => show(b.dataset.v)));
+  $$('#nav button, #tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.v)));
   $('#backBtn').addEventListener('click', () => show('clients'));
 
-  /* ────────── sign in ────────── */
-  $$('.who').forEach(b => b.addEventListener('click', () => {
-    S.coach = b.dataset.coach; save(); enter();
-  }));
+  /* ══════════ sign in ══════════ */
+  $$('.who').forEach(b => b.addEventListener('click', () => { S.coach = b.dataset.coach; save(); enter(); }));
   function enter() {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
     $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>UFAS coach</span></div>`;
-    show('today');
+    buildPhoneSel(); renderPhone(); show('today');
   }
 
-  /* ────────── TODAY ────────── */
-  function renderToday() {
-    const cs = mine();
-    const h = new Date().getHours();
-    $('#greet').textContent = `Good ${h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'}, ${S.coach}`;
-    $('#todayDate').textContent = new Date().toLocaleDateString('en-US',
-      { weekday: 'long', month: 'long', day: 'numeric' });
-
-    const scored = cs.filter(c => c.score != null);
-    const avg = scored.length ? (scored.reduce((a, c) => a + c.score, 0) / scored.length).toFixed(1) : '—';
-    const calls = cs.filter(c => c.flag === 'call').length;
-    const alerts = cs.filter(c => c.flag === 'alert').length;
-    $('#stats').innerHTML = [
-      [cs.length, 'Clients'], [avg, 'Average Index'],
-      [calls, 'Call requests'], [alerts, 'Need attention'],
-    ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
-
-    const needs = cs.filter(c => c.flag);
-    $('#attention').innerHTML = needs.length
-      ? needs.map(row).join('')
-      : `<div class="empty"><b>Nothing urgent.</b><span>No call requests and no falling scores. Enjoy it.</span></div>`;
-    const rest = cs.filter(c => !c.flag);
-    $('#restList').innerHTML = rest.length
-      ? rest.map(row).join('')
-      : `<div class="empty"><b>That's everyone.</b><span>All of your clients are in the list above.</span></div>`;
-    wireRows();
-  }
-
-  const FLAG_TXT = {
-    call: ['Asked for a call', 'r'], alert: ['Score falling', 'r'], new: ['New client', 'g'],
-  };
-  function row(c) {
-    const w = weakest(c);
-    const d = trendDir(c);
-    const f = c.flag ? FLAG_TXT[c.flag] : null;
-    return `<div class="row" data-id="${c.id}">
+  /* ══════════ rows ══════════ */
+  const FLAG = { call:['Asked for a call','r'], alert:['Score falling','r'], new:['New client','g'] };
+  function row(c, opts = {}) {
+    const w = weakest(c), d = delta(c), f = c.flag ? FLAG[c.flag] : null;
+    const other = !isMine(c);
+    return `<div class="row${other?' other':''}" data-id="${c.id}">
+      ${opts.check ? `<label class="chk" onclick="event.stopPropagation()">
+        <input type="checkbox" data-pick="${c.id}"><span></span></label>` : ''}
       <span class="avatar">${c.name[0]}</span>
-      <div class="rowMain">
-        <b>${c.name}</b>
-        <span class="rowSub">${c.org}${w ? ` · lowest: ${w[0].toLowerCase()}` : ' · no check-in yet'}</span>
-      </div>
-      ${c.score != null ? `<div class="rowScore"><b>${c.score.toFixed(1)}</b>
-        <span class="pill ${bandClass(c.band)}">${c.band}</span></div>` : '<div class="rowScore muted">—</div>'}
-      <div class="rowTrend">${spark(c.trend)}
-        ${d ? `<span class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲ +' : '▼ '}${Math.abs(d).toFixed(1)}</span>` : ''}</div>
-      ${f ? `<span class="pill ${f[1]}">${f[0]}</span>` : '<span class="pill q">On track</span>'}
-      <span class="chev">›</span>
-    </div>`;
+      <div class="rowMain"><b>${c.name}</b>
+        <span class="rowSub">${c.org}${other?` · ${c.coach}'s client`:''}${w?` · lowest: ${w[0].toLowerCase()}`:' · no check-in yet'}</span></div>
+      ${c.score!=null?`<div class="rowScore"><b>${c.score.toFixed(1)}</b>
+        <span class="pill ${bandClass(c.band)}">${c.band}</span></div>`:'<div class="rowScore muted">—</div>'}
+      <div class="rowTrend">${spark(c.trend)}${d?`<span class="delta ${d>0?'up':'down'}">${d>0?'▲ +':'▼ '}${Math.abs(d).toFixed(1)}</span>`:''}</div>
+      ${f?`<span class="pill ${f[1]}">${f[0]}</span>`:`<span class="pill q">${opts.stale?c.lastSeen:'On track'}</span>`}
+      <span class="chev">›</span></div>`;
   }
-  function wireRows() {
-    $$('.row').forEach(r => r.addEventListener('click', () => openClient(r.dataset.id)));
+  function wireRows() { $$('.row').forEach(r => r.addEventListener('click', () => openClient(r.dataset.id))); }
+
+  /* ══════════ TODAY ══════════ */
+  function renderToday() {
+    const cs = mine(), h = new Date().getHours();
+    $('#greet').textContent = `Good ${h<12?'morning':h<18?'afternoon':'evening'}, ${S.coach}`;
+    $('#todayDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    const sc = cs.filter(c=>c.score!=null);
+    const avg = sc.length ? (sc.reduce((a,c)=>a+c.score,0)/sc.length).toFixed(1) : '—';
+    $('#stats').innerHTML = [[cs.length,'Clients'],[avg,'Average Index'],
+      [cs.filter(c=>c.flag==='call').length,'Call requests'],
+      [cs.filter(c=>c.flag==='alert').length,'Need attention']]
+      .map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+    const needs = cs.filter(c=>c.flag);
+    $('#attention').innerHTML = needs.length ? needs.map(c=>row(c)).join('')
+      : `<div class="empty"><b>Nothing urgent.</b><span>No call requests and no falling scores. Enjoy it.</span></div>`;
+    const rest = cs.filter(c=>!c.flag);
+    $('#restList').innerHTML = rest.length ? rest.map(c=>row(c)).join('')
+      : `<div class="empty"><b>That's everyone.</b><span>All of your clients are above.</span></div>`;
+    wireRows(); badge();
   }
 
-  /* ────────── CLIENTS ────────── */
-  function renderClients(filter) {
-    const cs = mine().filter(c => !filter || c.name.toLowerCase().includes(filter.toLowerCase()));
-    $('#clientCount').textContent = `${mine().length} client${mine().length === 1 ? '' : 's'}`;
-    $('#clientList').innerHTML = cs.length ? cs.map(row).join('')
-      : `<div class="empty"><b>No one by that name.</b><span>Try a different search.</span></div>`;
+  /* ══════════ WEEK ══════════ */
+  function renderWeek() {
+    const cs = mine();
+    const fell = cs.filter(c=>delta(c)<0);
+    const rose = cs.filter(c=>delta(c)>0);
+    const peak = cs.filter(c=>c.score!=null && c.score>=4.5);
+    const quiet = cs.filter(c=>staleDays(c)>=7);
+    $('#weekStats').innerHTML = [[fell.length,'Scores fell'],[rose.length,'Scores rose'],
+      [peak.length,'Hit Peak'],[quiet.length,'No check-in']]
+      .map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+    const block = (t, list, empty, extra='') => `<h3 class="sec">${t}</h3>` +
+      (list.length ? list.map(c=>row(c,{stale:true})).join('') + extra
+        : `<div class="empty"><b>${empty}</b></div>`);
+    $('#weekBlocks').innerHTML =
+      block('Scores that fell', fell, 'Nobody dropped this week.') +
+      block('Worth a word — hit Peak', peak, 'Nobody hit Peak this week.') +
+      block('Quiet for a week or more', quiet, 'Everyone has checked in recently.',
+        quiet.length ? `<button class="act primary mt" id="weekNudge">Remind all ${quiet.length}</button>` : '');
     wireRows();
+    const wn = $('#weekNudge');
+    if (wn) wn.addEventListener('click', () => bulkNudge(quiet));
+  }
+
+  /* ══════════ CLIENTS + bulk ══════════ */
+  let picked = new Set();
+  function renderClients(q) {
+    const all = q
+      ? S.clients.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.org.toLowerCase().includes(q.toLowerCase()))
+      : mine();
+    $('#clientCount').textContent = q
+      ? `${all.length} match${all.length===1?'':'es'} across all coaches`
+      : `${mine().length} client${mine().length===1?'':'s'} · search to find anyone at UFAS`;
+    $('#clientList').innerHTML = all.length ? all.map(c=>row(c,{check:isMine(c)})).join('')
+      : `<div class="empty"><b>Nobody by that name.</b><span>Try a different search.</span></div>`;
+    wireRows(); wirePicks();
+  }
+  function wirePicks() {
+    $$('[data-pick]').forEach(cb => {
+      cb.checked = picked.has(cb.dataset.pick);
+      cb.addEventListener('change', () => {
+        cb.checked ? picked.add(cb.dataset.pick) : picked.delete(cb.dataset.pick);
+        const n = picked.size;
+        $('#bulkBar').hidden = !n;
+        $('#bulkCount').textContent = `${n} selected`;
+      });
+    });
   }
   $('#search').addEventListener('input', e => renderClients(e.target.value));
-
-  /* ────────── CLIENT DETAIL ────────── */
-  function openClient(id) {
-    currentClient = id;
-    const c = byId(id);
-    const w = weakest(c);
-    const first = c.name.split(' ')[0];
-
-    if (c.score == null) {
-      $('#clientDetail').innerHTML = `
-        <div class="cHead">
-          <span class="avatar lg">${c.name[0]}</span>
-          <div><h2>${c.name}</h2><p class="sub">${c.org} · joined ${c.since}</p></div>
-        </div>
-        <div class="empty big">
-          <b>${first} hasn't checked in yet.</b>
-          <span>Their first assessment takes three minutes on their phone. Once it's done, their score,
-          pillars and prep brief appear here.</span>
-        </div>
-        <div class="actions">
-          <button class="act primary" data-a="nudge">Send a reminder</button>
-        </div>`;
-      wireActions(c);
-      show('client');
-      return;
-    }
-
-    const fall = c.trend.length > 2 && c.trend[c.trend.length - 1] < c.trend[0];
-    const brief = `${first}'s Index is ${c.score.toFixed(1)} — ${c.band.toLowerCase()}. ` +
-      (fall ? `It has fallen from ${c.trend[0].toFixed(1)} over ${c.trend.length} check-ins, ` : 'It has been steady or climbing, ') +
-      `and <b>${w[0].toLowerCase()}</b> is their lowest pillar at ${w[1].toFixed(1)}/5.` +
-      (c.lastNote ? ` Their last note said “${c.lastNote}”.` : '') +
-      `<br><br><b>Suggested opening:</b> ${PILLAR_TIP[w[0]]}`;
-
-    $('#clientDetail').innerHTML = `
-      <div class="cHead">
-        <span class="avatar lg">${c.name[0]}</span>
-        <div><h2>${c.name}</h2><p class="sub">${c.org} · joined ${c.since} · ${c.checkins} check-ins</p></div>
-        <div class="cScore"><b>${c.score.toFixed(1)}</b><span class="pill ${bandClass(c.band)}">${c.band}</span></div>
-      </div>
-
-      <div class="brief">
-        <h4>Prep brief</h4>
-        <p>${brief}</p>
-      </div>
-
-      <div class="cols">
-        <div class="card">
-          <h4>Index over ${c.trend.length} check-ins</h4>
-          <div class="bigSpark">${spark(c.trend).replace('width="70"', 'width="100%"').replace('height="22"', 'height="70"').replace('viewBox="0 0 70 22"', 'viewBox="0 0 70 22" preserveAspectRatio="none"')}</div>
-          <div class="trendNums">${c.trend.map(v => `<span>${v.toFixed(1)}</span>`).join('')}</div>
-        </div>
-        <div class="card">
-          <h4>Pillars</h4>
-          ${Object.entries(c.pillars).map(([k, v]) => `
-            <div class="pRow ${k === w[0] ? 'low' : ''}">
-              <span>${k}</span>
-              <div class="pBar"><i style="width:${((v - 1) / 4) * 100}%"></i></div>
-              <b>${v.toFixed(1)}</b>
-            </div>`).join('')}
-        </div>
-      </div>
-
-      <div class="cols">
-        <div class="card">
-          <h4>Index Plus</h4>
-          ${c.plus
-            ? `<p class="plusLine">Wellbeing <b>${c.plus.who5}/100</b> · Stress <b>${c.plus.pss}/40</b> · Sleep <b>${c.plus.psqi}/21</b></p>
-               <p class="tiny">WHO-5, PSS-10 and PSQI — the clinical questionnaires.</p>`
-            : `<p class="muted">${first} hasn't taken the Plus questionnaires yet.</p>`}
-        </div>
-        <div class="card">
-          <h4>Consent on file</h4>
-          <p class="consent">✓ Score history shared with coach<br>✓ Terms approved · privacy-v1.0<br>✗ Social media — not granted</p>
-          <p class="tiny">You can only see this because they allowed it.</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h4>Programme</h4>
-        ${c.program ? `<p class="prog">Currently on <b>${c.program}</b></p>`
-                    : `<p class="muted">No programme assigned.</p>`}
-      </div>
-
-      ${c.notes.length ? `<div class="card"><h4>Your private notes</h4>
-        ${c.notes.map(n => `<div class="note">${n.t}<span>${n.d}</span></div>`).join('')}</div>` : ''}
-
-      <div class="actions">
-        <button class="act primary" data-a="call">Propose a call</button>
-        <button class="act" data-a="msg">Send a message</button>
-        <button class="act" data-a="prog">Assign a programme</button>
-        <button class="act" data-a="note">Add a private note</button>
-      </div>`;
-    wireActions(c);
-    show('client');
+  $('#bulkClear').addEventListener('click', () => { picked.clear(); $('#bulkBar').hidden = true; renderClients($('#search').value); });
+  $('#bulkNudge').addEventListener('click', () => bulkNudge([...picked].map(byId)));
+  function bulkNudge(list) {
+    if (!list.length) return;
+    modal(`Remind ${list.length} client${list.length===1?'':'s'}`, `
+      <p class="tiny">They each get a notification asking for a check-in.</p>
+      <label class="lbl">Message</label>
+      <textarea id="bText" class="inp" rows="3">Quick check-in when you get a minute — it takes three minutes and keeps your streak alive.</textarea>
+      <div class="who4">${list.map(c=>`<span class="mini">${c.name}</span>`).join('')}</div>`,
+      'Send to all', () => {
+        const txt = $('#bText').value;
+        list.forEach(c => log(c.id, 'Reminder sent'));
+        toast(`Reminder sent to ${list.length} client${list.length===1?'':'s'}`);
+        pushToPhone(list[0].id, 'Time to recharge', txt);
+        picked.clear(); $('#bulkBar').hidden = true;
+        show($('.view.on').id === 'v-week' ? 'week' : 'clients');
+      });
   }
 
-  /* ────────── actions ────────── */
-  function wireActions(c) {
-    $$('#clientDetail .act').forEach(b => b.addEventListener('click', () => {
-      const a = b.dataset.a;
-      const first = c.name.split(' ')[0];
+  /* ══════════ CLIENT DETAIL ══════════ */
+  function openClient(id) {
+    cur = id; const c = byId(id); const other = !isMine(c);
+    setPhone(id);
+    if (c.score == null) {
+      $('#clientDetail').innerHTML = head(c, other) + `
+        <div class="empty big"><b>${first(c)} hasn't checked in yet.</b>
+        <span>The first assessment takes three minutes on their phone. Once it's done, their score,
+        pillars and prep brief appear here.</span></div>
+        ${other?'':'<div class="actions"><button class="act primary" data-a="nudge">Send a reminder</button></div>'}`;
+      wireActs(c); show('client'); return;
+    }
+    const w = weakest(c), d = delta(c);
+    const fall = c.trend.length > 2 && c.trend[c.trend.length-1] < c.trend[0];
+    const last = c.sessions[0];
+    const brief = `${first(c)}'s Index is ${c.score.toFixed(1)} — ${c.band.toLowerCase()}. ` +
+      (fall ? `It has fallen from ${c.trend[0].toFixed(1)} across ${c.trend.length} check-ins, `
+            : 'It has held or climbed, ') +
+      `and <b>${w[0].toLowerCase()}</b> is the lowest pillar at ${w[1].toFixed(1)}/5.` +
+      (c.lastNote ? ` Their last note said “${c.lastNote}”.` : '') +
+      (last ? `<br><br><b>Last session (${last.at}):</b> ${last.note}${last.agreement?` They agreed to <b>${last.agreement}</b> — worth checking whether it happened.`:''}` : '') +
+      `<br><br><b>Suggested opening:</b> ${TIP[w[0]]}`;
 
-      if (a === 'call') {
-        modal(`Propose a call with ${first}`, `
-          <label class="lbl">When</label>
-          <select id="mTime" class="inp">
-            <option>Tomorrow · 5:30 PM</option><option>Tomorrow · 7:00 PM</option>
-            <option>Tuesday · 5:30 PM</option><option>Saturday · 10:00 AM</option>
-          </select>
-          <label class="lbl">Note (optional)</label>
-          <textarea id="mNote" class="inp" rows="2" placeholder="Looking forward to it…"></textarea>`,
-          'Send invite', () => {
-            const t = $('#mTime').value;
-            c.flag = null; logAction(c.id, `Proposed a call · ${t}`);
-            toast(`Call invite sent to ${first}`);
-            peek(c.name, 'Your coach proposed a call', `${S.coach} suggested ${t}. Tap to accept.`);
-            openClient(c.id);
-          });
-      }
+    const prev = c.trend.length > 1 ? c.trend[c.trend.length-2] : null;
+    $('#clientDetail').innerHTML = head(c, other) + `
+      ${other?`<div class="ro">You're viewing ${c.coach}'s client. Read-only — you can look, but not act.</div>`:''}
+      <div class="brief"><h4>Prep brief</h4><p>${brief}</p></div>
+
+      <div class="since">
+        <h4>Since you last spoke${last?` · ${last.at}`:''}</h4>
+        <div class="sinceGrid">
+          <div><span>Index</span><b class="${d<0?'dn':'up'}">${prev!=null?`${prev.toFixed(1)} → ${c.score.toFixed(1)}`:c.score.toFixed(1)}</b></div>
+          <div><span>Check-ins since</span><b>${last?Math.min(3,c.trend.length):c.trend.length}</b></div>
+          <div><span>Lowest pillar</span><b>${w[0]} ${w[1].toFixed(1)}</b></div>
+          <div><span>Last seen</span><b>${c.lastSeen}</b></div>
+        </div>
+        ${last&&last.agreement?`<p class="agreed">They agreed to: <b>${last.agreement}</b></p>`:''}
+      </div>
+
+      <div class="cols">
+        <div class="card"><h4>Index over ${c.trend.length} check-ins</h4>
+          <div class="bigSpark">${spark(c.trend, 300, 70).replace('width="300"','width="100%"')}</div>
+          <div class="trendNums">${c.trend.map(v=>`<span>${v.toFixed(1)}</span>`).join('')}</div></div>
+        <div class="card"><h4>Pillars</h4>
+          ${Object.entries(c.pillars).map(([k,v])=>`<div class="pRow ${k===w[0]?'low':''}">
+            <span>${k}</span><div class="pBar"><i style="width:${((v-1)/4)*100}%"></i></div><b>${v.toFixed(1)}</b></div>`).join('')}</div>
+      </div>
+
+      <div class="cols">
+        <div class="card"><h4>Index Plus</h4>
+          ${c.plus?`<p class="plusLine">Wellbeing <b>${c.plus.who5}/100</b> · Stress <b>${c.plus.pss}/40</b> · Sleep <b>${c.plus.psqi}/21</b></p>
+            <p class="tiny">WHO-5, PSS-10 and PSQI — the clinical questionnaires.</p>`
+            :`<p class="muted">${first(c)} hasn't taken the Plus questionnaires yet.</p>`}</div>
+        <div class="card"><h4>Consent on file</h4>
+          <p class="consent">✓ Score history shared with coach<br>✓ Terms approved · privacy-v1.0<br>✗ Social media — not granted</p>
+          <p class="tiny">You can only see this because they allowed it.</p></div>
+      </div>
+
+      <div class="card"><h4>Programme</h4>
+        ${c.program?`<p class="prog">Currently on <b>${c.program}</b></p>`:'<p class="muted">No programme assigned.</p>'}</div>
+
+      ${c.sessions.length?`<div class="card"><h4>Session history</h4>
+        ${c.sessions.map(s=>`<div class="sess"><div class="sessTop"><b>${s.at}</b>
+          <span class="pill ${s.outcome==='No-show'?'r':s.outcome==='Needs follow-up'?'o':'g'}">${s.outcome}</span></div>
+          <p>${s.note}</p>${s.agreement?`<span class="sessAgr">Agreed: ${s.agreement}</span>`:''}</div>`).join('')}</div>`:''}
+
+      ${c.notes.length?`<div class="card"><h4>Your private notes</h4>
+        ${c.notes.map(n=>`<div class="note">${n.t}<span>${n.d}</span></div>`).join('')}</div>`:''}
+
+      ${other?'':`<div class="actions">
+        <button class="act primary" data-a="call">Propose a call</button>
+        <button class="act" data-a="msg">Send a message</button>
+        <button class="act" data-a="log">Log a session</button>
+        <button class="act" data-a="prog">Assign a programme</button>
+        <button class="act" data-a="note">Private note</button>
+      </div>`}`;
+    wireActs(c); show('client');
+  }
+  const head = (c, other) => `<div class="cHead"><span class="avatar lg">${c.name[0]}</span>
+    <div><h2>${c.name}</h2><p class="sub">${c.org} · joined ${c.since}${other?` · ${c.coach}'s client`:''}</p></div>
+    ${c.score!=null?`<div class="cScore"><b>${c.score.toFixed(1)}</b>
+      <span class="pill ${bandClass(c.band)}">${c.band}</span></div>`:''}</div>`;
+
+  /* ══════════ actions ══════════ */
+  function wireActs(c) {
+    $$('#clientDetail .act').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a, f = first(c);
+
+      if (a === 'call') modal(`Propose a call with ${f}`, `
+        <label class="lbl">When</label>
+        <select id="mT" class="inp"><option>Tomorrow · 5:30 PM</option><option>Tomorrow · 7:00 PM</option>
+        <option>Tuesday · 5:30 PM</option><option>Saturday · 10:00 AM</option></select>`,
+        'Send invite', () => {
+          const t = $('#mT').value; c.flag = null; log(c.id, `Proposed a call · ${t}`); save();
+          toast(`Call invite sent to ${f}`);
+          pushToPhone(c.id, 'Your coach proposed a call', `${S.coach} suggested ${t}. Tap to accept.`);
+          openClient(c.id);
+        });
 
       if (a === 'msg') {
-        const w = weakest(c);
-        const tip = w ? PILLAR_TIP[w[0]].split('.')[0] + '.' : '';
-        modal(`Message ${first}`, `
+        const w = weakest(c), tip = w ? TIP[w[0]].split('.')[0] + '.' : '';
+        const agr = c.sessions[0] && c.sessions[0].agreement;
+        modal(`Message ${f}`, `
           <label class="lbl">Quick starts</label>
           <div class="chips">
-            <button class="chip" data-t="Great check-in this week — let's keep that going.">Encourage</button>
-            <button class="chip" data-t="${tip}">About their lowest pillar</button>
-            <button class="chip" data-t="Haven't seen a check-in from you in a while. Everything alright?">Nudge</button>
+            <button class="chip" data-t="Good check-in this week — keep that going.">Encourage</button>
+            <button class="chip" data-t="${tip}">Their lowest pillar</button>
+            ${agr?`<button class="chip" data-t="How's it going with ${agr.toLowerCase()}?">Follow up on what they agreed</button>`:''}
+            <button class="chip" data-t="Haven't seen a check-in in a while — everything alright?">Nudge</button>
           </div>
           <label class="lbl">Message</label>
-          <textarea id="mText" class="inp" rows="4" placeholder="Write something…"></textarea>`,
+          <textarea id="mX" class="inp" rows="4" placeholder="Write something…"></textarea>`,
           'Send', () => {
-            const txt = ($('#mText').value || '').trim();
-            if (!txt) { toast('Nothing to send — the message was empty'); return; }
-            logAction(c.id, `Message sent`);
-            toast(`Message sent to ${first}`);
-            peek(c.name, `Message from ${S.coach}`, txt);
+            const t = ($('#mX').value||'').trim();
+            if (!t) { toast('Nothing to send — the message was empty'); return; }
+            log(c.id,'Message sent'); toast(`Message sent to ${f}`);
+            pushToPhone(c.id, `Message from ${S.coach}`, t);
           });
-        setTimeout(() => $$('#modalBody .chip').forEach(ch =>
-          ch.addEventListener('click', () => { $('#mText').value = ch.dataset.t; })), 0);
+        setTimeout(()=>$$('#modalBody .chip').forEach(ch=>ch.addEventListener('click',()=>{ $('#mX').value = ch.dataset.t; })),0);
       }
 
+      if (a === 'log') modal(`How did the session with ${f} go?`, `
+        <label class="lbl">Outcome</label>
+        <div class="chips out">
+          <button class="chip on" data-o="Went well">Went well</button>
+          <button class="chip" data-o="Needs follow-up">Needs follow-up</button>
+          <button class="chip" data-o="No-show">No-show</button>
+        </div>
+        <label class="lbl">What happened</label>
+        <textarea id="sN" class="inp" rows="3" placeholder="Two lines is plenty…"></textarea>
+        <label class="lbl">What did they agree to?</label>
+        <input id="sA" class="inp" placeholder="Lights out by 11pm on off-days">
+        <p class="tiny">This shows up in the next prep brief — so future-you knows what to check.</p>`,
+        'Save session', () => {
+          const o = $('#modalBody .chip.on')?.dataset.o || 'Went well';
+          c.sessions.unshift({ at: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+            outcome:o, note:($('#sN').value||'').trim()||'No notes.', agreement:($('#sA').value||'').trim() });
+          if (o === 'Needs follow-up') c.flag = 'call';
+          save(); toast('Session logged'); openClient(c.id);
+        });
+      setTimeout(()=>$$('#modalBody .chips.out .chip').forEach(ch=>ch.addEventListener('click',()=>{
+        $$('#modalBody .chips.out .chip').forEach(x=>x.classList.remove('on')); ch.classList.add('on');
+      })),0);
+
       if (a === 'prog') {
-        const w = weakest(c);
-        const suggested = w ? PROGRAMS.find(p => p.tag === w[0]) : null;
-        modal(`Assign a programme to ${first}`, `
-          ${suggested ? `<p class="sugg">Suggested for their lowest pillar: <b>${suggested.n}</b></p>` : ''}
+        const w = weakest(c), sug = w ? PROGRAMS.find(p=>p.tag===w[0]) : null;
+        modal(`Assign a programme to ${f}`, `
+          ${sug?`<p class="sugg">Suggested for their lowest pillar: <b>${sug.n}</b></p>`:''}
           <label class="lbl">Programme</label>
-          <select id="mProg" class="inp">
-            ${PROGRAMS.map(p => `<option ${suggested && p.n === suggested.n ? 'selected' : ''}>${p.n}</option>`).join('')}
-          </select>`,
+          <select id="mP" class="inp">${PROGRAMS.map(p=>`<option ${sug&&p.n===sug.n?'selected':''}>${p.n}</option>`).join('')}</select>`,
           'Assign', () => {
-            c.program = $('#mProg').value; logAction(c.id, `Assigned ${c.program}`); save();
-            toast(`${first} is on ${c.program}`);
-            peek(c.name, 'Your coach set you a programme', `${c.program} — starts this week.`);
+            c.program = $('#mP').value; log(c.id,`Assigned ${c.program}`); save();
+            toast(`${f} is on ${c.program}`);
+            pushToPhone(c.id,'Your coach set you a programme',`${c.program} — starts this week.`);
             openClient(c.id);
           });
       }
 
-      if (a === 'note') {
-        modal(`Private note about ${first}`, `
-          <p class="tiny">Only you can see this. ${first} never does.</p>
-          <textarea id="mNoteTxt" class="inp" rows="4" placeholder="Mentioned night shifts twice…"></textarea>`,
-          'Save note', () => {
-            const t = ($('#mNoteTxt').value || '').trim();
-            if (!t) return;
-            c.notes.unshift({ t, d: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) });
-            save(); toast('Note saved'); openClient(c.id);
-          });
-      }
+      if (a === 'note') modal(`Private note about ${f}`, `
+        <p class="tiny">Only you see this. ${f} never does.</p>
+        <textarea id="nX" class="inp" rows="4" placeholder="Mentioned night shifts twice…"></textarea>`,
+        'Save note', () => {
+          const t = ($('#nX').value||'').trim(); if (!t) return;
+          c.notes.unshift({ t, d:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}) });
+          save(); toast('Note saved'); openClient(c.id);
+        });
 
       if (a === 'nudge') {
-        logAction(c.id, 'Sent a reminder');
-        toast(`Reminder sent to ${first}`);
-        peek(c.name, 'Time to take your first UF Index', `${S.coach} is waiting to see your first score.`);
+        log(c.id,'Reminder sent'); toast(`Reminder sent to ${f}`);
+        pushToPhone(c.id,'Time to take your first UF Index',`${S.coach} is waiting to see your first score.`);
       }
     }));
   }
+  function log(id, what) { S.inbox.unshift({ id, what, at: Date.now() }); save(); }
 
-  /* ────────── CALLS ────────── */
+  /* ══════════ CALLS ══════════ */
   function renderCalls() {
-    const cs = mine().filter(c => c.flag === 'call');
-    $('#callSub').textContent = cs.length
-      ? `${cs.length} waiting` : 'Nothing waiting';
-    $('#callList').innerHTML = cs.length ? cs.map(c => {
-      const w = weakest(c);
-      return `<div class="row" data-id="${c.id}">
-        <span class="avatar">${c.name[0]}</span>
-        <div class="rowMain"><b>${c.name}</b>
-          <span class="rowSub">${c.score.toFixed(1)} · ${c.band}${w ? ` · lowest: ${w[0].toLowerCase()}` : ''}</span></div>
-        <span class="pill ${c.score < 2 ? 'r' : 'o'}">${c.score < 2 ? 'Priority' : 'Waiting'}</span>
-        <span class="chev">›</span>
+    const cs = mine().filter(c=>c.flag==='call');
+    $('#callSub').textContent = cs.length ? `${cs.length} waiting` : 'Nothing waiting';
+    $('#callList').innerHTML = cs.length
+      ? cs.map(c=>row(c)).join('') + `<p class="tiny mt">Open a client to propose a time — they get a notification on their phone.</p>`
+      : `<div class="empty"><b>Nobody is waiting.</b><span>When a client asks to talk, they appear here with their score and what's dragging it.</span></div>`;
+    wireRows(); badge();
+  }
+  function badge() {
+    const n = mine().filter(c=>c.flag==='call').length;
+    ['#callBadge','#callBadge2'].forEach(s=>{
+      const e=$(s); if(!e) return; e.textContent=n; e.style.display = n?'':'none';
+    });
+  }
+
+  /* ══════════ COHORTS ══════════ */
+  function renderCohorts() {
+    const groups = {};
+    S.clients.forEach(c => { (groups[c.org] = groups[c.org] || []).push(c); });
+    $('#cohortList').innerHTML = Object.entries(groups).map(([org, list]) => {
+      const sc = list.filter(c=>c.score!=null);
+      const avg = sc.length ? (sc.reduce((a,c)=>a+c.score,0)/sc.length) : null;
+      const pil = {Body:0,Energy:0,Sleep:0,Feeling:0}; let n = 0;
+      sc.forEach(c=>{ if(c.pillars){ n++; Object.keys(pil).forEach(k=>pil[k]+=c.pillars[k]); } });
+      const low = n ? Object.entries(pil).map(([k,v])=>[k,v/n]).sort((a,b)=>a[1]-b[1])[0] : null;
+      return `<div class="cohort">
+        <div class="cohHead"><div><b>${org}</b><span>${list.length} client${list.length===1?'':'s'}</span></div>
+          <div class="cohAvg">${avg?avg.toFixed(1):'—'}<span>avg Index</span></div></div>
+        ${low?`<div class="cohLow">Weakest across the group: <b>${low[0].toLowerCase()}</b> at ${low[1].toFixed(1)}/5</div>`:''}
+        <div class="cohMembers">${list.map(c=>`<span class="mini ${c.flag?'warn':''}">${c.name.split(' ')[0]} ${c.score?c.score.toFixed(1):'—'}</span>`).join('')}</div>
+        ${low?`<p class="cohTip">A cohort programme targeting ${low[0].toLowerCase()} would lift the whole group — see Programmes.</p>`:''}
       </div>`;
-    }).join('') + `<p class="tiny mt">Open a client to propose a time. They get a notification on their phone.</p>`
-      : `<div class="empty"><b>No one is waiting.</b><span>When a client asks to talk, they appear here with their score and what's dragging it.</span></div>`;
-    wireRows();
-    const n = cs.length;
-    $('#callBadge').textContent = n; $('#callBadge2').textContent = n;
-    $('#callBadge').style.display = $('#callBadge2').style.display = n ? '' : 'none';
+    }).join('');
   }
 
-  /* ────────── PROGRAMS ────────── */
+  /* ══════════ PROGRAMS ══════════ */
   function renderPrograms() {
-    const counts = {};
-    mine().forEach(c => { if (c.program) counts[c.program] = (counts[c.program] || 0) + 1; });
-    $('#progGrid').innerHTML = PROGRAMS.map(p => `
-      <div class="prog">
-        <b>${p.n}</b>
-        <span class="pw">${p.w}</span>
-        <span class="pd">${p.d}</span>
-        <div class="pFoot"><span class="tag">${p.tag}</span>
-          <span class="tiny">${counts[p.n] ? `${counts[p.n]} on this` : 'nobody yet'}</span></div>
-      </div>`).join('');
+    const n = {}; S.clients.forEach(c=>{ if(c.program) n[c.program]=(n[c.program]||0)+1; });
+    $('#progGrid').innerHTML = PROGRAMS.map(p=>`<div class="prog"><b>${p.n}</b><span class="pw">${p.w}</span>
+      <span class="pd">${p.d}</span><div class="pFoot"><span class="tag">${p.tag}</span>
+      <span class="tiny">${n[p.n]?`${n[p.n]} on this`:'nobody yet'}</span></div></div>`).join('');
   }
 
-  /* ────────── help actions ────────── */
-  $('#feedbackBtn').addEventListener('click', e => {
-    e.preventDefault();
-    const body = encodeURIComponent(
-      'What I liked:\n\n\nWhat was missing:\n\n\nWhat I would never use:\n\n');
-    window.location.href = `mailto:?subject=${encodeURIComponent('UF Index coach dashboard — feedback')}&body=${body}`;
+  /* ══════════ LIVE CLIENT PHONE ══════════ */
+  let phoneId = null, phoneNotif = null;
+  function buildPhoneSel() {
+    $('#phoneWho').innerHTML = mine().map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    phoneId = mine()[0]?.id || null;
+  }
+  function setPhone(id) {
+    if (!byId(id) || !isMine(byId(id))) return;
+    phoneId = id; $('#phoneWho').value = id; phoneNotif = null; renderPhone();
+  }
+  $('#phoneWho').addEventListener('change', e => { phoneId = e.target.value; phoneNotif = null; renderPhone(); });
+  $('#railHide').addEventListener('click', () => { $('#rail').hidden = true; $('#railShow').hidden = false; });
+  $('#railShow').addEventListener('click', () => { $('#rail').hidden = false; $('#railShow').hidden = true; });
+
+  function renderPhone(state) {
+    const c = byId(phoneId); if (!c) return;
+    const t = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(/ [AP]M/,'');
+    if (state === 'machine') {
+      $('#cscreen').innerHTML = `<div class="cmid"><div class="mLbl">UF INDEX · POWER TEST</div>
+        <div class="tower">${Array.from({length:10},(_,i)=>`<i class="seg" style="animation-delay:${i*0.09}s"></i>`).join('')}</div>
+        <div class="mMsg">Measuring…</div></div>`; return;
+    }
+    if (state === 'ticket') {
+      $('#cscreen').innerHTML = `<div class="cmid"><div class="ticket">
+        <div class="tkTop">UF INDEX</div><div class="tkScore">${c.score.toFixed(1)}</div>
+        <div class="tkOut">OUT OF 5</div><div class="tkStamp">${c.band.toUpperCase()}</div>
+        <div class="tkBar"></div></div><div class="mMsg">Ticket printed</div></div>`; return;
+    }
+    $('#cscreen').innerHTML = `
+      <div class="cTime">${t}</div>
+      ${phoneNotif?`<div class="cNotif in"><div class="pnIc">UF</div><div>
+        <div class="pnTop"><span>UF INDEX</span><span>now</span></div>
+        <b>${phoneNotif.t}</b><p>${phoneNotif.b}</p></div></div>`:''}
+      <div class="cApp">
+        <div class="cHello">Good morning, ${first(c)}</div>
+        <div class="cCard"><div class="cScore">${c.score!=null?c.score.toFixed(1):'—'}</div>
+          <div class="cBand">${c.band||'No check-in yet'}</div></div>
+        ${c.trend.length>1?`<div class="cTrend">${spark(c.trend,150,34).replace('width="150"','width="100%"')}</div>`:''}
+        <div class="cRow"><span>Streak</span><b>${Math.max(1,c.trend.length-1)} weeks</b></div>
+        ${c.program?`<div class="cRow"><span>Programme</span><b>${c.program.split(' ')[0]}…</b></div>`:''}
+      </div>`;
+  }
+  function pushToPhone(id, title, body) {
+    if (id !== phoneId) setPhone(id);
+    phoneNotif = { t: title, b: body };
+    renderPhone();
+    $('#rail').hidden = false; $('#railShow').hidden = true;
+  }
+
+  /* client acts back → dashboard reacts */
+  $('#simCheckin').addEventListener('click', () => {
+    const c = byId(phoneId); if (!c) return;
+    renderPhone('machine');
+    setTimeout(() => {
+      const base = c.score == null ? 3.0 : c.score;
+      const move = (Math.round((Math.random()*1.0 - 0.45) * 10) / 10);
+      const s = Math.max(1, Math.min(5, +(base + move).toFixed(1)));
+      c.score = s; c.band = bandOf(s);
+      c.trend = [...c.trend, s].slice(-8);
+      if (!c.pillars) c.pillars = {Body:3,Energy:3,Sleep:3,Feeling:3};
+      const w = weakest(c); c.pillars[w[0]] = Math.max(1, Math.min(5, +(w[1] + move).toFixed(1)));
+      c.lastSeen = 'just now';
+      if (c.flag === 'new') c.flag = null;
+      if (move <= -0.3) c.flag = 'alert';
+      save(); renderPhone('ticket');
+      setTimeout(() => { phoneNotif = null; renderPhone(); }, 1800);
+      toast(`${first(c)} just checked in — ${s.toFixed(1)} ${c.band}${move<=-0.3?' · flagged for you':''}`);
+      const v = ($('.view.on')||{}).id;
+      if (v === 'v-client' && cur === c.id) openClient(c.id);
+      else if (v === 'v-today') renderToday();
+      else if (v === 'v-week') renderWeek();
+      else if (v === 'v-clients') renderClients($('#search').value);
+      badge();
+    }, 1700);
   });
-  $('#resetBtn').addEventListener('click', () => {
-    if (!confirm('Reset the demo? Your messages, notes and call times will be cleared.')) return;
-    localStorage.removeItem(KEY);
-    S = JSON.parse(JSON.stringify(SEED));
-    S.coach = null; save();
-    location.reload();
+  $('#simCall').addEventListener('click', () => {
+    const c = byId(phoneId); if (!c) return;
+    c.flag = 'call'; save();
+    phoneNotif = { t:'Call requested', b:`We've told ${S.coach}. They'll propose a time.` };
+    renderPhone();
+    toast(`${first(c)} asked for a call — it's in your queue`);
+    const v = ($('.view.on')||{}).id;
+    if (v === 'v-today') renderToday(); else if (v === 'v-calls') renderCalls();
+    else if (v === 'v-client' && cur === c.id) openClient(c.id);
+    badge();
   });
 
-
-  /* ────────── desktop / phone view toggle ────────── */
+  /* ══════════ view toggle ══════════ */
   const VKEY = KEY + '-view';
   function setView(v, remember) {
     document.body.classList.toggle('mobile-view', v === 'mobile');
@@ -940,10 +1252,21 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
   $('#mobExit').addEventListener('click', () => setView('desktop', true));
   try { if (localStorage.getItem(VKEY) === 'mobile') setView('mobile', false); } catch (e) {}
 
-  /* ────────── boot ────────── */
+  /* ══════════ help ══════════ */
+  $('#feedbackBtn').addEventListener('click', e => {
+    e.preventDefault();
+    const b = encodeURIComponent('Before a session, the prep brief…\n\n\nAfter a session, logging it…\n\n\nWhat I would never use:\n\n');
+    window.location.href = `mailto:?subject=${encodeURIComponent('UF Index coach dashboard — feedback')}&body=${b}`;
+  });
+  $('#resetBtn').addEventListener('click', () => {
+    if (!confirm('Reset the demo? Sessions, messages, notes and call times will be cleared.')) return;
+    localStorage.removeItem(KEY); location.reload();
+  });
+
+  /* ══════════ boot ══════════ */
   $('#ovStart').addEventListener('click', () => {
     $('#welcome').hidden = true;
-    try { localStorage.setItem(KEY + '-seen', '1'); } catch (e) {}
+    try { localStorage.setItem(KEY + '-seen','1'); } catch (e) {}
   });
   if (localStorage.getItem(KEY + '-seen')) $('#welcome').hidden = true;
   if (S.coach) enter();
