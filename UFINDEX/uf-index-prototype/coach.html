@@ -221,12 +221,14 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .mobExit{display:none}
 
 /* ── forced mobile preview on a wide screen ── */
-body.mobile-view{background:#0D0D0D;padding:26px 0 40px}
-body.mobile-view .shell{flex-direction:column;padding-bottom:76px;width:430px;margin:0 auto;
-  min-height:840px;max-height:88vh;overflow-y:auto;position:relative;
+body.mobile-view{background:#0D0D0D;padding:64px 0 40px;min-height:100vh}
+/* the frame is a fixed-height column: content scrolls, tabs stay pinned to the bottom of the phone */
+body.mobile-view .shell{display:flex;flex-direction:column;padding:0;width:412px;margin:0 auto;
+  height:min(820px,86vh);overflow:hidden;position:relative;
   border:2px solid var(--line);border-radius:34px;background:#0D0D0D;box-shadow:0 26px 70px rgba(0,0,0,.8)}
 body.mobile-view .side{display:none}
-body.mobile-view .main{padding:22px 16px 40px;max-width:100%}
+body.mobile-view .main{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:22px 16px 26px;max-width:100%}
 body.mobile-view .stats{grid-template-columns:1fr 1fr;max-width:100%}
 body.mobile-view .cols{grid-template-columns:1fr}
 body.mobile-view .progGrid{grid-template-columns:1fr}
@@ -234,10 +236,16 @@ body.mobile-view .head{margin-bottom:16px}
 body.mobile-view .head h2{font-size:22px}
 body.mobile-view .search{margin-left:0;width:100%}
 body.mobile-view .rowTrend{display:none}
-body.mobile-view .rowScore{min-width:64px}
+body.mobile-view .rowScore{min-width:60px}
+body.mobile-view .rowMain{min-width:0}
+body.mobile-view .rowSub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mobile-view .row{gap:10px;padding:12px}
+body.mobile-view .pill{font-size:10px;padding:3px 9px}
+body.mobile-view .sinceGrid{grid-template-columns:1fr 1fr}
+body.mobile-view .actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,#0D0D0D 34%);padding:14px 0 4px}
 body.mobile-view .act{flex:1;min-width:calc(50% - 5px);text-align:center}
-body.mobile-view .tabs{display:flex;position:sticky;bottom:0;left:0;right:0;background:rgba(13,13,13,.97);
-  border-top:1px solid var(--line);padding:9px 4px 12px;z-index:40;border-radius:0 0 32px 32px}
+body.mobile-view .tabs{display:flex;position:static;flex:0 0 auto;background:#0D0D0D;
+  border-top:1px solid var(--line);padding:9px 4px 14px;border-radius:0 0 32px 32px}
 body.mobile-view .tabs button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;display:flex;
   flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;position:relative}
 body.mobile-view .tabs button i{font-style:normal;font-size:16px}
@@ -245,7 +253,7 @@ body.mobile-view .tabs button.on{color:var(--gold)}
 body.mobile-view .tabs em{position:absolute;top:-2px;right:22%;font-style:normal;background:var(--auburn);
   color:#fff;border-radius:999px;font-size:9px;padding:0 5px;font-weight:700}
 body.mobile-view .phonePeek{right:auto;left:calc(50% + 240px);bottom:60px}
-body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transform:translateX(-50%);
+body.mobile-view .mobExit{display:block;position:fixed;top:20px;left:50%;transform:translateX(-50%);
   background:var(--card);border:1px solid var(--line);color:var(--gold);border-radius:999px;
   padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;z-index:45}
 @media (max-width:900px){
@@ -270,7 +278,10 @@ body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transfo
   .head h2{font-size:22px}
   .search{margin-left:0;width:100%}
   .rowTrend{display:none}
-  .rowScore{min-width:64px}
+  .rowScore{min-width:60px}
+  .rowMain{min-width:0}
+  .rowSub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row{gap:10px;padding:12px}
   .phonePeek{right:12px;bottom:88px;width:170px}
   .peekScreen{min-height:170px}
   .actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,#0D0D0D 30%);padding:14px 0 4px}
@@ -636,12 +647,12 @@ body.mobile-view .railShow{display:none}
       </div>
       <div class="card">
         <h4>Tell us what you think</h4>
+        <p>Just tell Adel directly — the three things worth knowing:</p>
         <div class="qList">
           <div>1 · Before a session, does the prep brief tell you what you'd want to know?</div>
           <div>2 · After a session, is logging it quick enough that you'd actually do it?</div>
           <div>3 · What's on screen that you'd never use?</div>
         </div>
-        <a class="btn" id="feedbackBtn" href="#">Send feedback</a>
       </div>
       <div class="card">
         <h4>Start over</h4>
@@ -1029,8 +1040,8 @@ body.mobile-view .railShow{display:none}
         'Send invite', () => {
           const t = $('#mT').value; c.flag = null; log(c.id, `Proposed a call · ${t}`); save();
           toast(`Call invite sent to ${f}`);
-          pushToPhone(c.id, 'Your coach proposed a call', `${S.coach} suggested ${t}. Tap to accept.`);
           openClient(c.id);
+          pushToPhone(c.id, 'Your coach proposed a call', `${S.coach} suggested ${t}. Tap to accept.`);
         });
 
       if (a === 'msg') {
@@ -1087,8 +1098,8 @@ body.mobile-view .railShow{display:none}
           'Assign', () => {
             c.program = $('#mP').value; log(c.id,`Assigned ${c.program}`); save();
             toast(`${f} is on ${c.program}`);
-            pushToPhone(c.id,'Your coach set you a programme',`${c.program} — starts this week.`);
             openClient(c.id);
+            pushToPhone(c.id,'Your coach set you a programme',`${c.program} — starts this week.`);
           });
       }
 
@@ -1161,7 +1172,8 @@ body.mobile-view .railShow{display:none}
   }
   function setPhone(id) {
     if (!byId(id) || !isMine(byId(id))) return;
-    phoneId = id; $('#phoneWho').value = id; phoneNotif = null; renderPhone();
+    if (phoneId !== id) phoneNotif = null;   // only clear when actually switching client
+    phoneId = id; $('#phoneWho').value = id; renderPhone();
   }
   $('#phoneWho').addEventListener('change', e => { phoneId = e.target.value; phoneNotif = null; renderPhone(); });
   $('#railHide').addEventListener('click', () => { $('#rail').hidden = true; $('#railShow').hidden = false; });
@@ -1253,11 +1265,6 @@ body.mobile-view .railShow{display:none}
   try { if (localStorage.getItem(VKEY) === 'mobile') setView('mobile', false); } catch (e) {}
 
   /* ══════════ help ══════════ */
-  $('#feedbackBtn').addEventListener('click', e => {
-    e.preventDefault();
-    const b = encodeURIComponent('Before a session, the prep brief…\n\n\nAfter a session, logging it…\n\n\nWhat I would never use:\n\n');
-    window.location.href = `mailto:?subject=${encodeURIComponent('UF Index coach dashboard — feedback')}&body=${b}`;
-  });
   $('#resetBtn').addEventListener('click', () => {
     if (!confirm('Reset the demo? Sessions, messages, notes and call times will be cleared.')) return;
     localStorage.removeItem(KEY); location.reload();
