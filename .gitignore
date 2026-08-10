@@ -9,6 +9,7 @@
 
 # ── Inside the app ─────────────────────────────────────────────────
 uf-index-app/node_modules/
+uf-index-app/.git-scaffold-archive/
 uf-index-app/.expo/
 uf-index-app/dist/
 uf-index-app/web-build/
