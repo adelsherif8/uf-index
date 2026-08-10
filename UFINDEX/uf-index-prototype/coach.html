@@ -104,7 +104,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 0;border-top:1px solid var(--line)}
 .me b{display:block;font-size:13.5px}
 .me span{font-size:11px;color:var(--dim)}
-.main{flex:1;padding:28px 30px 60px;max-width:1000px}
+.main{flex:1;padding:28px 34px 60px;max-width:none;min-width:0}
 
 /* ── heads/stats ── */
 .head{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
@@ -113,7 +113,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .search{margin-left:auto;background:rgba(13,13,13,.6);border:1.5px solid var(--line);border-radius:999px;
   color:var(--ink);padding:9px 16px;font-size:13.5px;min-width:200px}
 .search:focus{outline:none;border-color:var(--gold)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:26px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px;max-width:820px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
 .stat b{display:block;font-family:var(--disp);font-size:26px;color:var(--gold);line-height:1.1}
 .stat span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600}
@@ -151,7 +151,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .brief h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-family:var(--ui);font-weight:700;margin-bottom:8px}
 .brief p{margin:0;font-size:14px;color:var(--mut);line-height:1.7}
 .brief b{color:var(--ink)}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .card h4{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);font-family:var(--ui);font-weight:700;margin-bottom:10px}
 .card p{font-size:13.5px;color:var(--mut);margin:0 0 8px}
@@ -176,7 +176,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .act.primary{background:var(--gold);border-color:var(--gold);color:#0D0D0D}
 
 /* ── programmes ── */
-.progGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.progGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .progGrid .prog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;font-size:inherit}
 .progGrid .prog b{display:block;font-family:var(--disp);font-size:15px;color:var(--ink);margin-bottom:2px}
 .pw{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700;display:block;margin-bottom:7px}
@@ -211,6 +211,51 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   font-weight:700;font-size:13.5px;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;
   transition:opacity .25s;z-index:70;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .toast.on{opacity:1}
+
+
+/* ── view toggle ── */
+.vt{display:flex;gap:3px;background:rgba(13,13,13,.6);border:1px solid var(--line);border-radius:999px;padding:3px;margin:14px 8px 0}
+.vt button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;font-size:11px;font-weight:700;
+  padding:6px 4px;border-radius:999px;letter-spacing:.04em}
+.vt button.on{background:var(--gold);color:#0D0D0D}
+.mobExit{display:none}
+
+/* ── forced mobile preview on a wide screen ── */
+body.mobile-view{background:#0D0D0D;padding:26px 0 40px}
+body.mobile-view .shell{flex-direction:column;padding-bottom:76px;width:430px;margin:0 auto;
+  min-height:840px;max-height:88vh;overflow-y:auto;position:relative;
+  border:2px solid var(--line);border-radius:34px;background:#0D0D0D;box-shadow:0 26px 70px rgba(0,0,0,.8)}
+body.mobile-view .side{display:none}
+body.mobile-view .main{padding:22px 16px 40px;max-width:100%}
+body.mobile-view .stats{grid-template-columns:1fr 1fr;max-width:100%}
+body.mobile-view .cols{grid-template-columns:1fr}
+body.mobile-view .progGrid{grid-template-columns:1fr}
+body.mobile-view .head{margin-bottom:16px}
+body.mobile-view .head h2{font-size:22px}
+body.mobile-view .search{margin-left:0;width:100%}
+body.mobile-view .rowTrend{display:none}
+body.mobile-view .rowScore{min-width:64px}
+body.mobile-view .act{flex:1;min-width:calc(50% - 5px);text-align:center}
+body.mobile-view .tabs{display:flex;position:sticky;bottom:0;left:0;right:0;background:rgba(13,13,13,.97);
+  border-top:1px solid var(--line);padding:9px 4px 12px;z-index:40;border-radius:0 0 32px 32px}
+body.mobile-view .tabs button{flex:1;background:none;border:0;color:var(--dim);cursor:pointer;display:flex;
+  flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;position:relative}
+body.mobile-view .tabs button i{font-style:normal;font-size:16px}
+body.mobile-view .tabs button.on{color:var(--gold)}
+body.mobile-view .tabs em{position:absolute;top:-2px;right:22%;font-style:normal;background:var(--auburn);
+  color:#fff;border-radius:999px;font-size:9px;padding:0 5px;font-weight:700}
+body.mobile-view .phonePeek{right:auto;left:calc(50% + 240px);bottom:60px}
+body.mobile-view .mobExit{display:block;position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1px solid var(--line);color:var(--gold);border-radius:999px;
+  padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;z-index:45}
+@media (max-width:900px){
+  .vt{display:none}
+  body.mobile-view{padding:0}
+  body.mobile-view .shell{width:auto;margin:0;border:0;border-radius:0;max-height:none;min-height:100vh}
+  body.mobile-view .mobExit{display:none}
+  body.mobile-view .tabs{position:fixed;border-radius:0;padding-bottom:calc(9px + env(safe-area-inset-bottom))}
+  body.mobile-view .phonePeek{left:auto;right:12px;bottom:88px}
+}
 
 /* ── mobile: the coach app ── */
 .tabs{display:none}
@@ -295,6 +340,10 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
       <button data-v="programs"><i>✦</i>Programmes</button>
       <button data-v="help"><i>?</i>Help &amp; feedback</button>
     </nav>
+    <div class="vt" id="vt">
+      <button data-view="desktop" class="on">Desktop</button>
+      <button data-view="mobile">Phone</button>
+    </div>
     <div class="me" id="me"></div>
   </aside>
 
@@ -421,6 +470,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   </div>
 </div>
 
+<button class="mobExit" id="mobExit">← Back to desktop view</button>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -876,6 +926,19 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
     S.coach = null; save();
     location.reload();
   });
+
+
+  /* ────────── desktop / phone view toggle ────────── */
+  const VKEY = KEY + '-view';
+  function setView(v, remember) {
+    document.body.classList.toggle('mobile-view', v === 'mobile');
+    $$('#vt button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+    if (remember) { try { localStorage.setItem(VKEY, v); } catch (e) {} }
+    window.scrollTo({ top: 0 });
+  }
+  $$('#vt button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view, true)));
+  $('#mobExit').addEventListener('click', () => setView('desktop', true));
+  try { if (localStorage.getItem(VKEY) === 'mobile') setView('mobile', false); } catch (e) {}
 
   /* ────────── boot ────────── */
   $('#ovStart').addEventListener('click', () => {
