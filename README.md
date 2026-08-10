@@ -7,6 +7,19 @@ This repo holds two things: the **mobile app** and the **design prototype + spec
 
 ---
 
+## Quick start
+
+```bash
+git clone https://github.com/adelsherif8/uf-index.git
+cd uf-index/uf-index-app
+npm install
+npx expo start          # scan the QR with Expo Go
+npm run test:scoring    # must print 16/16
+```
+
+Full instructions — running, building an APK, TestFlight, working on branches:
+**[SETUP.md](SETUP.md)**
+
 ## Repo layout
 
 ```
@@ -59,8 +72,12 @@ Static HTML, no build step. Deployed at **uf-index-prototype.vercel.app**.
 
 ## Backend
 
-Not started. The full plan — architecture, schema fixes, API surface, sync design, and Sri's
-build order — is in **[BACKEND_PLAN.md](BACKEND_PLAN.md)**.
+Not started. Two documents cover it:
+
+- **[BACKEND_PLAN.md](BACKEND_PLAN.md)** — the server side: architecture, the schema fixes needed
+  before writing code, the API surface, sync design, and Sri's step-by-step build order.
+- **[BACKEND_INTEGRATION.md](BACKEND_INTEGRATION.md)** — the app side: exactly which files change,
+  in what order, to connect the app to that API without breaking offline use.
 
 ## Brand
 
