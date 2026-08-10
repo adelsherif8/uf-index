@@ -221,17 +221,23 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .mobExit{display:none}
 
 /* ── forced mobile preview on a wide screen ── */
-body.mobile-view{background:#0D0D0D;padding:54px 0 22px;min-height:100vh}
+body.mobile-view{background:#0D0D0D;padding:44px 0 16px;min-height:100vh}
 /* the frame is a fixed-height column: content scrolls, tabs stay pinned to the bottom of the phone */
-body.mobile-view .shell{display:flex;flex-direction:column;padding:0;width:390px;margin:0 auto;
-  height:min(700px,calc(100vh - 96px));overflow:hidden;position:relative;
+body.mobile-view .shell{display:flex;flex-direction:column;padding:0;width:340px;margin:0 auto;
+  height:min(580px,calc(100vh - 76px));overflow:hidden;position:relative;
   border:2px solid var(--line);border-radius:32px;background:#0D0D0D;box-shadow:0 24px 64px rgba(0,0,0,.8)}
 body.mobile-view .side{display:none}
 body.mobile-view .main{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:18px 14px 22px;max-width:100%}
-body.mobile-view .stats{gap:8px;margin-bottom:18px}
+  padding:16px 13px 20px;max-width:100%}
+body.mobile-view .stats{gap:7px;margin-bottom:14px}
+body.mobile-view .head h2{font-size:19px}
+body.mobile-view .row b{font-size:13.5px}
+body.mobile-view .rowSub{font-size:10.5px}
+body.mobile-view .rowScore b{font-size:17px}
+body.mobile-view .cHead h2{font-size:20px}
+body.mobile-view .brief p{font-size:13px}
 body.mobile-view .stat{padding:11px}
-body.mobile-view .stat b{font-size:21px}
+body.mobile-view .stat b{font-size:19px}
 body.mobile-view .sec{margin:18px 0 8px}
 body.mobile-view .stats{grid-template-columns:1fr 1fr;max-width:100%}
 body.mobile-view .cols{grid-template-columns:1fr}
@@ -256,8 +262,8 @@ body.mobile-view .tabs button i{font-style:normal;font-size:16px}
 body.mobile-view .tabs button.on{color:var(--gold)}
 body.mobile-view .tabs em{position:absolute;top:-2px;right:22%;font-style:normal;background:var(--auburn);
   color:#fff;border-radius:999px;font-size:9px;padding:0 5px;font-weight:700}
-body.mobile-view .phonePeek{right:auto;left:calc(50% + 240px);bottom:60px}
-body.mobile-view .mobExit{display:block;position:fixed;top:20px;left:50%;transform:translateX(-50%);
+body.mobile-view .phonePeek{right:auto;left:calc(50% + 200px);bottom:40px}
+body.mobile-view .mobExit{display:block;position:fixed;top:12px;left:50%;transform:translateX(-50%);
   background:var(--card);border:1px solid var(--line);color:var(--gold);border-radius:999px;
   padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;z-index:45}
 @media (max-width:900px){
