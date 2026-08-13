@@ -39,3 +39,6 @@ UFINDEX/**/.DS_Store
 # Claude Code records the commands it runs here, which can capture credentials.
 .claude/settings.json
 .claude/settings.local.json
+
+# Contains real client PII — never track this.
+UFIndexDataAutomationSandbox.xlsx

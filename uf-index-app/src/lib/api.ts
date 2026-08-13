@@ -67,7 +67,7 @@ export async function signOut() {
 /** Written at signup — DPDP wants the version and timestamp on record. */
 export async function recordConsents(
   consents: { clause: boolean; coach: boolean; social: boolean },
-  policyVersion = 'privacy-v1.0',
+  policyVersion = 'privacy-v1.1',
 ): Promise<void> {
   if (!supabase) return;
   const userId = await currentUserId();

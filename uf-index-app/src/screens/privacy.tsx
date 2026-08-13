@@ -17,7 +17,7 @@ const SECTIONS: { h: string; p?: string; bullets?: string[] }[] = [
       'Wellness answers: perceived energy, body feeling, sleep quality and hours; and for UF Index Plus, your WHO-5, PSS-10 and PSQI answers.',
       'Your results: UF Index scores, bands, and history.',
     ],
-    p: 'Nothing is collected from other apps or services. In this version, all of it is stored on your own device only.',
+    p: 'Nothing is collected from other apps or services unless you explicitly connect them (none are connected in this version). Guests keep everything on their own device; account holders also have their check-ins stored on UFAS servers so they survive losing or changing a phone.',
   },
   {
     h: '2 · How it is used',
@@ -42,8 +42,8 @@ const SECTIONS: { h: string; p?: string; bullets?: string[] }[] = [
     ],
   },
   {
-    h: '5 · Storage & security',
-    p: 'This version stores all data locally on your device — nothing is sent to UFAS servers. When cloud sync launches, data will be encrypted in transit and at rest with access controls, and this policy will be updated with a new version number before anything changes.',
+    h: '5 · Storage, security & retention',
+    p: "Where your data lives depends on how you use the app. As a guest, everything stays on your device and is never transmitted. If you create an account, your check-ins are also stored on servers operated by Supabase in Mumbai, India (ap-south-1) — your data does not leave the country. It is encrypted in transit (TLS) and at rest, and every database record is protected by row-level access rules enforced by the database itself, so no account can read another account's data. UFAS staff cannot browse your records; a coach sees your results only if you granted coach-visibility consent and asked for coaching. We keep your data for as long as your account exists. If you delete your account, everything is erased immediately and permanently — there is no soft-delete and no backup copy retained beyond [RETENTION PERIOD — TO BE CONFIRMED] days of routine encrypted backups. Inactive accounts are reviewed after [INACTIVITY PERIOD — TO BE CONFIRMED].",
   },
   {
     h: '7 · Children',
