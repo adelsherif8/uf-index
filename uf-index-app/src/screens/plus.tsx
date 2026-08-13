@@ -6,7 +6,7 @@ import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
-import { postPlusSession } from '../lib/api';
+import { postPlusSession, startPlusTrial } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
 
@@ -171,7 +171,7 @@ export function PlusIntroScreen() {
   const nav = useNav();
   const { state, patch } = useStore();
   const start = () => {
-    if (!state.plusTrialStartedAt) patch({ plusTrialStartedAt: new Date().toISOString() }); // trial row, like the schema
+    if (!state.plusTrialStartedAt) { patch({ plusTrialStartedAt: new Date().toISOString() }); startPlusTrial().catch(() => {}); }  // trial row, server-enforced
     nav.go('who5');
   };
   const trialDay = state.plusTrialStartedAt
@@ -180,7 +180,7 @@ export function PlusIntroScreen() {
   const { d, set } = usePlus();
   const p = state.plus;
   const open = (target: 'who5' | 'pss' | 'psqiTimes') => {
-    if (!state.plusTrialStartedAt) patch({ plusTrialStartedAt: new Date().toISOString() });
+    if (!state.plusTrialStartedAt) { patch({ plusTrialStartedAt: new Date().toISOString() }); startPlusTrial().catch(() => {}); };
     nav.go(target);
   };
   const allDone = d.done.who5 && d.done.pss && d.done.psqi;

@@ -16,6 +16,10 @@ supabase/
     …_rls.sql                          Row Level Security on every table
     …_seed_questionnaires.sql          WHO-5, PSS-10 and PSQI items, verbatim
     …_account_rpc.sql                  delete_my_account(), export_my_data()
+    …_advisor_fixes.sql                revoke EXECUTE on trigger functions
+    …_reminder_job.sql                 pg_cron Sunday push + notifications log
+    …_plus_trial.sql                   start_plus_trial(), one per account
+    …_pg_net_schema.sql                move pg_net out of public
   functions/
     _shared/scoring.ts                 THE scoring engine — must match the app
     _shared/http.ts                    CORS + JSON helpers
@@ -169,9 +173,30 @@ RLS already scopes these to the signed-in user.
 
 | | |
 |---|---|
-| Reminder job | a scheduled function that reads `devices` and sends the Sunday nudge |
 | Backfill script | recompute `assessment_scores` when the formula changes |
 | Coach access | Phase 2 — a coach reading their own clients' rows |
+| Razorpay | Phase 2 — `subscriptions` currently holds trial rows only, by design |
+
+### Deck Phase 1 scope — status
+
+| # | Item | |
+|---|---|---|
+| 1 | Sign-up / login + consent | done — 3 consent types, versioned, append-only |
+| 2 | Save an assessment (raw, metric) | done |
+| 3 | Compute UF Index + `formula_version` | done — **but 4 pillars, not 5. See below.** |
+| 4 | Score history | done — `assessments_with_scores` |
+| 5 | Plus questionnaires | done — WHO-5, PSS-10, PSQI seeded and scored |
+| 6 | Sunday 6pm push | done — pg_cron → `send_weekly_reminders()` |
+| 7 | Subscriptions (trial rows only) | done — `start_plus_trial()`, one per account |
+
+> **Item 3 is worth a conversation.** The deck says "the 5-pillar formula". What
+> is built has **four**: body composition 30%, perceived energy 30%, sleep 25%,
+> body feeling 15%. The fifth (movement/exercise) was dropped because Harini's
+> production datasheet has no exercise question to feed it. Either the deck
+> needs correcting, or the datasheet needs a movement question — that is a
+> product decision, not something to quietly invent a formula for. Because raw
+> inputs are stored on every row, adding it later and backfilling is a
+> non-event.
 
 Then the app-side wiring — see **`../BACKEND_INTEGRATION.md`**.
 
@@ -180,7 +205,9 @@ Then the app-side wiring — see **`../BACKEND_INTEGRATION.md`**.
 ## Before calling Phase 1 done
 
 - [ ] `npm run test:scoring` → 16/16
-- [ ] `supabase db advisors` → no unresolved warnings
+- [x] `supabase db advisors` → 2 remaining, both accepted and documented:
+      `delete_my_account()` and `start_plus_trial()` are SECURITY DEFINER by
+      necessity and derive the user from `auth.uid()`, never an argument
 - [ ] A second user cannot read the first user's rows (test with two tokens in Postman)
 - [ ] `POST /assessments` twice with the same `client_id` → one row, not two
 - [ ] Deleting a user leaves zero rows behind in every table

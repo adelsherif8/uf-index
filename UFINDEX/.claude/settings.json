@@ -28,7 +28,8 @@
       "Bash(node -p \"require\\('./node_modules/@supabase/supabase-js/package.json'\\).version\")",
       "Bash(curl -s -o /tmp/fn -w 'assessments fn -> %{http_code}\\\\n' -X POST -H 'apikey: __TRACKED_VAR__' -H 'Content-Type: application/json' -d '{}' https://aneshngmljfhkjblsvqd.supabase.co/functions/v1/assessments)",
       "Bash(curl -s -X POST -H 'apikey: sb_publishable_dOpVrCDygwSa2HdA2PjQEg_avWyFOdR' -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"client_id\":\"qa-T01\",\"gender\":\"male\",\"weightKg\":82,\"heightCm\":178,\"neckCm\":38,\"waistCm\":86,\"hipCm\":98,\"rpeMorning\":3,\"rpeAfternoon\":2,\"bodyFeeling\":3,\"sleepQuality\":3,\"sleepHours\":7,\"note\":\"end-to-end test\"}' https://aneshngmljfhkjblsvqd.supabase.co/functions/v1/assessments)",
-      "Bash(SCRATCH=\"/private/tmp/claude-502/-Users-adel-Desktop-wordpress-UFAS-UFINDEX/0c96881d-fe8e-459e-aed7-c0a300529e94/scratchpad\" *)"
+      "Bash(SCRATCH=\"/private/tmp/claude-502/-Users-adel-Desktop-wordpress-UFAS-UFINDEX/0c96881d-fe8e-459e-aed7-c0a300529e94/scratchpad\" *)",
+      "Bash(curl -s -X POST -H 'Authorization: Bearer REDACTED_SUPABASE_TOKEN' -H 'Content-Type: application/json' -d '{\"query\":\"select name, default_version, installed_version from pg_available_extensions where name in \\('\\\\''pg_cron'\\\\'','\\\\''pg_net'\\\\''\\) order by name\"}' https://api.supabase.com/v1/projects/aneshngmljfhkjblsvqd/database/query)"
     ],
     "additionalDirectories": [
       "/tmp"

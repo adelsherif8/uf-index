@@ -35,3 +35,7 @@ UFINDEX/**/.DS_Store
 *.p8
 *.p12
 *.mobileprovision
+
+# Claude Code records the commands it runs here, which can capture credentials.
+.claude/settings.json
+.claude/settings.local.json

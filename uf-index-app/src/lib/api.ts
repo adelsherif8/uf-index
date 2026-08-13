@@ -118,6 +118,19 @@ export async function saveSettings(sx: {
   await supabase.from('user_settings').upsert(row);
 }
 
+// ---------------------------------------------------------------- plus -----
+
+/**
+ * Start the Plus free trial. Idempotent and enforced server-side — one trial
+ * per account, so reinstalling the app no longer grants a fresh one.
+ */
+export async function startPlusTrial(): Promise<{ trial_ends_at?: string; already_started?: boolean } | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('start_plus_trial', { trial_days: 14 });
+  if (error) return null;
+  return data as { trial_ends_at?: string; already_started?: boolean };
+}
+
 // -------------------------------------------------------- coach calls -----
 
 /** "Request my coach call" — a real row a coach can pick up, not just local state. */
