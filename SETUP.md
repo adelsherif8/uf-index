@@ -162,10 +162,28 @@ From `uf-index-backend/`:
 ```bash
 npx supabase login                      # opens a browser
 npx supabase link --project-ref <ref>   # <ref> is in the dashboard URL
-npx supabase db push                    # runs all four migrations
+npx supabase db push                    # runs all five migrations
 ```
 
 `db push` talks to the hosted database directly — **no Docker needed**.
+
+> **Alternative that needs no login and no database password.** Create a scoped
+> access token (Account → Access Tokens) with only *Migrations: Write*,
+> *Database: Write*, *Advisors: Read*, *Edge Functions: Write*, and POST each
+> migration to the Management API:
+>
+> ```bash
+> curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+>   -H "Content-Type: application/json" \
+>   -d "{\"name\":\"<migration-name>\",\"query\":\"<file contents>\"}" \
+>   "https://api.supabase.com/v1/projects/<ref>/database/migrations"
+> ```
+>
+> This is how the production project was first set up. It records the migration
+> in history exactly as `db push` does, so the two stay interchangeable — and
+> the database password never has to leave the password manager.
+> Note `supabase link` needs *Projects (account-wide): Read*, which the token
+> above deliberately does not have; the Management API route sidesteps it.
 
 Check it worked: dashboard → **Table Editor** → you should see 13 tables, and
 **Database → Roles/Policies** should show RLS enabled on every one of them.
