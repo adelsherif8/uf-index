@@ -23,7 +23,15 @@
       "Bash(sed -n '/export interface ScoreResult/,/^}/p' src/lib/scoring.ts)",
       "Bash(grep -v \"^total\\\\|^d.*\\\\s\\\\.$\\\\|^d.*\\\\s\\\\.\\\\.$\")",
       "Bash(awk '{if \\(NF>8\\) printf \"%-52s %8.0f KB\\\\n\", $9, $5/1024; else print}')",
-      "WebFetch(domain:supabase.com)"
+      "WebFetch(domain:supabase.com)",
+      "Bash(sed -i '' 's|^EXPO_PUBLIC_SUPABASE_ANON_KEY=.*|EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_dOpVrCDygwSa2HdA2PjQEg_avWyFOdR|' .env)",
+      "Bash(node -p \"require\\('./node_modules/@supabase/supabase-js/package.json'\\).version\")",
+      "Bash(curl -s -o /tmp/fn -w 'assessments fn -> %{http_code}\\\\n' -X POST -H 'apikey: __TRACKED_VAR__' -H 'Content-Type: application/json' -d '{}' https://aneshngmljfhkjblsvqd.supabase.co/functions/v1/assessments)",
+      "Bash(curl -s -X POST -H 'apikey: sb_publishable_dOpVrCDygwSa2HdA2PjQEg_avWyFOdR' -H 'Authorization: Bearer __CMDSUB_OUTPUT__' -H 'Content-Type: application/json' -d '{\"client_id\":\"qa-T01\",\"gender\":\"male\",\"weightKg\":82,\"heightCm\":178,\"neckCm\":38,\"waistCm\":86,\"hipCm\":98,\"rpeMorning\":3,\"rpeAfternoon\":2,\"bodyFeeling\":3,\"sleepQuality\":3,\"sleepHours\":7,\"note\":\"end-to-end test\"}' https://aneshngmljfhkjblsvqd.supabase.co/functions/v1/assessments)",
+      "Bash(SCRATCH=\"/private/tmp/claude-502/-Users-adel-Desktop-wordpress-UFAS-UFINDEX/0c96881d-fe8e-459e-aed7-c0a300529e94/scratchpad\" *)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   }
 }

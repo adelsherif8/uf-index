@@ -5,6 +5,7 @@ import Svg, { Polyline, Circle, Line } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore, streakWeeks, AssessmentRecord } from '../lib/store';
+import { requestCall, deleteAssessment } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
 import { bandLabel } from '../lib/i18n';
@@ -215,7 +216,11 @@ export function HistoryScreen() {
       `${rec?.result.score.toFixed(1)} · ${rec ? new Date(rec.takenAt).toLocaleDateString() : ''} — this cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => { vib.heavy(); patch({ records: state.records.filter(r => r.id !== id) }); } },
+        { text: 'Delete', style: 'destructive', onPress: () => {
+          vib.heavy();
+          patch({ records: state.records.filter(r => r.id !== id) });
+          deleteAssessment(id).catch(() => {});   // otherwise it reappears on the next pull
+        } },
       ],
     );
   };
@@ -354,6 +359,7 @@ export function CoachScreen() {
         onPress={() => {
           if (sent) return;
           patch({ coachRequestedAt: new Date().toISOString() });
+          requestCall().catch(() => {});   // a row a coach can actually pick up
           play('ding'); vib.success();
         }} />}>
       <H2>Ready for a next step?</H2>

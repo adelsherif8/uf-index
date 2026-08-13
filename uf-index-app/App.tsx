@@ -14,6 +14,7 @@ import { StoreProvider, useStore } from './src/lib/store';
 import { DraftProvider } from './src/lib/draft';
 import { initFx } from './src/lib/fx';
 import { syncNow } from './src/lib/sync';
+import { isSignedIn } from './src/lib/api';
 import * as Notifications from 'expo-notifications';
 import * as NativeSplash from 'expo-splash-screen';
 import { SplashScreen, WelcomeScreen, AuthScreen, ConsentScreen } from './src/screens/onboarding';
@@ -107,8 +108,19 @@ function Root() {
   // it returns immediately and the app stays fully offline.
   useEffect(() => {
     if (!ready) return;
-    syncNow(state.records, next => patch({ records: next }), state.profile.age)
-      .catch(() => {});
+    (async () => {
+      const signedIn = await isSignedIn();
+      await syncNow(state.records, next => patch({ records: next }), state.profile.age);
+      // Reinstalled on a new phone: there is no local history yet, so the boot
+      // check below sends them to the first-run pitch. Once their history has
+      // come down from the server, put them where they belong. Only from the
+      // opening screens — never yank someone out of a flow they've started.
+      if (signedIn && !state.consoleMode
+          && (prev.current === 'splash' || prev.current === 'welcome')) {
+        prev.current = 'dashboard';
+        setScreen('dashboard');
+      }
+    })().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 

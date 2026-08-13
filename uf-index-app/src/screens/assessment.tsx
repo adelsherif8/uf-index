@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
+import { saveProfile } from '../lib/api';
 import { useDraft } from '../lib/draft';
 import { ScreenShell, Btn, H2, Sub, Field, ScaleRow, Seg } from '../components/ui';
 import { Tape, Silhouette } from '../components/Tape';
@@ -34,6 +35,8 @@ export function ProfileScreen() {
     setErr(e);
     if (Object.keys(e).length) { vib.heavy(); return; }
     patch({ profile: { ...p, gender: draft.gender } });
+    saveProfile({ name: p.name, gender: draft.gender, organization: p.organization })
+      .catch(() => {});
     nav.go('measure');
   };
   return (

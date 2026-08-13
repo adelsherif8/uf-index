@@ -10,7 +10,7 @@ import { setSound, getSound, vib } from '../lib/fx';
 import { scheduleWeeklyReminder, cancelReminders } from '../lib/notify';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { exportMyData, deleteMyAccount, isConfigured } from '../lib/api';
+import { exportMyData, deleteMyAccount, isConfigured, saveProfile, saveSettings, signOut } from '../lib/api';
 import { resetSyncState, unsyncedCount } from '../lib/sync';
 
 export function SettingsScreen() {
@@ -57,9 +57,18 @@ export function SettingsScreen() {
 
   return (
     <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Settings"
-      cta={<Btn label="Save" onPress={() => { patch({ profile: { ...state.profile, name, email } }); nav.go('dashboard'); }} />}>
+      cta={<Btn label="Save" onPress={() => {
+        patch({ profile: { ...state.profile, name, email } });
+        saveProfile({ name, gender: state.profile.gender, organization: state.profile.organization,
+                      locale: state.lang, unitSystem: state.unitSystem }).catch(() => {});
+        nav.go('dashboard');
+      }} />}>
       <H2>Settings</H2>
-      <Sub>Everything lives on this phone in v1 — nothing leaves it.</Sub>
+      <Sub>
+        {isConfigured()
+          ? 'Your check-ins are backed up to your account. Guests stay on this phone only.'
+          : 'Everything lives on this phone — nothing leaves it.'}
+      </Sub>
       <Field label="Full name" value={name} onChange={setName} />
       <Field label="Email" value={email} onChange={setEmail} keyboard="email-address" />
       <Card>
@@ -75,6 +84,7 @@ export function SettingsScreen() {
             onValueChange={async v => {
               vib.tick(); patch({ reminderOn: v });
               if (v) await scheduleWeeklyReminder(); else await cancelReminders();
+              saveSettings({ reminderEnabled: v }).catch(() => {});
             }}
             trackColor={{ false: C.auburn24, true: C.gold35 }} thumbColor={state.reminderOn ? C.gold : C.white73} />
         </View>
@@ -112,6 +122,16 @@ export function SettingsScreen() {
           if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(path, { mimeType: 'application/json' });
         } catch {}
       }} />
+      {isConfigured() && (
+        <Btn label="Sign out" variant="ghost" style={{ marginTop: 10 }} onPress={() => Alert.alert(
+          'Sign out?',
+          'Your check-ins stay backed up to your account. This phone keeps its local copy until you delete it.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Sign out', onPress: async () => { await signOut(); await resetSyncState(); nav.go('welcome'); } },
+          ],
+        )} />
+      )}
       <Btn label="Delete all my data" variant="ghost" onPress={deleteAll} style={{ marginTop: 10 }} />
       <Text style={st.syncNote}>
         {!isConfigured()

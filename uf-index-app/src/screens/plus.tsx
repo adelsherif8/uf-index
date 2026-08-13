@@ -6,6 +6,7 @@ import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
+import { postPlusSession } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
 
@@ -299,6 +300,18 @@ export function PsqiTroublesScreen() {
     };
     patch({ plus: entry, plusHistory: [...state.plusHistory, entry] });
     set({ done: { ...d.done, psqi: true } });
+
+    // Send all three instruments up. The server re-scores from the raw answers
+    // with the published rules, so a Plus profile is reproducible later.
+    // Fire-and-forget: a guest or a dead network changes nothing on screen.
+    const stamp = entry.takenAt;
+    postPlusSession('WHO5', `${stamp}-who5`, d.who5).catch(() => {});
+    postPlusSession('PSS10', `${stamp}-pss`, d.pss).catch(() => {});
+    postPlusSession('PSQI', `${stamp}-psqi`, {
+      bedTime: d.bed, wakeTime: d.wake,
+      latencyMin: Number(d.latMin) || 0, sleepHours: Number(d.hrs) || 0,
+      freq: d.psqiFreq, extra: d.psqiX,
+    }).catch(() => {});
     play('stamp'); vib.success();
     nav.go('plusResult');
   };

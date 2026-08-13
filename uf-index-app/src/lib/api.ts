@@ -79,6 +79,56 @@ export async function recordConsents(
   ]);
 }
 
+// ------------------------------------------------------------ profile -----
+
+/**
+ * Mirror the on-device profile into `profiles`.
+ * Age is deliberately not stored here — the schema keeps `date_of_birth`, and
+ * age is captured per check-in as `age_at_time`, which is the honest thing to
+ * do when someone's age changes between assessments.
+ */
+export async function saveProfile(p: {
+  name?: string; gender?: string; organization?: string;
+  locale?: string; unitSystem?: string;
+}): Promise<void> {
+  if (!supabase) return;
+  const userId = await currentUserId();
+  if (!userId) return;
+  await supabase.from('profiles').upsert({
+    id: userId,
+    full_name: p.name || null,
+    gender: p.gender || null,
+    organization: p.organization || null,
+    locale: p.locale,
+    unit_system: p.unitSystem,
+  });
+}
+
+/** Reminder preferences, kiosk mode, trial start — the things a new phone should inherit. */
+export async function saveSettings(sx: {
+  reminderEnabled?: boolean; consoleMode?: boolean; plusTrialStartedAt?: string | null;
+}): Promise<void> {
+  if (!supabase) return;
+  const userId = await currentUserId();
+  if (!userId) return;
+  const row: Record<string, unknown> = { user_id: userId };
+  if (sx.reminderEnabled !== undefined) row.reminder_enabled = sx.reminderEnabled;
+  if (sx.consoleMode !== undefined) row.console_mode = sx.consoleMode;
+  if (sx.plusTrialStartedAt !== undefined) row.plus_trial_started_at = sx.plusTrialStartedAt;
+  await supabase.from('user_settings').upsert(row);
+}
+
+// -------------------------------------------------------- coach calls -----
+
+/** "Request my coach call" — a real row a coach can pick up, not just local state. */
+export async function requestCall(): Promise<boolean> {
+  if (!supabase) return true;            // local-only build: the button still works
+  const userId = await currentUserId();
+  if (!userId) return true;              // guest: stays on the phone
+  const { error } = await supabase.from('call_requests').insert({ user_id: userId, status: 'requested' });
+  return !error;
+}
+
 // --------------------------------------------------------- assessments -----
 
 export interface RemoteScore {
@@ -135,9 +185,15 @@ export async function fetchAssessments(sinceIso?: string) {
   return data ?? [];
 }
 
-export async function deleteAssessment(id: string): Promise<void> {
+/**
+ * Delete by the device-generated client_id, because that is the only id the
+ * app knows — the server's uuid never comes back down.
+ */
+export async function deleteAssessment(clientId: string): Promise<void> {
   if (!supabase) return;
-  await supabase.from('assessments').delete().eq('id', id);
+  const userId = await currentUserId();
+  if (!userId) return;
+  await supabase.from('assessments').delete().eq('user_id', userId).eq('client_id', clientId);
 }
 
 // ---------------------------------------------------------------- plus -----
@@ -153,6 +209,15 @@ export async function postPlusSession(
   });
   if (error) throw error;
   return data;
+}
+
+/** Plus sittings held server-side, newest first. */
+export async function fetchPlusSessions() {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('plus_sessions').select('*').order('completed_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
 }
 
 // ------------------------------------------------------------- devices -----
