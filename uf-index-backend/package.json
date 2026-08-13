@@ -1,0 +1,19 @@
+{
+  "name": "uf-index-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UF Index backend — Supabase schema, RLS and Edge Functions (Phase 1)",
+  "type": "module",
+  "scripts": {
+    "test:scoring": "tsx tests/scoring-test.ts",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "functions:serve": "supabase functions serve",
+    "deploy": "supabase functions deploy assessments && supabase functions deploy plus-sessions"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

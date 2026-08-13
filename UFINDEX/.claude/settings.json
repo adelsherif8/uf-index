@@ -22,7 +22,8 @@
       "Bash(sed -n '/export interface AppState/,/^};/p' src/lib/store.tsx)",
       "Bash(sed -n '/export interface ScoreResult/,/^}/p' src/lib/scoring.ts)",
       "Bash(grep -v \"^total\\\\|^d.*\\\\s\\\\.$\\\\|^d.*\\\\s\\\\.\\\\.$\")",
-      "Bash(awk '{if \\(NF>8\\) printf \"%-52s %8.0f KB\\\\n\", $9, $5/1024; else print}')"
+      "Bash(awk '{if \\(NF>8\\) printf \"%-52s %8.0f KB\\\\n\", $9, $5/1024; else print}')",
+      "WebFetch(domain:supabase.com)"
     ]
   }
 }

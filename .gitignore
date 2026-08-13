@@ -8,9 +8,11 @@
 !SETUP.md
 !UFINDEX/
 !uf-index-app/
+!uf-index-backend/
 
 # ── Inside the app ─────────────────────────────────────────────────
 uf-index-app/node_modules/
+uf-index-backend/node_modules/
 uf-index-app/.git-scaffold-archive/
 uf-index-app/.expo/
 uf-index-app/dist/
