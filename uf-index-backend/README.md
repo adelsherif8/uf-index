@@ -15,6 +15,7 @@ supabase/
     …_phase1_schema.sql                13 tables, 2 views, signup trigger
     …_rls.sql                          Row Level Security on every table
     …_seed_questionnaires.sql          WHO-5, PSS-10 and PSQI items, verbatim
+    …_account_rpc.sql                  delete_my_account(), export_my_data()
   functions/
     _shared/scoring.ts                 THE scoring engine — must match the app
     _shared/http.ts                    CORS + JSON helpers
@@ -141,6 +142,17 @@ Validates every field and rejects with `422` and a readable list of problems. Up
 
 Returns `{ id, code, raw, scaled, band }`.
 
+### `POST /rest/v1/rpc/delete_my_account`
+
+Hard-deletes the caller and everything that cascades from `auth.users`. Takes no arguments —
+it reads the user from the JWT, so it can only ever delete you. The app calls this **before**
+clearing local storage, and refuses to claim success if it fails.
+
+### `POST /rest/v1/rpc/export_my_data`
+
+Returns one JSON object with the caller's profile, settings, consents, assessments (with scores)
+and Plus sessions. DPDP portability, in one call.
+
 ### Plain reads (PostgREST, no function needed)
 
 ```
@@ -157,10 +169,9 @@ RLS already scopes these to the signed-in user.
 
 | | |
 |---|---|
-| `GET /me/export` | full JSON dump (DPDP portability) |
-| `DELETE /me` | real delete; cascades from `auth.users` |
-| Devices + reminder job | store Expo push tokens, send the Sunday nudge |
-| Backfill script | recompute scores when the formula changes |
+| Reminder job | a scheduled function that reads `devices` and sends the Sunday nudge |
+| Backfill script | recompute `assessment_scores` when the formula changes |
+| Coach access | Phase 2 — a coach reading their own clients' rows |
 
 Then the app-side wiring — see **`../BACKEND_INTEGRATION.md`**.
 

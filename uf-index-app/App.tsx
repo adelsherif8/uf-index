@@ -13,6 +13,7 @@ import { NavCtx, Screen } from './src/lib/nav';
 import { StoreProvider, useStore } from './src/lib/store';
 import { DraftProvider } from './src/lib/draft';
 import { initFx } from './src/lib/fx';
+import { syncNow } from './src/lib/sync';
 import * as Notifications from 'expo-notifications';
 import * as NativeSplash from 'expo-splash-screen';
 import { SplashScreen, WelcomeScreen, AuthScreen, ConsentScreen } from './src/screens/onboarding';
@@ -63,7 +64,7 @@ const BACK: Partial<Record<Screen, Screen>> = {
 };
 
 function Root() {
-  const { state, ready } = useStore();
+  const { state, ready, patch } = useStore();
   const [screen, setScreen] = useState<Screen>('splash');
   const [booted, setBooted] = useState(false);
   const anim = useRef(new Animated.Value(1)).current;
@@ -101,6 +102,15 @@ function Root() {
       toValue: 1, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: true,
     }).start();
   }, [screen, anim]);
+
+  // Sync on launch. Safe when there's no backend, no session or no network:
+  // it returns immediately and the app stays fully offline.
+  useEffect(() => {
+    if (!ready) return;
+    syncNow(state.records, next => patch({ records: next }), state.profile.age)
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   useEffect(() => {
     if (ready && !booted) {

@@ -10,6 +10,8 @@ import { setSound, getSound, vib } from '../lib/fx';
 import { scheduleWeeklyReminder, cancelReminders } from '../lib/notify';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { exportMyData, deleteMyAccount, isConfigured } from '../lib/api';
+import { resetSyncState, unsyncedCount } from '../lib/sync';
 
 export function SettingsScreen() {
   const nav = useNav();
@@ -27,7 +29,18 @@ export function SettingsScreen() {
         {
           text: 'Delete my data', style: 'destructive',
           onPress: async () => {
+            // Server first. If it fails we stop — the promise is that the data
+            // is really gone, and wiping only the phone would be a lie.
+            const serverOk = await deleteMyAccount();
+            if (!serverOk) {
+              Alert.alert(
+                'Could not delete',
+                'We could not reach the server to delete your data, so nothing was removed. Check your connection and try again.',
+              );
+              return;
+            }
             await AsyncStorage.clear().catch(() => {});
+            await resetSyncState();
             await cancelReminders();
             patch({
               profile: { name: '', email: '', age: '', organization: '', gender: 'male' },
@@ -92,17 +105,30 @@ export function SettingsScreen() {
       }} />
       <Btn label="Export my data (JSON)" variant="ghost" style={{ marginTop: 10 }} onPress={async () => {
         try {
+          const server = await exportMyData().catch(() => null);
+          const payload = { exportedAt: new Date().toISOString(), onThisPhone: state, onTheServer: server };
           const path = `${FileSystem.cacheDirectory}uf-index-export.json`;
-          await FileSystem.writeAsStringAsync(path, JSON.stringify(state, null, 2));
+          await FileSystem.writeAsStringAsync(path, JSON.stringify(payload, null, 2));
           if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(path, { mimeType: 'application/json' });
         } catch {}
       }} />
       <Btn label="Delete all my data" variant="ghost" onPress={deleteAll} style={{ marginTop: 10 }} />
+      <Text style={st.syncNote}>
+        {!isConfigured()
+          ? `Stored on this phone only \u2014 ${state.records.length} check-in${state.records.length === 1 ? '' : 's'}.`
+          : unsyncedCount(state.records) === 0
+            ? 'All check-ins backed up.'
+            : `${unsyncedCount(state.records)} check-in${unsyncedCount(state.records) === 1 ? '' : 's'} waiting to back up.`}
+      </Text>
     </ScreenShell>
   );
 }
 
 const st = StyleSheet.create({
+  syncNote: {
+    fontFamily: FONT.ui, fontSize: 12, color: C.white73,
+    marginTop: 14, textAlign: 'center',
+  },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 },
   rowTxt: { color: C.white, fontSize: 14, fontFamily: FONT.ui },
   about: { color: C.whiteA6, fontSize: 12.5, lineHeight: 19 },

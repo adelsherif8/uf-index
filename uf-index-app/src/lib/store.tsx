@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AssessmentInput, ScoreResult } from './scoring';
+import { syncNow } from './sync';
 
 export interface Profile {
   name: string;
@@ -15,10 +16,11 @@ export interface Profile {
 export interface Consents { clause: boolean; coach: boolean; social: boolean }
 
 export interface AssessmentRecord {
-  id: string;
-  takenAt: string; // ISO
+  id: string;          // also the client_id the server upserts on
+  takenAt: string;     // ISO
   input: AssessmentInput;
   result: ScoreResult;
+  synced?: boolean;    // false/undefined = still local only
 }
 
 export interface PlusResult {
@@ -60,7 +62,7 @@ const DEFAULT_STATE: AppState = {
 };
 
 const KEY = 'uf-index-state-v1';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;   // v3 added AssessmentRecord.synced
 
 /** Accepts both the v1 legacy shape (bare state) and the versioned envelope. */
 function parseStored(raw: string): Partial<AppState> {
@@ -115,7 +117,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       takenAt: new Date().toISOString(),
       input, result,
     };
-    persist({ ...stateRef.current, records: [...stateRef.current.records, rec], onboarded: true });
+    const records = [...stateRef.current.records, rec];
+    persist({ ...stateRef.current, records, onboarded: true });
+    // Send it up in the background. Failing is fine — it stays marked unsynced
+    // and the next launch retries. The user never waits on this.
+    syncNow(records, next => patch({ records: next }), stateRef.current.profile.age)
+      .catch(() => {});
     return rec;
   };
 
