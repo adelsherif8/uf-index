@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
+import { isConfigured, signUp, signIn, recordConsents } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, CheckRow, Card } from '../components/ui';
 import { STRINGS } from '../lib/i18n';
 
@@ -92,20 +93,75 @@ export function AuthScreen() {
   const nav = useNav();
   const { state, patch } = useStore();
   const [email, setEmail] = useState(state.profile.email);
+  const [password, setPassword] = useState('');
+  const [mode, setMode] = useState<'up' | 'in'>('up');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  const live = isConfigured();   // false until a Supabase project is wired up
+
+  /** Guest: nothing leaves the phone. Always available, even when live. */
+  const asGuest = () => { patch({ profile: { ...state.profile, email } }); nav.go('consent'); };
+
+  const submit = async () => {
+    if (!live) return asGuest();          // no backend yet — behave as before
+    setErr('');
+    if (!email.trim()) return setErr('Email is required.');
+    if (password.length < 8) return setErr('Password must be at least 8 characters.');
+
+    setBusy(true);
+    try {
+      const { error } = mode === 'up'
+        ? await signUp(email.trim(), password)
+        : await signIn(email.trim(), password);
+      if (error) { setErr(error.message); return; }
+      patch({ profile: { ...state.profile, email: email.trim() } });
+      nav.go('consent');
+    } catch {
+      setErr('Could not reach the server. Check your connection, or continue as a guest.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <ScreenShell
       stepLabel="Welcome"
       cta={
         <>
-          <Btn label="Sign up" onPress={() => { patch({ profile: { ...state.profile, email } }); nav.go('consent'); }} />
-          <Btn label="Continue as guest →" variant="ghost" onPress={() => nav.go('consent')} />
+          <Btn
+            label={busy ? 'One moment…' : !live ? 'Sign up' : mode === 'up' ? 'Create account' : 'Sign in'}
+            disabled={busy}
+            onPress={submit}
+          />
+          {live && (
+            <Btn
+              label={mode === 'up' ? 'I already have an account' : 'Create one instead'}
+              variant="ghost" disabled={busy}
+              onPress={() => { setErr(''); setMode(mode === 'up' ? 'in' : 'up'); }}
+            />
+          )}
+          <Btn label="Continue as guest →" variant="ghost" disabled={busy} onPress={asGuest} />
         </>
       }
     >
-      <H2>Create your account</H2>
-      <Sub>Accounts arrive with the backend — for now everything lives on this phone either way. Guest mode is the honest default.</Sub>
-      <Field label="Email" value={email} onChange={setEmail} keyboard="email-address" placeholder="you@example.com" />
-      <Field label="Password" value="••••••••••" onChange={() => {}} secure />
+      <H2>{!live || mode === 'up' ? 'Create your account' : 'Welcome back'}</H2>
+      <Sub>
+        {live
+          ? 'An account backs up your check-ins and lets a coach see them — only if you allow it on the next screen. Guest mode keeps everything on this phone.'
+          : 'Accounts arrive with the backend — for now everything lives on this phone either way. Guest mode is the honest default.'}
+      </Sub>
+      <Field
+        label="Email" value={email} onChange={t => { setEmail(t); setErr(''); }}
+        keyboard="email-address" placeholder="you@example.com"
+        required={live} error={err && !password ? err : undefined}
+      />
+      <Field
+        label="Password" value={live ? password : '••••••••••'}
+        onChange={t => { if (live) { setPassword(t); setErr(''); } }}
+        secure placeholder={live ? 'At least 8 characters' : undefined}
+        required={live} error={err && password ? err : undefined}
+      />
     </ScreenShell>
   );
 }
@@ -120,7 +176,14 @@ export function ConsentScreen() {
       onBack={() => nav.go('auth')}
       cta={<Btn label={c.clause ? 'Agree & start charging' : 'Approve the clause to continue'}
         variant={c.clause ? 'gold' : 'ghost'}
-        onPress={() => { if (!c.clause) return; patch({ consents: c }); nav.go('profile'); }} />}
+        onPress={() => {
+          if (!c.clause) return;
+          patch({ consents: c });
+          // Recorded against the signed-in user with a policy version and a
+          // timestamp — that's what DPDP asks for. No-ops for guests.
+          recordConsents(c).catch(() => {});
+          nav.go('profile');
+        }} />}
     >
       <H2>Your data, your call</H2>
       <Sub>UF Index uses health-related information. Here's exactly what happens with it.</Sub>

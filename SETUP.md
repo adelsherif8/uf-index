@@ -140,6 +140,123 @@ Commit small and often. A commit is a save point you can always return to.
 
 ---
 
+## 7 · Switch on the backend (Supabase)
+
+Until you do this, the app is local-only: everything works, nothing leaves the phone.
+This is the whole go-live path. Roughly 30 minutes, most of it waiting.
+
+### 7.1 · Create the project
+
+1. Go to **https://supabase.com** → sign in with GitHub → **New project**
+2. Organisation: create one called **UFAS**
+3. Name: `uf-index-prod` · Region: **Mumbai (ap-south-1)** — the users are in India, and
+   under DPDP it is far easier to argue about data that never left the country
+4. Database password: generate one and **put it in the team password manager immediately**.
+   It is shown once. Losing it means resetting the database.
+5. Wait ~2 minutes for it to provision.
+
+### 7.2 · Apply the schema
+
+From `uf-index-backend/`:
+
+```bash
+npx supabase login                      # opens a browser
+npx supabase link --project-ref <ref>   # <ref> is in the dashboard URL
+npx supabase db push                    # runs all four migrations
+```
+
+`db push` talks to the hosted database directly — **no Docker needed**.
+
+Check it worked: dashboard → **Table Editor** → you should see 13 tables, and
+**Database → Roles/Policies** should show RLS enabled on every one of them.
+
+Then, still important:
+
+```bash
+npx supabase db advisors                # must come back with no unresolved warnings
+```
+
+### 7.3 · Deploy the two Edge Functions
+
+```bash
+npx supabase functions deploy assessments
+npx supabase functions deploy plus-sessions
+```
+
+If that asks for Docker, use `--use-api` to bundle server-side instead:
+
+```bash
+npx supabase functions deploy assessments --use-api
+```
+
+Failing that, paste the file contents into **Dashboard → Edge Functions → Deploy a new function**.
+
+### 7.4 · Turn off the confirmation email (for now)
+
+**Authentication → Sign In / Providers → Email** → switch **Confirm email** off while testing,
+so accounts work instantly. Turn it back on before real users touch it, and set the sender
+domain under **Authentication → Emails** — the default Supabase sender is rate-limited to a
+handful of messages an hour and will not survive a launch.
+
+### 7.5 · Point the app at it
+
+**Settings → API** in the dashboard. Copy the **Project URL** and the **anon / publishable** key.
+
+```bash
+cd uf-index-app
+cp .env.example .env
+```
+
+Fill it in:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+```
+
+> The anon key is **meant** to ship inside the app — RLS is what protects the data.
+> The `service_role` key must never go in `.env`, in the app, or in git. It bypasses RLS entirely.
+> `.env` is gitignored; keep it that way.
+
+Then **restart Metro completely**:
+
+```bash
+npx expo start -c
+```
+
+`EXPO_PUBLIC_*` variables are baked into the bundle at build time. A Metro that was already
+running will not pick up a new `.env` — this catches everyone once.
+
+### 7.6 · Prove it works
+
+1. Open the app → the auth screen now says *"An account backs up your check-ins…"*.
+   If it still says *"Accounts arrive with the backend"*, `.env` was not picked up — redo 7.5.
+2. Create an account → dashboard → **Authentication → Users** shows it, and **Table Editor →
+   profiles** has a matching row (the signup trigger made it).
+3. Agree to the consents → `user_consents` has **three** rows, with a policy version.
+4. Complete a check-in → `assessments` has the raw answers, `assessment_scores` has the score.
+   **Compare that score to what the ticket showed.** They must be identical — same engine, both sides.
+5. Delete the app and reinstall → sign in → your history comes back down.
+6. **Airplane mode** → complete a check-in → it still works and shows a score. Turn the network
+   back on, reopen the app → the row appears server-side. This is the one that matters most.
+7. Two accounts: sign in as B and try to read A's rows. You must get nothing back. That is RLS
+   doing its job, and it is worth testing by hand rather than trusting.
+
+### 7.7 · Ship it
+
+```bash
+cd uf-index-app
+eas build --profile preview --platform android    # new APK, now with the backend baked in
+```
+
+The APK people already have on their phones is still local-only — `.env` is compiled in, so
+an OTA update alone will not switch them over. They need a new build.
+
+Their existing local history is safe: the first sign-in pushes everything on the phone up
+**before** pulling anything down.
+
+---
+
 ## Troubleshooting
 
 | Problem | Fix |
@@ -149,3 +266,15 @@ Commit small and often. A commit is a save point you can always return to.
 | QR scans but won't load | `npx expo start --tunnel -c` |
 | Weird build errors after pulling | `rm -rf node_modules && npm install`, then `npx expo start -c` |
 | Metro cache acting up | `npx expo start -c` (the `-c` clears the cache) |
+
+**The app still says "Accounts arrive with the backend" after adding `.env`**
+Metro cached the old bundle. Stop it and run `npx expo start -c`. `EXPO_PUBLIC_*` is
+compile-time, not runtime.
+
+**`db push` says "Docker is not running"**
+It shouldn't — `db push` goes straight to the hosted database. If you see this you're on
+`supabase start` or `db reset` instead, which are the local-only commands.
+
+**Sign-up returns "Email address is invalid"**
+Supabase blocks some disposable domains by default. Use a real address, or turn the
+restriction off under Authentication → Providers → Email.
