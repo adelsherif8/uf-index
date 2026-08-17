@@ -4,10 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UF Index Store Setup · UFAS</title>
-<meta name="description" content="Step-by-step runbook for opening the Apple and Google Play developer accounts for UF Index.">
+<meta name="description" content="Runbook for opening the Apple and Google Play developer accounts for UF Index.">
 <meta name="robots" content="noindex">
-<meta property="og:title" content="UF Index Store Setup">
-<meta property="og:description" content="Opening the Apple and Google Play developer accounts for UF Index.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
 <style>
@@ -186,70 +184,86 @@
 
   <p class="eyebrow">UFAS · UF Index</p>
   <h1>Getting UF Index onto the App Store and Google Play</h1>
-  <p class="lede">Two developer accounts under one legal entity. The D&#8209;U&#8209;N&#8209;S number is
-  issued, so both can be opened now — this is what each store asks for, in the order it asks.</p>
+  <p class="lede">Two developer accounts under one legal entity. This is what each store asks for, in the
+  order it asks — and which of our two D&#8209;U&#8209;N&#8209;S records to use.</p>
 
   <div class="glance">
     <div class="gcell"><span>Google Play</span><b>$25</b><em>one-time, forever</em></div>
     <div class="gcell"><span>Apple Developer</span><b>$99<span style="font-size:13px">/yr</span></b><em>renews annually — diarise it</em></div>
-    <div class="gcell"><span>D-U-N-S</span><b>In hand</b><em>both accounts can open now</em></div>
-    <div class="gcell"><span>Long pole</span><b>Apple</b><em>their verification call sets the date</em></div>
+    <div class="gcell"><span>D-U-N-S</span><b>Pending</b><em>the one we have is the wrong entity</em></div>
+    <div class="gcell"><span>Blocked on</span><b>UF Studios</b><em>neither store opens without it</em></div>
   </div>
 
-  <div class="flag good">
-    <h3>The D-U-N-S number is in hand — both accounts can be opened now</h3>
-    <p>Google Play is comfortably a next-week job: verification usually clears in a few days.
-    <b>Apple is the long pole and is not fully in our control</b> — enrolment hinges on Apple telephoning
-    the number on the Dun &amp; Bradstreet record, and that call arrives when it arrives. Plan for Play to
-    be finished next week and Apple to be <b>submitted</b> next week, not necessarily approved.</p>
+  <div class="flag">
+    <h3>We have two D-U-N-S records — use neither yet</h3>
+    <p>An Apple email arrived carrying <b>854213000, issued to UF Academy Foundation</b>. That almost
+    certainly came from Apple's own D&#8209;U&#8209;N&#8209;S look-up tool: when an organisation starts
+    enrolment without a number, the tool requests a free one from Dun &amp; Bradstreet on your behalf. So
+    somebody beginning the enrolment under the Foundation name would have triggered it, without necessarily
+    realising a number was being created.</p>
+    <p><b>It is harmless.</b> A D&#8209;U&#8209;N&#8209;S is only a business identifier — it costs nothing,
+    expires on nothing, and needs no cancelling. Leave it. It simply must not be the one we enrol with.</p>
+    <p>The number we want is the one applied for under <b>UF Studios Private Limited</b>, which is still
+    with Dun &amp; Bradstreet. Until it lands, <b>neither store account can be opened</b> — Google Play
+    requires a D&#8209;U&#8209;N&#8209;S for organisation accounts exactly as Apple does.</p>
   </div>
 
   <section style="margin-top:44px">
-    <div class="shead"><span class="snum">00</span><h2>Next week, in order</h2></div>
+    <div class="shead"><span class="snum">00</span><h2>Why UF Studios and not the Foundation</h2></div>
     <div class="tscroll">
       <table>
-        <thead><tr><th>When</th><th>What</th><th>Who</th></tr></thead>
+        <thead><tr><th>&nbsp;</th><th>UF Studios Pvt Ltd</th><th>UF Academy Foundation</th></tr></thead>
         <tbody>
-          <tr><td class="num"><b>Mon AM</b></td>
-            <td>Confirm the registered name and address on the D&#8209;U&#8209;N&#8209;S record, character
-              for character. Create the shared company email. Collect the three documents in section 02.</td>
-            <td>Adel</td></tr>
-          <tr><td class="num"><b>Mon PM</b></td>
-            <td><b>Start the Apple enrolment first</b> — it is the slowest, so it should be waiting while
-              everything else happens. Check that the phone number on the D&#8209;U&#8209;N&#8209;S record
-              is answered, and warn whoever sits near it.</td>
-            <td>Adel</td></tr>
-          <tr><td class="num"><b>Mon PM</b></td>
-            <td>Open the Play Console organisation account, pay the $25, submit for verification.</td>
-            <td>Adel</td></tr>
-          <tr><td class="num"><b>Tue–Thu</b></td>
-            <td>Everything in section 05 while verification runs: privacy policy moved to
-              ufaslive.com, grievance officer and retention period filled in, data safety declarations,
-              screenshots, listing copy.</td>
-            <td>Adel · Sri</td></tr>
-          <tr><td class="num"><b>Thu–Fri</b></td>
-            <td>Play verification should have cleared. Create the app entry, upload a first build to
-              internal testing. Answer Apple's call whenever it comes.</td>
-            <td>Adel</td></tr>
+          <tr><td><b>Subscription revenue</b></td>
+            <td>Normal commercial income for a private limited company.</td>
+            <td>Commercial income through a foundation is a tax and compliance question — one for your
+              accountant, not for the app team.</td></tr>
+          <tr><td><b>Store payment checks</b></td>
+            <td>Straightforward. Both stores expect a trading entity behind a paid app.</td>
+            <td>Extra scrutiny is likely once a paid subscription is attached.</td></tr>
+          <tr><td><b>Public developer name</b></td>
+            <td>"UF Studios Private Limited" beside the app.</td>
+            <td>"UF Academy Foundation" beside a ₹399/month subscription — a mismatch users notice.</td></tr>
+          <tr><td><b>Changing later</b></td>
+            <td colspan="2">Re-verification with both Apple and Google, and the public developer name
+              changes. Genuinely painful — which is why this is worth settling before Monday.</td></tr>
         </tbody>
       </table>
     </div>
-    <p style="margin-top:14px">The one thing that cannot be hurried is Apple's verification call. Starting
-    that enrolment on Monday morning rather than Friday afternoon is worth more than anything else on this
-    list.</p>
+    <p style="margin-top:14px">One point worth raising rather than assuming: Apple waives its annual fee
+    for some eligible non-profits. If that mattered to UFAS it would be an argument for the Foundation —
+    but it does not sit well beside a paid subscription, and $99 a year is not the deciding factor here.
+    Flagging it so the choice is made knowingly.</p>
+  </section>
+
+  <section style="margin-top:44px">
+    <div class="shead"><span class="snum">01</span><h2>What to do while the number is pending</h2></div>
+    <p>Nothing below waits on Dun &amp; Bradstreet, and all of it is required before either store accepts a
+    submission — so the day the number lands there is nothing left but typing it in.</p>
+    <ul class="plain">
+      <li><b>Chase D&amp;B.</b> Two to four weeks is typical in India. If the application is already a week
+        or more old, a call is worth more than waiting quietly.</li>
+      <li><b>Create the shared company email</b> and the Apple ID on it, with two-factor turned on.
+        Never a personal account.</li>
+      <li><b>Check the phone number on the Studios application.</b> Apple telephones it to verify. A
+        stale number is the most common reason enrolment stalls for weeks.</li>
+      <li><b>Everything in section 05</b> — privacy policy on ufaslive.com, grievance officer, retention
+        period, data safety declarations, screenshots, listing copy.</li>
+    </ul>
   </section>
 
   <!-- ══════════════════════════════════════════ 01 -->
   <section>
-    <div class="shead"><span class="snum">01</span><h2>Confirm the entity on the record</h2></div>
-    <p>The D&#8209;U&#8209;N&#8209;S number is issued, so the entity is already settled — but it is worth
-    five minutes to check <b>which</b> entity it was issued to before opening either account. That name
-    becomes the <b>developer name shown publicly on both stores</b>, and changing it later means
-    re-verification with both Apple and Google.</p>
-    <p>If the record is under <b>UF Studios Private Limited</b>, proceed. If it came back under UF Academy
-    Foundation, pause and raise it: UF Index charges a subscription, and a private limited company is the
-    cleaner home for subscription revenue than a foundation — both for the stores' payment checks and for
-    your own accounts.</p>
+    <div class="shead"><span class="snum">02</span><h2>Confirm the entity on the record</h2></div>
+    <p>When the UF Studios number arrives, check three things on the record before opening either account.
+    The name on it becomes the <b>developer name shown publicly on both stores</b>.</p>
+    <ul class="plain">
+      <li><b>Legal name, character for character.</b> "Pvt Ltd" against "Private Limited" is enough to
+        fail Google's verification.</li>
+      <li><b>A physical address.</b> Google explicitly rejects a registered-agent address — it must be
+        somewhere the business actually sits.</li>
+      <li><b>A phone number somebody answers.</b> Apple calls it.</li>
+    </ul>
     <p>Confirm before anyone opens a form: exact registered name, registered address, and <b>who holds
     authority to sign on the company's behalf</b>. Both stores verify that person individually, and Google
     requires them to appear on the business registration.</p>
@@ -257,7 +271,7 @@
 
   <!-- ══════════════════════════════════════════ 02 -->
   <section>
-    <div class="shead"><span class="snum">02</span><h2>Gather the paperwork once</h2></div>
+    <div class="shead"><span class="snum">03</span><h2>Gather the paperwork once</h2></div>
     <p>Both stores want broadly the same evidence. Collecting it once, as clean PDFs in a shared folder,
     saves doing it twice under time pressure.</p>
     <ul class="plain">
@@ -274,7 +288,7 @@
 
   <!-- ══════════════════════════════════════════ 03 -->
   <section>
-    <div class="shead"><span class="snum">03</span><h2>The two tracks</h2></div>
+    <div class="shead"><span class="snum">04</span><h2>The two tracks</h2></div>
     <p>Run these in parallel — they share no dependency beyond the entity and the
     D&#8209;U&#8209;N&#8209;S number.</p>
 
@@ -320,7 +334,7 @@
 
   <!-- ══════════════════════════════════════════ 04 -->
   <section>
-    <div class="shead"><span class="snum">04</span><h2>Two things worth knowing now</h2></div>
+    <div class="shead"><span class="snum">05</span><h2>Two things worth knowing now</h2></div>
 
     <div class="flag good">
       <h3>Good news — the testing gate does not apply to you</h3>
@@ -344,7 +358,7 @@
 
   <!-- ══════════════════════════════════════════ 05 -->
   <section>
-    <div class="shead"><span class="snum">05</span><h2>What can be finished this week regardless</h2></div>
+    <div class="shead"><span class="snum">06</span><h2>What can be finished this week regardless</h2></div>
     <p>None of this waits on the D&#8209;U&#8209;N&#8209;S number, and all of it is required before either
     store will accept a submission.</p>
     <div class="tscroll">
@@ -377,7 +391,7 @@
 
   <!-- ══════════════════════════════════════════ 06 -->
   <section>
-    <div class="shead"><span class="snum">06</span><h2>Costs</h2></div>
+    <div class="shead"><span class="snum">07</span><h2>Costs</h2></div>
     <div class="tscroll">
       <table>
         <thead>
