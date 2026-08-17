@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UF Index Store Setup · UFAS</title>
+<meta name="description" content="Step-by-step runbook for opening the Apple and Google Play developer accounts for UF Index under one legal entity.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="UF Index Store Setup">
+<meta property="og:description" content="Opening the Apple and Google Play developer accounts for UF Index.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
+<style>
+  /* ---- tokens: light is the base, both dark states redefine only tokens ---- */
+  :root{
+    --auburn:#741610; --gold:#D29133; --ink:#0D0D0D; --paper:#FFFFFF;
+    --ground:#FFFFFF;
+    --surface:rgba(116,22,16,.035);
+    --surface-2:rgba(116,22,16,.07);
+    --line:rgba(116,22,16,.16);
+    --line-soft:rgba(116,22,16,.09);
+    --text:#0D0D0D;
+    --text-mut:rgba(13,13,13,.62);
+    --text-faint:rgba(13,13,13,.42);
+    --head:#741610;
+    --accent:#8A5410;
+    --accent-bg:rgba(210,145,51,.13);
+    --disp:Georgia,'Times New Roman',serif;
+    --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0D0D0D;
+      --surface:rgba(116,22,16,.22);
+      --surface-2:rgba(116,22,16,.34);
+      --line:rgba(116,22,16,.85);
+      --line-soft:rgba(255,255,255,.10);
+      --text:#FFFFFF;
+      --text-mut:rgba(255,255,255,.66);
+      --text-faint:rgba(255,255,255,.44);
+      --head:#D29133;
+      --accent:#D29133;
+      --accent-bg:rgba(210,145,51,.15);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0D0D0D;
+    --surface:rgba(116,22,16,.22);
+    --surface-2:rgba(116,22,16,.34);
+    --line:rgba(116,22,16,.85);
+    --line-soft:rgba(255,255,255,.10);
+    --text:#FFFFFF;
+    --text-mut:rgba(255,255,255,.66);
+    --text-faint:rgba(255,255,255,.44);
+    --head:#D29133;
+    --accent:#D29133;
+    --accent-bg:rgba(210,145,51,.15);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--text);
+    font-family:var(--ui); font-size:15px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:840px; margin:0 auto; padding:44px 22px 90px}
+
+  .eyebrow{
+    font-size:10.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); font-weight:700; margin:0 0 12px;
+  }
+  h1{
+    font-family:var(--disp); font-weight:600; letter-spacing:-.01em;
+    font-size:clamp(28px,5.4vw,40px); line-height:1.12; margin:0 0 10px;
+    text-wrap:balance; color:var(--text);
+  }
+  .lede{font-size:16px; color:var(--text-mut); margin:0; max-width:60ch}
+
+  h2{
+    font-family:var(--disp); font-weight:600; font-size:22px; line-height:1.25;
+    margin:0 0 4px; color:var(--head); text-wrap:balance;
+  }
+  h3{font-size:14px; font-weight:700; margin:0 0 6px; color:var(--text)}
+  p{margin:0 0 12px; color:var(--text-mut); max-width:68ch}
+  p:last-child{margin-bottom:0}
+  b,strong{color:var(--text); font-weight:650}
+  a{color:var(--accent); text-underline-offset:2px}
+
+  section{margin-top:52px}
+  .shead{
+    display:flex; align-items:baseline; gap:12px;
+    padding-bottom:10px; margin-bottom:20px; border-bottom:1px solid var(--line);
+  }
+  .snum{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+    letter-spacing:.08em; flex:none; padding-top:3px;
+  }
+
+  /* ---- at-a-glance ---- */
+  .glance{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1px;
+    background:var(--line-soft); border:1px solid var(--line-soft);
+    border-radius:12px; overflow:hidden; margin-top:30px;
+  }
+  .gcell{background:var(--ground); padding:16px 18px}
+  .gcell span{
+    display:block; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--text-faint); font-weight:700; margin-bottom:5px;
+  }
+  .gcell b{font-size:19px; font-family:var(--disp); font-weight:600; display:block; line-height:1.25}
+  .gcell em{font-style:normal; font-size:12.5px; color:var(--text-mut); display:block; margin-top:2px}
+
+  /* ---- callout ---- */
+  .flag{
+    border:1px solid var(--line); border-left:3px solid var(--accent);
+    background:var(--surface); border-radius:0 12px 12px 0;
+    padding:18px 20px; margin:26px 0;
+  }
+  .flag h3{color:var(--accent); font-size:12.5px; letter-spacing:.05em; text-transform:uppercase}
+  .flag.good{border-left-color:var(--head)}
+  .flag.good h3{color:var(--head)}
+
+  /* ---- step lists (genuine sequences only) ---- */
+  ol.steps{list-style:none; margin:0; padding:0; counter-reset:s}
+  ol.steps > li{
+    counter-increment:s; position:relative; padding:0 0 20px 42px; margin:0;
+  }
+  ol.steps > li::before{
+    content:counter(s,decimal-leading-zero);
+    position:absolute; left:0; top:1px;
+    font-family:var(--mono); font-size:11px; font-weight:700;
+    color:var(--accent); letter-spacing:.04em;
+  }
+  ol.steps > li::after{
+    content:''; position:absolute; left:11px; top:20px; bottom:2px; width:1px;
+    background:var(--line-soft);
+  }
+  ol.steps > li:last-child{padding-bottom:0}
+  ol.steps > li:last-child::after{display:none}
+  ol.steps p{margin:0; font-size:14px}
+  ol.steps p + p{margin-top:5px}
+
+  ul.plain{margin:0; padding-left:19px}
+  ul.plain li{color:var(--text-mut); margin:5px 0; font-size:14px}
+
+  /* ---- tracks ---- */
+  .tracks{display:grid; grid-template-columns:1fr; gap:22px}
+  @media (min-width:760px){ .tracks{grid-template-columns:1fr 1fr; gap:26px} }
+  .track{
+    border:1px solid var(--line); border-radius:14px; padding:22px;
+    background:var(--surface); min-width:0;
+  }
+  .track > h2{font-size:19px; margin-bottom:2px}
+  .tmeta{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint);
+    letter-spacing:.04em; margin-bottom:18px;
+  }
+
+  /* ---- table ---- */
+  .tscroll{overflow-x:auto; border:1px solid var(--line-soft); border-radius:12px}
+  table{border-collapse:collapse; width:100%; font-size:14px; min-width:460px}
+  th,td{text-align:left; padding:11px 15px; border-bottom:1px solid var(--line-soft)}
+  th{
+    font-size:10px; letter-spacing:.15em; text-transform:uppercase;
+    color:var(--text-faint); font-weight:700; background:var(--surface);
+  }
+  tr:last-child td{border-bottom:0}
+  td.num{font-variant-numeric:tabular-nums; white-space:nowrap}
+  td b{font-weight:650}
+
+  code{
+    font-family:var(--mono); font-size:12.5px; background:var(--accent-bg);
+    padding:1.5px 5px; border-radius:4px; color:var(--text);
+  }
+
+  .foot{
+    margin-top:64px; padding-top:18px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--text-faint);
+  }
+  .foot a{color:var(--text-faint)}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">UFAS · UF Index</p>
+  <h1>Getting UF Index onto the App Store and Google Play</h1>
+  <p class="lede">Two developer accounts, both opened under one legal entity, both gated on the same
+  D&#8209;U&#8209;N&#8209;S number. This is what each store asks for, in the order it asks.</p>
+
+  <div class="glance">
+    <div class="gcell"><span>Google Play</span><b>$25</b><em>one-time, forever</em></div>
+    <div class="gcell"><span>Apple Developer</span><b>$99<span style="font-size:13px">/yr</span></b><em>renews annually — diarise it</em></div>
+    <div class="gcell"><span>Blocked on</span><b>D-U-N-S</b><em>neither account opens without it</em></div>
+    <div class="gcell"><span>Realistic window</span><b>1–3 weeks</b><em>from the day D-U-N-S lands</em></div>
+  </div>
+
+  <div class="flag">
+    <h3>Read this before promising a date</h3>
+    <p>Both stores refuse to open an organisation account without a D&#8209;U&#8209;N&#8209;S number, and
+    in India that number takes <b>two to four weeks</b> to issue. If it is already in hand, next week is
+    comfortable. If the application is still with Dun &amp; Bradstreet, next week is not achievable for the
+    accounts themselves — but everything in <b>section 05</b> can still be finished, so the day the number
+    arrives there is nothing left to do but type it in.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════ 01 -->
+  <section>
+    <div class="shead"><span class="snum">01</span><h2>Settle the legal entity first</h2></div>
+    <p>This is the one decision that is genuinely painful to undo. The entity name on the
+    D&#8209;U&#8209;N&#8209;S record becomes the <b>developer name shown publicly on both stores</b>, and it
+    must match your incorporation documents character for character. Changing it later means re-verification
+    with both Apple and Google.</p>
+    <p>The recommendation stands: enrol as <b>UF Studios Private Limited</b> rather than UF Academy
+    Foundation. UF Index charges a subscription, and a private limited company is the cleaner home for
+    subscription revenue than a foundation — both for the stores' payment checks and for your own accounts.</p>
+    <p>Confirm before anyone opens a form: exact registered name, registered address, and <b>who holds
+    authority to sign on the company's behalf</b>. Both stores verify that person individually, and Google
+    requires them to appear on the business registration.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ 02 -->
+  <section>
+    <div class="shead"><span class="snum">02</span><h2>Gather the paperwork once</h2></div>
+    <p>Both stores want broadly the same evidence. Collecting it once, as clean PDFs in a shared folder,
+    saves doing it twice under time pressure.</p>
+    <ul class="plain">
+      <li><b>Certificate of Incorporation</b> — or equivalent government registration</li>
+      <li><b>Proof of physical address</b> — a utility bill or bank statement in the company's name.
+        Google explicitly rejects a registered-agent address, so it must be somewhere the business actually sits</li>
+      <li><b>Authorised representative's photo ID</b> — and they must be named on the business registration</li>
+      <li><b>A working phone number on the D&#8209;U&#8209;N&#8209;S record</b> — see the Apple track; this
+        one derails more enrolments than anything else</li>
+      <li><b>A shared company email</b> — <code>apps@ufaslive.com</code> or similar. Never a personal
+        Gmail or a personal Apple ID; recovering an account tied to someone who has left is genuinely awful</li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════════════════════ 03 -->
+  <section>
+    <div class="shead"><span class="snum">03</span><h2>The two tracks</h2></div>
+    <p>Run these in parallel — they share no dependency beyond the entity and the
+    D&#8209;U&#8209;N&#8209;S number.</p>
+
+    <div class="tracks">
+
+      <div class="track">
+        <h2>Google Play</h2>
+        <p class="tmeta">$25 ONE-TIME · 2–5 DAYS TYPICAL</p>
+        <ol class="steps">
+          <li><p>Sign in to <b>Play Console</b> with the shared company Google account and choose
+            <b>Organisation</b>, not Personal. This choice cannot be switched later.</p></li>
+          <li><p>Pay the <b>$25 registration fee</b>. One time, never renewed.</p></li>
+          <li><p>Enter the organisation details <b>exactly as they appear on the D&#8209;U&#8209;N&#8209;S
+            record</b>. A mismatched suffix — "Pvt Ltd" against "Private Limited" — is enough to fail
+            verification.</p></li>
+          <li><p>Upload the incorporation certificate, proof of physical address, and the authorised
+            representative's ID.</p></li>
+          <li><p>Wait for identity verification. Usually a few days; longer if anything mismatches.</p></li>
+          <li><p>Create the <b>payments profile</b>. Needed before you can sell a subscription, and worth
+            doing now rather than at launch.</p></li>
+        </ol>
+      </div>
+
+      <div class="track">
+        <h2>Apple Developer</h2>
+        <p class="tmeta">$99 / YEAR · 1–2 WEEKS TYPICAL</p>
+        <ol class="steps">
+          <li><p>Create a company <b>Apple ID</b> on the shared address and turn on two-factor
+            authentication. Apple will not enrol an account without it.</p></li>
+          <li><p>Start enrolment at <b>developer.apple.com</b> and choose <b>Organisation</b>.</p></li>
+          <li><p>Give the legal entity name and D&#8209;U&#8209;N&#8209;S number. Apple checks them
+            against the Dun &amp; Bradstreet record directly.</p></li>
+          <li><p><b>Apple telephones the number on that record to verify you.</b> Make sure someone
+            answers it and knows the call is coming — an unanswered call is the single most common reason
+            enrolment stalls for weeks.</p></li>
+          <li><p>Pay the <b>$99 annual fee</b> once approved.</p></li>
+          <li><p>In App Store Connect, accept the agreements and complete tax and banking details.</p></li>
+        </ol>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ 04 -->
+  <section>
+    <div class="shead"><span class="snum">04</span><h2>Two things worth knowing now</h2></div>
+
+    <div class="flag good">
+      <h3>Good news — the testing gate does not apply to you</h3>
+      <p>Google requires new <b>personal</b> accounts to run a closed test with 12 testers for 14
+      consecutive days before they may publish. <b>Organisation accounts registered to a legal entity are
+      exempt.</b> Enrolling as a company therefore removes a fortnight of waiting from the launch, which is
+      a second reason not to be tempted by a personal account to move faster.</p>
+    </div>
+
+    <div class="flag">
+      <h3>Check this before any more payment work</h3>
+      <p>Both stores generally require <b>their own billing systems</b> — Google Play Billing and Apple
+      In-App Purchase — for digital subscriptions bought inside an app, and both take a commission. The plan
+      to use Razorpay for the ₹399/month Plus subscription may not be permitted for in-app purchases, even
+      though it is perfectly fine for payments taken on a website.</p>
+      <p>India's rules here have been contested and have shifted more than once, so this needs verifying
+      against current policy rather than assumed either way. Worth resolving <b>before</b> anyone builds the
+      payment flow, because the answer changes what gets built.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ 05 -->
+  <section>
+    <div class="shead"><span class="snum">05</span><h2>What can be finished this week regardless</h2></div>
+    <p>None of this waits on the D&#8209;U&#8209;N&#8209;S number, and all of it is required before either
+    store will accept a submission.</p>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Where it stands</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Privacy policy at a public URL</b></td>
+            <td>Drafted and live, but on a temporary address. Both stores want it on
+            <code>ufaslive.com/privacy</code> before launch.</td></tr>
+          <tr><td><b>Grievance officer + retention period</b></td>
+            <td>Still placeholders in the policy. Required by the DPDP Act.</td></tr>
+          <tr><td><b>Data safety / privacy labels</b></td>
+            <td>Not started. Both stores require a declaration of every data type collected — and health
+            data draws closer review, so the answers must match the policy exactly.</td></tr>
+          <tr><td><b>App icon and screenshots</b></td>
+            <td>Needed at several sizes per store.</td></tr>
+          <tr><td><b>Store listing copy</b></td>
+            <td>Title, short and full description, keywords.</td></tr>
+          <tr><td><b>Content rating questionnaire</b></td>
+            <td>Short form, but it must be answered before publishing.</td></tr>
+          <tr><td><b>Medical disclaimer</b></td>
+            <td>Already written into the policy. Keep the wording consistent in the store listing —
+            wellness tool, not a medical device.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ 06 -->
+  <section>
+    <div class="shead"><span class="snum">06</span><h2>Costs</h2></div>
+    <div class="tscroll">
+      <table>
+        <thead>
+          <tr><th>Item</th><th class="num">Cost</th><th>Frequency</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Google Play developer account</b></td><td class="num">$25 · ≈₹2,100</td><td>Once, never again</td></tr>
+          <tr><td><b>Apple Developer Program</b></td><td class="num">$99 · ≈₹8,300</td><td>Every year</td></tr>
+          <tr><td><b>D-U-N-S number</b></td><td class="num">Free</td><td>Once</td></tr>
+          <tr><td><b>Supabase</b></td><td class="num">Free tier</td><td>Until usage outgrows it</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px">Roughly <b>₹10,400 to open both</b>, then ₹8,300 a year to stay on the App
+    Store. The Apple renewal is easy to forget — if it lapses, the app is pulled from sale until it is paid.</p>
+  </section>
+
+  <p class="foot">
+    UFAS · UF Index · Prepared August 2026 · Store policies change often — verify against
+    <a href="https://support.google.com/googleplay/android-developer/answer/13634885">Play Console Help</a> and
+    <a href="https://developer.apple.com/help/account/membership/program-enrollment/">Apple Developer</a>
+    at the time of enrolling.
+  </p>
+
+</div>
+
+</body>
+</html>
