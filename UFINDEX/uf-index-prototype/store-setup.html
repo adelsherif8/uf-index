@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UF Index Store Setup · UFAS</title>
-<meta name="description" content="Runbook for opening the Apple and Google Play developer accounts for UF Index.">
+<meta name="description" content="Runbook for opening the Apple and Google Play developer accounts for UF Index — who does what, and what is needed from UFAS.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
@@ -142,6 +142,28 @@
   ul.plain{margin:0; padding-left:19px}
   ul.plain li{color:var(--text-mut); margin:5px 0; font-size:14px}
 
+  /* ---- ownership ---- */
+  .own{display:grid; grid-template-columns:1fr; gap:18px; margin-top:4px}
+  @media (min-width:820px){ .own{grid-template-columns:repeat(3,1fr); gap:20px} }
+  .obox{
+    border:1px solid var(--line); border-radius:14px; padding:20px;
+    background:var(--surface); min-width:0;
+  }
+  .obox.block{border-left:3px solid var(--accent)}
+  .obox h3{
+    font-family:var(--disp); font-size:17px; font-weight:600; color:var(--head);
+    margin:0 0 2px;
+  }
+  .obox .who{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-faint); margin:0 0 14px;
+  }
+  .obox.block h3{color:var(--accent)}
+  .obox ul{margin:0; padding-left:17px}
+  .obox li{color:var(--text-mut); font-size:13.5px; margin:7px 0; line-height:1.5}
+  .obox li b{display:block; color:var(--text)}
+  .obox li span{display:block; margin-top:2px}
+
   /* ---- tracks ---- */
   .tracks{display:grid; grid-template-columns:1fr; gap:22px}
   @media (min-width:760px){ .tracks{grid-template-columns:1fr 1fr; gap:26px} }
@@ -226,7 +248,73 @@
   </section>
 
   <section style="margin-top:44px">
-    <div class="shead"><span class="snum">01</span><h2>Next week, in order</h2></div>
+    <div class="shead"><span class="snum">01</span><h2>Who does what</h2></div>
+    <p>The middle column is the one that matters. None of it can be done from the app side — it needs
+    someone with access to the organisation's records, accounts, or domain. <b>If nothing else gets read
+    from this page, read that column.</b></p>
+
+    <div class="own">
+
+      <div class="obox">
+        <h3>Adel</h3>
+        <p class="who">App &amp; store side</p>
+        <ul>
+          <li><b>Open both developer accounts</b> once the record is confirmed</li>
+          <li><b>App icon and screenshots</b> at every required size</li>
+          <li><b>Store listing copy</b> — title, short and full description, keywords</li>
+          <li><b>Content rating questionnaire</b> on both stores</li>
+          <li><b>Upload the first build</b> to internal testing</li>
+          <li><b>Move the privacy policy</b> to ufaslive.com once there is somewhere to put it</li>
+        </ul>
+      </div>
+
+      <div class="obox block">
+        <h3>Needed from UFAS</h3>
+        <p class="who">Adel cannot get these</p>
+        <ul>
+          <li><b>The D&amp;B record for 854213000</b><span>Login as the organisation, or just a screenshot
+            of name, address and phone. Everything else waits on this.</span></li>
+          <li><b>Certificate of Incorporation</b><span>For UF Academy Foundation.</span></li>
+          <li><b>Proof of physical address</b><span>Utility bill or bank statement in the organisation's
+            name. Not the accountant's office — Google rejects those.</span></li>
+          <li><b>The authorised representative</b><span>Who signs on the Foundation's behalf, their photo
+            ID, and confirmation they appear on the registration.</span></li>
+          <li><b>Who answers the phone on the D&amp;B record</b><span>Apple calls it. An unanswered call
+            stalls enrolment for weeks with no notification.</span></li>
+          <li><b>A shared company email</b><span>apps@ufaslive.com or similar — needs domain admin.</span></li>
+          <li><b>Accountant's sign-off on subscription revenue</b><span>₹399/month arriving through a
+            foundation is a tax question, not an app one.</span></li>
+          <li><b>Non-profit fee waiver</b><span>Whether UFAS qualifies for Apple's waiver, and who holds
+            the documentation. Worth checking before paying $99/year.</span></li>
+          <li><b>Grievance Officer name and email</b><span>Required by the DPDP Act. Currently a
+            placeholder in the privacy policy.</span></li>
+          <li><b>Retention period</b><span>How long backups are kept, and what happens to inactive
+            accounts. Also a placeholder.</span></li>
+          <li><b>ufaslive.com publishing access</b><span>The privacy policy has to live on the real
+            domain before launch.</span></li>
+        </ul>
+      </div>
+
+      <div class="obox">
+        <h3>Sri</h3>
+        <p class="who">Backend side</p>
+        <ul>
+          <li><b>Check the data safety answers against the schema</b><span>Both stores require every
+            collected data type declared, and reviewers compare it to the privacy policy. Health data
+            draws closer scrutiny, so it must match exactly.</span></li>
+          <li><b>Settle the billing question</b><span>Whether Google Play Billing and Apple IAP are
+            required for the ₹399/month subscription, or whether Razorpay is allowed. This decides what
+            gets built — so it should be answered before the payment flow exists.</span></li>
+          <li><b>Confirm the Supabase project is production-ready</b><span>Currently on the free tier,
+            Mumbai region.</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="margin-top:44px">
+    <div class="shead"><span class="snum">02</span><h2>Next week, in order</h2></div>
     <div class="tscroll">
       <table>
         <thead><tr><th>When</th><th>What</th><th>Who</th></tr></thead>
@@ -237,7 +325,7 @@
               phone number somebody answers. Corrections at D&amp;B can take weeks to propagate, so if
               something is wrong it is the correction, not the enrolment, that sets the launch date.
               Then: shared company email, Apple ID on it with two-factor, and the three documents in
-              section 03.</td>
+              section 04.</td>
             <td>Adel</td></tr>
           <tr><td class="num"><b>Mon AM</b></td>
             <td>Ask about the Apple non-profit fee waiver before paying anything.</td>
@@ -250,7 +338,7 @@
             <td>Open the Play Console organisation account, pay the $25, submit for verification.</td>
             <td>Adel</td></tr>
           <tr><td class="num"><b>Tue–Thu</b></td>
-            <td>Everything in section 06 while verification runs: privacy policy moved to ufaslive.com,
+            <td>Everything in section 07 while verification runs: privacy policy moved to ufaslive.com,
               grievance officer and retention period filled in, data safety declarations, screenshots,
               listing copy.</td>
             <td>Adel · Sri</td></tr>
@@ -267,7 +355,7 @@
 
   <!-- ══════════════════════════════════════════ 01 -->
   <section>
-    <div class="shead"><span class="snum">02</span><h2>Check the record before you start</h2></div>
+    <div class="shead"><span class="snum">03</span><h2>Check the record before you start</h2></div>
     <p>Both stores verify against the Dun &amp; Bradstreet record itself, <b>not against what you type into
     their forms</b> — and when the two disagree, the rejection rarely says which field was wrong. View the
     record free at <a href="https://iupdate.dnb.com">iupdate.dnb.com</a>, and correct it there if needed.
@@ -286,7 +374,7 @@
 
   <!-- ══════════════════════════════════════════ 02 -->
   <section>
-    <div class="shead"><span class="snum">03</span><h2>Gather the paperwork once</h2></div>
+    <div class="shead"><span class="snum">04</span><h2>Gather the paperwork once</h2></div>
     <p>Both stores want broadly the same evidence. Collecting it once, as clean PDFs in a shared folder,
     saves doing it twice under time pressure.</p>
     <ul class="plain">
@@ -303,7 +391,7 @@
 
   <!-- ══════════════════════════════════════════ 03 -->
   <section>
-    <div class="shead"><span class="snum">04</span><h2>The two tracks</h2></div>
+    <div class="shead"><span class="snum">05</span><h2>The two tracks</h2></div>
     <p>Run these in parallel — they share no dependency beyond the entity and the
     D&#8209;U&#8209;N&#8209;S number.</p>
 
@@ -349,7 +437,7 @@
 
   <!-- ══════════════════════════════════════════ 04 -->
   <section>
-    <div class="shead"><span class="snum">05</span><h2>Two things worth knowing now</h2></div>
+    <div class="shead"><span class="snum">06</span><h2>Two things worth knowing now</h2></div>
 
     <div class="flag good">
       <h3>Good news — the testing gate does not apply to you</h3>
@@ -373,7 +461,7 @@
 
   <!-- ══════════════════════════════════════════ 05 -->
   <section>
-    <div class="shead"><span class="snum">06</span><h2>What can be finished this week regardless</h2></div>
+    <div class="shead"><span class="snum">07</span><h2>What can be finished this week regardless</h2></div>
     <p>None of this waits on the D&#8209;U&#8209;N&#8209;S number, and all of it is required before either
     store will accept a submission.</p>
     <div class="tscroll">
@@ -406,7 +494,7 @@
 
   <!-- ══════════════════════════════════════════ 06 -->
   <section>
-    <div class="shead"><span class="snum">07</span><h2>Costs</h2></div>
+    <div class="shead"><span class="snum">08</span><h2>Costs</h2></div>
     <div class="tscroll">
       <table>
         <thead>
