@@ -8,7 +8,10 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ufas.ufindex"
+      "bundleIdentifier": "com.ufas.ufindex",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +26,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/adaptive-icon.png",
+          "color": "#741610"
+        }
+      ]
     ],
     "backgroundColor": "#0D0D0D",
     "splash": {
@@ -42,6 +52,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3"
-    }
+    },
+    "primaryColor": "#741610"
   }
 }

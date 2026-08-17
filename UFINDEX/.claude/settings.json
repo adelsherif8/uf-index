@@ -32,7 +32,8 @@
       "Bash(curl -s -X POST -H 'Authorization: Bearer REDACTED_SUPABASE_TOKEN' -H 'Content-Type: application/json' -d '{\"query\":\"select name, default_version, installed_version from pg_available_extensions where name in \\('\\\\''pg_cron'\\\\'','\\\\''pg_net'\\\\''\\) order by name\"}' https://api.supabase.com/v1/projects/aneshngmljfhkjblsvqd/database/query)",
       "Bash(grep -rhoE \"#[0-9A-Fa-f]{6}|rgba?\\\\\\([0-9]+,\\\\s*[0-9]+,\\\\s*[0-9]+\" uf-index-app/src uf-index-app/App.tsx uf-index-app/app.json)",
       "Bash(awk '{print \"  \",$9,$5}')",
-      "Bash(grep -v \"^\\\\s*$\")"
+      "Bash(grep -v \"^\\\\s*$\")",
+      "Bash(curl -s -o /dev/null -w \"raw.githubusercontent \\(should be 404\\): %{http_code}\\\\n\" \"https://raw.githubusercontent.com/adelsherif8/uf-index/main/UFINDEX/UFIndexDataAutomationSandbox.xlsx\")"
     ],
     "additionalDirectories": [
       "/tmp"
