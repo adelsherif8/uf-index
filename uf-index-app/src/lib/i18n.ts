@@ -1,6 +1,16 @@
 // Featherweight EN/Hindi strings — the v1 localization stub, mirroring the web prototype.
 export type Lang = 'en' | 'hi';
 
+/**
+ * Languages currently offered in the UI.
+ *
+ * Hindi is written and working, but held back until the copy has been reviewed
+ * by a native speaker — a half-translated wellness app reads worse than an
+ * English one. Add 'hi' back here to switch it on; nothing else needs changing,
+ * and every string already has its Hindi counterpart below.
+ */
+export const OFFERED_LANGS: Lang[] = ['en'];
+
 const EN = {
   tagline: 'CHARGE YOUR ENERGY',
   tap: 'Tap anywhere to begin',

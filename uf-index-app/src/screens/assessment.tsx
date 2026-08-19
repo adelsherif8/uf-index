@@ -35,7 +35,7 @@ export function ProfileScreen() {
     setErr(e);
     if (Object.keys(e).length) { vib.heavy(); return; }
     patch({ profile: { ...p, gender: draft.gender } });
-    saveProfile({ name: p.name, gender: draft.gender, organization: p.organization })
+    saveProfile({ name: p.name, phone: p.phone, gender: draft.gender, organization: p.organization })
       .catch(() => {});
     nav.go('measure');
   };
@@ -49,6 +49,8 @@ export function ProfileScreen() {
       <Field required label="Full name" value={p.name} error={err.name}
         onChange={v => { setP({ ...p, name: v }); if (err.name) setErr({ ...err, name: undefined }); }}
         placeholder="Your name" returnKeyType="next" onSubmitEditing={() => ageRef.current?.focus()} />
+      <Field label="Phone" value={p.phone ?? ''} keyboard="phone-pad"
+        onChange={v => setP({ ...p, phone: v })} placeholder="Optional — how a coach reaches you" />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
         <Field half required ref={ageRef} label="Age" value={p.age} error={err.age}
           onChange={v => { setP({ ...p, age: v }); if (err.age) setErr({ ...err, age: undefined }); }}

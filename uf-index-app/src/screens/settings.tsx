@@ -7,6 +7,7 @@ import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
 import { ScreenShell, Btn, H2, Sub, Field, Card, Seg } from '../components/ui';
 import { setSound, getSound, vib } from '../lib/fx';
+import { OFFERED_LANGS } from '../lib/i18n';
 import { scheduleWeeklyReminder, cancelReminders } from '../lib/notify';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -43,7 +44,7 @@ export function SettingsScreen() {
             await resetSyncState();
             await cancelReminders();
             patch({
-              profile: { name: '', email: '', age: '', organization: '', gender: 'male' },
+              profile: { name: '', email: '', phone: '', age: '', organization: '', gender: 'male' },
               consents: { clause: false, coach: false, social: false },
               records: [], plus: null, onboarded: false,
             });
@@ -59,7 +60,7 @@ export function SettingsScreen() {
     <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Settings"
       cta={<Btn label="Save" onPress={() => {
         patch({ profile: { ...state.profile, name, email } });
-        saveProfile({ name, gender: state.profile.gender, organization: state.profile.organization,
+        saveProfile({ name, phone: state.profile.phone, gender: state.profile.gender, organization: state.profile.organization,
                       locale: state.lang, unitSystem: state.unitSystem }).catch(() => {});
         nav.go('dashboard');
       }} />}>
@@ -90,10 +91,14 @@ export function SettingsScreen() {
         </View>
       </Card>
       <Card>
-        <Text style={[st.rowTxt, { marginBottom: 8 }]}>Language</Text>
-        <Seg options={[['en', 'English'], ['hi', 'हिंदी']]} value={state.lang}
-          onChange={v => patch({ lang: v as 'en' | 'hi' })} />
-        <Text style={[st.rowTxt, { marginVertical: 8 }]}>Units</Text>
+        {OFFERED_LANGS.length > 1 && (
+          <>
+            <Text style={[st.rowTxt, { marginBottom: 8 }]}>Language</Text>
+            <Seg options={OFFERED_LANGS.map(l => [l, l === 'en' ? 'English' : 'हिंदी'] as [string, string])}
+              value={state.lang} onChange={v => patch({ lang: v as 'en' | 'hi' })} />
+          </>
+        )}
+        <Text style={[st.rowTxt, { marginBottom: 8 }]}>Units</Text>
         <Seg options={[['metric', 'kg · cm'], ['imperial', 'lb · in']]} value={state.unitSystem}
           onChange={v => patch({ unitSystem: v as 'metric' | 'imperial' })} />
       </Card>

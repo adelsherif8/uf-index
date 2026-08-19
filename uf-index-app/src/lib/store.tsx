@@ -8,6 +8,7 @@ import { syncNow } from './sync';
 export interface Profile {
   name: string;
   email: string;
+  phone: string;
   age: string;
   organization: string;
   gender: 'male' | 'female';
@@ -47,7 +48,7 @@ export interface AppState {
 }
 
 const DEFAULT_STATE: AppState = {
-  profile: { name: '', email: '', age: '', organization: '', gender: 'male' },
+  profile: { name: '', email: '', phone: '', age: '', organization: '', gender: 'male' },
   consents: { clause: false, coach: false, social: false },
   records: [],
   plus: null,

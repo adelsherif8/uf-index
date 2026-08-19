@@ -20,7 +20,7 @@ echo "demo user: $U"
 A=(-H "apikey: $K" -H "Authorization: Bearer $T" -H "Content-Type: application/json")
 
 curl -s -o /dev/null -X POST "${A[@]}" -H "Prefer: resolution=merge-duplicates" \
- -d "{\"id\":\"$U\",\"full_name\":\"Demo Client\",\"gender\":\"female\",\"organization\":\"UFAS Demo\",\"locale\":\"en\",\"unit_system\":\"metric\"}" "$B/rest/v1/profiles"
+ -d "{\"id\":\"$U\",\"full_name\":\"Demo Client\",\"phone\":\"+91 98000 00000\",\"gender\":\"female\",\"organization\":\"UFAS Demo\",\"locale\":\"en\",\"unit_system\":\"metric\"}" "$B/rest/v1/profiles"
 curl -s -o /dev/null -X POST "${A[@]}" \
  -d "[{\"user_id\":\"$U\",\"consent_type\":\"health_data_processing\",\"granted\":true,\"policy_version\":\"privacy-v1.1\"},{\"user_id\":\"$U\",\"consent_type\":\"coach_visibility\",\"granted\":true,\"policy_version\":\"privacy-v1.1\"},{\"user_id\":\"$U\",\"consent_type\":\"marketing\",\"granted\":false,\"policy_version\":\"privacy-v1.1\"}]" "$B/rest/v1/user_consents"
 
@@ -29,18 +29,20 @@ i=0
 python3 - > /tmp/rows.txt <<'PY'
 import datetime, json
 base = datetime.datetime(2026,8,19,7,30)
+# Measurements chosen so the score crosses four bands over ten weeks — a flat
+# demo shows nothing. Body fat runs 34% down to 18.5%, i.e. score 1 -> 4.
 rows = [
  # weeksAgo, weight, waist, hip, neck, am, pm, feel, sq, hrs, note
- (10, 72.0, 88, 104, 33, 2, 2, 2, 2, 5.5, "Starting out. Shoulders always tight."),
- ( 9, 71.6, 87, 104, 33, 2, 2, 2, 3, 6.0, ""),
- ( 8, 71.1, 86, 103, 33, 3, 2, 3, 3, 6.5, "Walked every morning this week."),
- ( 7, 70.8, 85, 103, 33, 3, 3, 3, 3, 6.5, ""),
- ( 6, 70.2, 84, 102, 33, 3, 3, 3, 4, 7.0, "Lights out by 11 is actually working."),
- ( 5, 69.9, 83, 102, 33, 4, 3, 4, 4, 7.0, ""),
- ( 4, 69.4, 82, 101, 33, 4, 3, 4, 4, 7.5, "Travel week, held it together."),
- ( 3, 69.0, 81, 101, 33, 4, 4, 4, 4, 7.5, ""),
- ( 2, 68.6, 80, 100, 33, 4, 4, 4, 5, 8.0, "Best I've felt in a year."),
- ( 0, 68.2, 79, 100, 33, 5, 4, 5, 5, 8.0, "Kept the streak. Sleeping through now."),
+ (10, 78.0, 84.5, 100.5, 33, 2, 2, 2, 2, 5.5, "Starting out. Shoulders always tight."),
+ ( 9, 77.0, 82.9,  98.9, 33, 2, 2, 2, 3, 6.0, ""),
+ ( 8, 75.8, 81.4,  97.4, 33, 3, 2, 3, 3, 6.5, "Walked every morning this week."),
+ ( 7, 74.4, 79.3,  95.3, 33, 3, 3, 3, 3, 6.5, ""),
+ ( 6, 73.0, 77.3,  93.3, 33, 3, 3, 3, 4, 7.0, "Lights out by 11 is actually working."),
+ ( 5, 71.7, 75.4,  91.4, 33, 4, 3, 4, 4, 7.0, ""),
+ ( 4, 70.6, 74.0,  90.0, 33, 4, 3, 4, 4, 7.5, "Travel week, held it together."),
+ ( 3, 69.5, 72.5,  88.5, 33, 4, 4, 4, 4, 7.5, ""),
+ ( 2, 68.3, 70.7,  86.7, 33, 4, 4, 4, 5, 8.0, "Best I've felt in a year."),
+ ( 0, 67.2, 69.3,  85.3, 33, 5, 4, 5, 5, 8.0, "Kept the streak. Sleeping through now."),
 ]
 for (w, wt, ws, hp, nk, am, pm, bf, sq, hrs, note) in rows:
     at = (base - datetime.timedelta(weeks=w)).isoformat() + "Z"

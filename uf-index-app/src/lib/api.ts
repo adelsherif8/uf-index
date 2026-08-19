@@ -88,7 +88,7 @@ export async function recordConsents(
  * do when someone's age changes between assessments.
  */
 export async function saveProfile(p: {
-  name?: string; gender?: string; organization?: string;
+  name?: string; phone?: string; gender?: string; organization?: string;
   locale?: string; unitSystem?: string;
 }): Promise<void> {
   if (!supabase) return;
@@ -97,6 +97,7 @@ export async function saveProfile(p: {
   await supabase.from('profiles').upsert({
     id: userId,
     full_name: p.name || null,
+    phone: p.phone || null,
     gender: p.gender || null,
     organization: p.organization || null,
     locale: p.locale,

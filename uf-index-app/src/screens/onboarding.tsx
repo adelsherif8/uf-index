@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
+import { OFFERED_LANGS } from '../lib/i18n';
 import { isConfigured, signUp, signIn, recordConsents } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, CheckRow, Card } from '../components/ui';
 import { STRINGS } from '../lib/i18n';
@@ -59,14 +60,16 @@ export function WelcomeScreen() {
         </>
       }
     >
+      {OFFERED_LANGS.length > 1 && (
       <View style={os.langPill}>
-        {(['en', 'hi'] as const).map(l => (
+        {OFFERED_LANGS.map(l => (
           <Pressable key={l} onPress={() => patch({ lang: l })}
             style={[os.langBtn, state.lang === l && os.langBtnOn]}>
             <Text style={[os.langTxt, state.lang === l && os.langTxtOn]}>{l === 'en' ? 'EN' : 'हिं'}</Text>
           </Pressable>
         ))}
       </View>
+      )}
       <View style={{ flex: 1, justifyContent: 'center', minHeight: 420 }}>
         <ScrollView
           ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false}

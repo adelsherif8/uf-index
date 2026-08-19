@@ -1,20 +1,25 @@
 // ============================================================================
-// UF Index scoring — the server's copy.
+// UF Index server scoring engine — formula_version "sandbox-1".
 //
-// This MUST agree with the app's src/lib/scoring.ts, digit for digit. The
-// contract between them is the 16 cases in UF_Index_Test_Cases.xlsx:
-//     npm run test:scoring     →  must print 16/16
+// THIS MUST STAY IDENTICAL TO uf-index-app/src/lib/scoring.ts.
+// The app computes a score for the animation; the server recomputes it from the
+// raw answers and that is the one stored. If they drift, users see one number
+// and the coach sees another.
 //
-// The weights below are PLACEHOLDERS (formula_version "proto-1") pending UFAS
-// sign-off. When the official formula lands:
-//     1. change the body of computeScore()
-//     2. bump FORMULA_VERSION
-//     3. regenerate the expected values in the QA workbook
-//     4. get back to 16/16 in BOTH the app and here
-// Old rows keep their own formula_version, so nothing is silently rewritten.
+// Derived from UFIndexDataAutomationSandbox.xlsx, the authority. Every scored
+// row there carries "Website score N; audit score N; lean mass X%", and this
+// reproduces all ten:
+//
+//   1. body fat from the US Navy tape formula
+//   2. the 1–5 score is the standard body-fat category for that sex
+//
+// Energy, sleep and body-feeling are stored and shown but do not move the score.
+//
+// When a new formula is signed off: change this file AND the app's, bump
+// FORMULA_VERSION, regenerate the expected values in tests/scoring-test.ts, and
+// backfill assessment_scores. Raw inputs are on every row, so nothing is lost.
 // ============================================================================
-
-export const FORMULA_VERSION = 'proto-1';
+export const FORMULA_VERSION = 'sandbox-1';
 
 export type Band = 'Depleted' | 'Strained' | 'Balanced' | 'Energized' | 'Peak';
 
@@ -25,11 +30,12 @@ export interface AssessmentInput {
   neckCm: number;
   waistCm: number;
   hipCm: number;
-  rpeMorning: number;    // 1..5
-  rpeAfternoon: number;  // 1..5
-  bodyFeeling: number;   // 1..5
-  sleepQuality: number;  // 1..5
+  rpeMorning: number;
+  rpeAfternoon: number;
+  bodyFeeling: number;
+  sleepQuality: number;
   sleepHours: number;
+  note?: string;
 }
 
 export interface Pillar {
@@ -47,38 +53,49 @@ export interface ScoreResult {
   formulaVersion: string;
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
 export function bandOf(score: number): Band {
   if (score < 2) return 'Depleted';
   if (score < 3) return 'Strained';
-  if (score < 3.8) return 'Balanced';
-  if (score < 4.5) return 'Energized';
+  if (score < 4) return 'Balanced';
+  if (score < 5) return 'Energized';
   return 'Peak';
 }
 
-export function computeScore(i: AssessmentInput): ScoreResult {
+/** Body fat, US Navy tape method. */
+export function bodyFat(i: AssessmentInput): number {
   const log10 = Math.log10;
+  const bf = i.gender === 'male'
+    ? 495 / (1.0324 - 0.19077 * log10(Math.max(i.waistCm - i.neckCm, 1)) + 0.15456 * log10(i.heightCm)) - 450
+    : 495 / (1.29579 - 0.35004 * log10(Math.max(i.waistCm + i.hipCm - i.neckCm, 1)) + 0.221 * log10(i.heightCm)) - 450;
+  return clamp(bf, 0, 75);
+}
 
-  // US Navy body-fat method, metric. waist-neck floored at 1cm so the log is defined.
-  let bf: number;
-  if (i.gender === 'male') {
-    bf = 495 / (1.0324 - 0.19077 * log10(Math.max(i.waistCm - i.neckCm, 1))
-              + 0.15456 * log10(i.heightCm)) - 450;
-  } else {
-    bf = 495 / (1.29579 - 0.35004 * log10(Math.max(i.waistCm + i.hipCm - i.neckCm, 1))
-              + 0.221 * log10(i.heightCm)) - 450;
+/** Standard body-fat categories, which differ by sex. */
+export function indexFromBodyFat(gender: 'male' | 'female', bf: number): number {
+  if (gender === 'male') {
+    if (bf <= 5) return 5;
+    if (bf <= 13) return 4;
+    if (bf <= 17) return 3;
+    if (bf <= 24) return 2;
+    return 1;
   }
-  bf = clamp(bf, 3, 55);
+  if (bf <= 13) return 5;
+  if (bf <= 20) return 4;
+  if (bf <= 24) return 3;
+  if (bf <= 31) return 2;
+  return 1;
+}
 
-  const ideal = i.gender === 'male' ? 15 : 23;
-  const body = clamp(5 - Math.abs(bf - ideal) / 4, 1, 5);
+export function computeScore(i: AssessmentInput): ScoreResult {
+  const bf = bodyFat(i);
+  const score = indexFromBodyFat(i.gender, bf);
+  const leanPct = Math.round((100 - bf) * 100) / 100;
+
   const energy = (i.rpeMorning + i.rpeAfternoon) / 2;
-  const feel = i.bodyFeeling;
   const hoursScore = clamp(5 - Math.abs(i.sleepHours - 8) * 1.2, 1, 5);
   const sleep = 0.5 * i.sleepQuality + 0.5 * hoursScore;
-
-  const score = Math.round((0.30 * body + 0.30 * energy + 0.25 * sleep + 0.15 * feel) * 10) / 10;
 
   return {
     score,
@@ -86,23 +103,18 @@ export function computeScore(i: AssessmentInput): ScoreResult {
     band: bandOf(score),
     formulaVersion: FORMULA_VERSION,
     pillars: [
-      { name: 'Body composition', value: body, weight: '30%',
-        note: `Estimated body fat ${Math.round(bf)}% from tape measurements (lean-mass basis).` },
-      { name: 'Perceived energy', value: energy, weight: '30%',
+      { name: 'Body composition', value: score, weight: 'Sets your score',
+        note: `Body fat ${bf.toFixed(1)}% from your tape measurements — lean mass ${leanPct.toFixed(1)}%.` },
+      { name: 'Perceived energy', value: energy, weight: 'Tracked',
         note: `Morning ${i.rpeMorning}/5, late afternoon ${i.rpeAfternoon}/5.` },
-      { name: 'Sleep', value: sleep, weight: '25%',
+      { name: 'Sleep', value: sleep, weight: 'Tracked',
         note: `${i.sleepHours} h continuous, waking rested ${i.sleepQuality}/5.` },
-      { name: 'Body feeling', value: feel, weight: '15%',
-        note: 'How satisfied they feel with their body right now.' },
+      { name: 'Body feeling', value: i.bodyFeeling, weight: 'Tracked',
+        note: 'How satisfied you feel with your body right now.' },
     ],
   };
 }
 
-// ---------------------------------------------------------------------------
-// Index Plus — the official instruments, scored exactly as published.
-// ---------------------------------------------------------------------------
-
-/** PSS-10: items 4, 5, 7, 8 (1-indexed) are reverse scored. */
 export const PSS10_REVERSED = new Set([4, 5, 7, 8]);
 
 export function scoreWho5(answers: number[]): { raw: number; scaled: number; band: string } {
