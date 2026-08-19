@@ -44,7 +44,7 @@ export function SettingsScreen() {
             await resetSyncState();
             await cancelReminders();
             patch({
-              profile: { name: '', email: '', phone: '', age: '', organization: '', gender: 'male' },
+              profile: { name: '', email: '', phone: '', dob: '', organization: '', gender: 'male' },
               consents: { clause: false, coach: false, social: false },
               records: [], plus: null, onboarded: false,
             });
@@ -60,7 +60,7 @@ export function SettingsScreen() {
     <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Settings"
       cta={<Btn label="Save" onPress={() => {
         patch({ profile: { ...state.profile, name, email } });
-        saveProfile({ name, phone: state.profile.phone, gender: state.profile.gender, organization: state.profile.organization,
+        saveProfile({ name, phone: state.profile.phone, dob: state.profile.dob, gender: state.profile.gender, organization: state.profile.organization,
                       locale: state.lang, unitSystem: state.unitSystem }).catch(() => {});
         nav.go('dashboard');
       }} />}>

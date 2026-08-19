@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
-import { useStore, skipsProfile } from '../lib/store';
+import { useStore, skipsProfile, ageOn, dobFromInput, dobToInput } from '../lib/store';
 import { saveProfile } from '../lib/api';
 import { useDraft } from '../lib/draft';
 import { ScreenShell, Btn, H2, Sub, Field, ScaleRow, Seg } from '../components/ui';
@@ -17,7 +17,8 @@ export function ProfileScreen() {
   const { state, patch } = useStore();
   const { draft, set } = useDraft();
   const [p, setP] = useState(state.profile);
-  const [err, setErr] = useState<{ name?: string; age?: string }>({});
+  const [err, setErr] = useState<{ name?: string; dob?: string }>({});
+  const [dobText, setDobText] = useState(dobToInput(state.profile.dob));
   const ageRef = useRef<TextInput>(null);
   const orgRef = useRef<TextInput>(null);
   // returning users: prefill the draft from their last check-in
@@ -27,15 +28,17 @@ export function ProfileScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const next = () => {
-    const e: { name?: string; age?: string } = {};
+    const e: { name?: string; dob?: string } = {};
     if (!p.name.trim()) e.name = 'We need a name for your ticket.';
-    const age = parseInt(p.age, 10);
-    if (!p.age.trim()) e.age = 'Age is required.';
-    else if (isNaN(age) || age < 16 || age > 100) e.age = 'Enter 16-100.';
+    const dob = dobFromInput(dobText);
+    const age = parseInt(ageOn(dob), 10);
+    if (!dobText.trim()) e.dob = 'Date of birth is required.';
+    else if (!dob) e.dob = 'Use DD/MM/YYYY.';
+    else if (isNaN(age) || age < 16 || age > 100) e.dob = 'Must be 16-100 years old.';
     setErr(e);
     if (Object.keys(e).length) { vib.heavy(); return; }
-    patch({ profile: { ...p, gender: draft.gender } });
-    saveProfile({ name: p.name, phone: p.phone, gender: draft.gender, organization: p.organization })
+    patch({ profile: { ...p, dob, gender: draft.gender } });
+    saveProfile({ name: p.name, phone: p.phone, dob, gender: draft.gender, organization: p.organization })
       .catch(() => {});
     nav.go('measure');
   };
@@ -52,9 +55,16 @@ export function ProfileScreen() {
       <Field label="Phone" value={p.phone ?? ''} keyboard="phone-pad"
         onChange={v => setP({ ...p, phone: v })} placeholder="Optional — how a coach reaches you" />
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
-        <Field half required ref={ageRef} label="Age" value={p.age} error={err.age}
-          onChange={v => { setP({ ...p, age: v }); if (err.age) setErr({ ...err, age: undefined }); }}
-          keyboard="number-pad" placeholder="28" returnKeyType="next" onSubmitEditing={() => orgRef.current?.focus()} />
+        <Field half required ref={ageRef} label="Date of birth" value={dobText} error={err.dob}
+          keyboard="number-pad" placeholder="DD/MM/YYYY" maxLength={10}
+          onChange={v => {
+            // auto-insert the slashes so nobody has to reach for them
+            const digits = v.replace(/\D/g, '').slice(0, 8);
+            const out = digits.length > 4 ? `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`
+              : digits.length > 2 ? `${digits.slice(0,2)}/${digits.slice(2)}` : digits;
+            setDobText(out); if (err.dob) setErr({ ...err, dob: undefined });
+          }}
+          returnKeyType="next" onSubmitEditing={() => orgRef.current?.focus()} />
         <Field half ref={orgRef} label="Organization" value={p.organization}
           onChange={v => setP({ ...p, organization: v })} placeholder="UFAS" returnKeyType="done" />
       </View>

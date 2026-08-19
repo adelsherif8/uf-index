@@ -1,0 +1,28 @@
+import { ageOn, dobFromInput, dobToInput } from '../src/lib/dates';
+let fail = 0;
+const eq = (got: unknown, want: unknown, what: string) => {
+  const ok = got === want;
+  if (!ok) fail++;
+  console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}  got=${JSON.stringify(got)} want=${JSON.stringify(want)}`);
+};
+console.log('date of birth -> age');
+eq(ageOn('1992-03-15', new Date('2026-08-20')), '34', 'birthday already passed this year');
+eq(ageOn('1992-12-15', new Date('2026-08-20')), '33', 'birthday still to come');
+eq(ageOn('1992-08-20', new Date('2026-08-20')), '34', 'birthday is today');
+eq(ageOn('1992-08-21', new Date('2026-08-20')), '33', 'birthday tomorrow');
+eq(ageOn('1992-03-15', new Date('2027-08-20')), '35', 'a year later it has gone up on its own');
+eq(ageOn('', new Date('2026-08-20')), '', 'empty');
+eq(ageOn('nonsense'), '', 'garbage');
+console.log('\ntyped input -> stored');
+eq(dobFromInput('15/03/1992'), '1992-03-15', 'DD/MM/YYYY');
+eq(dobFromInput('29/02/2024'), '2024-02-29', 'real leap day');
+eq(dobFromInput('29/02/2023'), '', 'leap day in a non-leap year is rejected');
+eq(dobFromInput('31/04/1990'), '', 'April has 30 days');
+eq(dobFromInput('15/13/1992'), '', 'month 13');
+eq(dobFromInput('15-03-1992'), '', 'wrong separator');
+eq(dobFromInput('1/3/1992'), '', 'unpadded');
+console.log('\nround trip');
+eq(dobToInput('1992-03-15'), '15/03/1992', 'stored -> display');
+eq(dobFromInput(dobToInput('1992-03-15')), '1992-03-15', 'there and back');
+console.log(fail === 0 ? '\nAll date handling correct.' : `\n${fail} FAILED`);
+if (fail) process.exit(1);

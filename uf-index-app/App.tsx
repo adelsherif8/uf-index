@@ -10,7 +10,7 @@ import {
 } from '@expo-google-fonts/instrument-sans';
 import { C } from './src/lib/theme';
 import { NavCtx, Screen } from './src/lib/nav';
-import { StoreProvider, useStore, skipsProfile } from './src/lib/store';
+import { StoreProvider, useStore, skipsProfile, ageOn } from './src/lib/store';
 import { DraftProvider } from './src/lib/draft';
 import { initFx } from './src/lib/fx';
 import { syncNow } from './src/lib/sync';
@@ -114,7 +114,7 @@ function Root() {
     if (!ready) return;
     (async () => {
       const signedIn = await isSignedIn();
-      await syncNow(state.records, next => patch({ records: next }), state.profile.age);
+      await syncNow(state.records, next => patch({ records: next }), ageOn(state.profile.dob));
       // Reinstalled on a new phone: there is no local history yet, so the boot
       // check below sends them to the first-run pitch. Once their history has
       // come down from the server, put them where they belong. Only from the

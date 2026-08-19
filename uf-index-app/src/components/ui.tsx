@@ -91,7 +91,7 @@ export function Sub({ children }: { children: React.ReactNode }) {
 export const Field = React.forwardRef<TextInput, {
   label: string; value: string; onChange: (v: string) => void;
   keyboard?: KeyboardTypeOptions; placeholder?: string; secure?: boolean; half?: boolean;
-  required?: boolean; error?: string;
+  required?: boolean; error?: string; maxLength?: number;
   returnKeyType?: 'next' | 'done'; onSubmitEditing?: () => void;
 }>(function Field(props, ref) {
   const bad = !!props.error;
@@ -109,6 +109,7 @@ export const Field = React.forwardRef<TextInput, {
         placeholder={props.placeholder}
         placeholderTextColor={C.white73}
         secureTextEntry={props.secure}
+        maxLength={props.maxLength}
         returnKeyType={props.returnKeyType}
         onSubmitEditing={props.onSubmitEditing}
         blurOnSubmit={props.returnKeyType !== 'next'}

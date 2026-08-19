@@ -3,13 +3,14 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AssessmentInput, ScoreResult } from './scoring';
+import { ageOn } from './dates';
 import { syncNow } from './sync';
 
 export interface Profile {
   name: string;
   email: string;
   phone: string;
-  age: string;
+  dob: string;        // YYYY-MM-DD — age is derived, so it stays correct as time passes
   organization: string;
   gender: 'male' | 'female';
 }
@@ -48,7 +49,7 @@ export interface AppState {
 }
 
 const DEFAULT_STATE: AppState = {
-  profile: { name: '', email: '', phone: '', age: '', organization: '', gender: 'male' },
+  profile: { name: '', email: '', phone: '', dob: '', organization: '', gender: 'male' },
   consents: { clause: false, coach: false, social: false },
   records: [],
   plus: null,
@@ -63,16 +64,29 @@ const DEFAULT_STATE: AppState = {
 };
 
 const KEY = 'uf-index-state-v1';
-const SCHEMA_VERSION = 3;   // v3 added AssessmentRecord.synced
+const SCHEMA_VERSION = 4;   // v3 added synced; v4 swapped profile.age for profile.dob
 
 /** Accepts both the v1 legacy shape (bare state) and the versioned envelope. */
 function parseStored(raw: string): Partial<AppState> {
+  // v3 -> v4: an old install stored a plain age. Derive an approximate birth
+  // date so nobody is stopped; it can be corrected in Settings and is off by at
+  // most a year.
+  const migrate = (st: Partial<AppState>): Partial<AppState> => {
+    const p = st.profile as unknown as Record<string, unknown> | undefined;
+    if (p && typeof p.age === 'string' && p.age && !p.dob) {
+      const n = parseInt(p.age as string, 10);
+      if (n > 0 && n < 120) p.dob = `${new Date().getFullYear() - n}-01-01`;
+      delete p.age;
+    }
+    if (p && p.dob === undefined) p.dob = '';
+    return st;
+  };
+
   const obj = JSON.parse(raw);
   if (obj && typeof obj === 'object' && '__v' in obj) {
-    // future migrations branch on obj.__v here
-    return obj.state as Partial<AppState>;
+    return migrate(obj.state as Partial<AppState>);
   }
-  return obj as Partial<AppState>; // legacy v1
+  return migrate(obj as Partial<AppState>); // legacy v1
 }
 
 interface StoreApi {
@@ -122,7 +136,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist({ ...stateRef.current, records, onboarded: true });
     // Send it up in the background. Failing is fine — it stays marked unsynced
     // and the next launch retries. The user never waits on this.
-    syncNow(records, next => patch({ records: next }), stateRef.current.profile.age)
+    syncNow(records, next => patch({ records: next }), ageOn(stateRef.current.profile.dob))
       .catch(() => {});
     return rec;
   };
@@ -139,7 +153,9 @@ export const useStore = () => useContext(Ctx);
  * two-minute check-in feel like a form. They stay editable in Settings.
  */
 export const skipsProfile = (s: AppState): boolean =>
-  s.records.length > 0 && !!s.profile.name.trim() && !!s.profile.age.trim();
+  s.records.length > 0 && !!s.profile.name.trim() && !!s.profile.dob.trim();
+
+export { ageOn, dobFromInput, dobToInput } from './dates';
 
 export function streakWeeks(records: AssessmentRecord[]): number {
   if (!records.length) return 0;

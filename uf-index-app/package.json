@@ -43,7 +43,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test:scoring": "tsx scripts/scoring-test.ts"
+    "test:scoring": "tsx scripts/scoring-test.ts",
+    "test:dates": "tsx scripts/dates-test.ts"
   },
   "private": true
 }
