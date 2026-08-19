@@ -275,6 +275,33 @@ Their existing local history is safe: the first sign-in pushes everything on the
 
 ---
 
+## 8 · The demo account
+
+A seeded account so coaches, reviewers and app-store testers can open the app and see a
+populated dashboard without taking ten weeks of check-ins first.
+
+```
+Email     demo@ufaslive.com
+Password  (shared with the team separately — not in this repo)
+```
+
+Sign in on the auth screen with **"I already have an account"**. It holds:
+
+- **10 weekly check-ins**, June to August 2026, running 1.8 Depleted → 4.2 Energized.
+  Measurements, energy, sleep and notes all improve gradually, so the trend chart,
+  streak, monthly recap and delta screens all have something real to show.
+- **2 Plus sittings** — a poor one and a much better one, so the Plus history and the
+  radar have a before/after.
+- An active Plus trial and one coach call request.
+
+App Store and Play reviewers both require working credentials for an app behind a login.
+**This is the account to give them** — put it in the "notes for review" field on each store.
+
+To reset it after someone has poked at it, re-run the seed script; it deletes the account
+and rebuilds it from scratch, so it is safe to run repeatedly.
+
+---
+
 ## Troubleshooting
 
 | Problem | Fix |
