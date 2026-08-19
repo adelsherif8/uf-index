@@ -214,7 +214,7 @@ export function TicketScreen() {
         const cnt = setInterval(() => {
           if (!alive.current) { clearInterval(cnt); return; }
           const tt = Math.min((Date.now() - t0) / 1300, 1);
-          setScore((result.score * (1 - Math.pow(1 - tt, 3))).toFixed(1));
+          setScore((result.score * (1 - Math.pow(1 - tt, 3))).toFixed(1));   // still ramps smoothly, lands whole
           if (tt >= 1) {
             clearInterval(cnt);
             setStage('stamped');
@@ -352,7 +352,7 @@ export function TicketScreen() {
       <View ref={storyRef} collapsable={false} style={tk.story} pointerEvents="none">
         <Text style={tk.storyEyebrow}>MY UF INDEX</Text>
         <View style={[tk.storyCard, isPeak && { borderColor: C.gold, borderWidth: 3 }]}>
-          <Text style={tk.storyScore}>{result.score.toFixed(1)}</Text>
+          <Text style={tk.storyScore}>{result.score}</Text>
           <Text style={tk.storyOutOf}>OUT OF 5</Text>
           <View style={[tk.stamp, { alignSelf: 'center', transform: [{ rotate: '-4deg' }] }, isPeak && { borderColor: C.gold }]}>
             <Text style={[tk.stampTxt, isPeak && { color: C.gold }]}>{bandLabel(state.lang, result.band).toUpperCase()}</Text>
@@ -376,7 +376,7 @@ export function BreakdownScreen() {
       cta={<Btn label="Continue to dashboard" onPress={() => nav.go(state.records.length > 1 ? 'delta' : 'dashboard')} />}
     >
       <H2>What's behind your score</H2>
-      <Sub>Four pillars, weighted into your {result.score.toFixed(1)} / 5.</Sub>
+      <Sub>Your body composition sets the {result.score} / 5. Everything else is tracked alongside it.</Sub>
       {result.pillars.map(p => (
         <View key={p.name} style={bd.pillar}>
           <View style={bd.row}>

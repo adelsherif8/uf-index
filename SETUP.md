@@ -275,6 +275,30 @@ Their existing local history is safe: the first sign-in pushes everything on the
 
 ---
 
+## 7b · Open it in Expo Go — no build needed
+
+```
+exp://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3?runtime-version=exposdk:54.0.0&channel-name=preview
+```
+
+Install **Expo Go** from the App Store or Play Store, then open that link on the phone.
+On iOS, paste it into Safari; on Android, Expo Go can scan it as a QR code.
+
+The App Store build of Expo Go only runs SDK 54, which is why this project is pinned there
+rather than to a newer SDK.
+
+**Push notifications do not work in Expo Go** — it cannot issue push tokens. The weekly
+reminder only fires in a real EAS build. Everything else — sign-in, scoring, sync, Plus —
+works normally.
+
+To publish a new version to this link:
+
+```bash
+npx eas-cli@16 update --branch preview --message "what changed"
+```
+
+---
+
 ## 8 · The demo account
 
 A seeded account so coaches, reviewers and app-store testers can open the app and see a

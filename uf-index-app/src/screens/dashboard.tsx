@@ -53,6 +53,7 @@ export function DashboardScreen() {
   const last = latest(recs);
   const prev = recs.length > 1 ? recs[recs.length - 2] : null;
   const d = prev ? +(last.result.score - prev.result.score).toFixed(1) : null;
+  const fatD = prev ? +(last.result.bodyFatPct - prev.result.bodyFatPct).toFixed(1) : null;
   const streak = streakWeeks(recs);
   const name = (state.profile.name || 'there').split(' ')[0];
   const weakest = [...last.result.pillars].sort((a, b) => a.value - b.value)[0];
@@ -90,13 +91,18 @@ export function DashboardScreen() {
       </View>
       <View style={[ds.scoreCard, lowBand && { borderColor: C.auburn, backgroundColor: C.auburn50 }]}>
         <View>
-          <Text style={[ds.scoreNum, lowBand && { color: C.white }]}>{last.result.score.toFixed(1)}</Text>
+          <Text style={[ds.scoreNum, lowBand && { color: C.white }]}>{last.result.score}</Text>
           <Text style={ds.scoreLbl}>UF INDEX</Text>
         </View>
         <View style={{ marginLeft: 'auto', alignItems: 'flex-end' }}>
           <View style={ds.bandChip}><Text style={ds.bandChipTxt}>{bandLabel(state.lang, last.result.band)}</Text></View>
-          {d != null && (
-            <Text style={ds.delta}>{d >= 0 ? '▲ +' : '▼ '}{Math.abs(d).toFixed(1)} vs last check-in</Text>
+          {d != null && d !== 0 && (
+            <Text style={ds.delta}>{d > 0 ? '▲ +' : '▼ '}{Math.abs(d)} vs last check-in</Text>
+          )}
+          {d === 0 && fatD != null && fatD !== 0 && (
+            <Text style={ds.delta}>
+              {fatD < 0 ? '▲ ' : '▼ '}{Math.abs(fatD)}% body fat since last time
+            </Text>
           )}
         </View>
       </View>
@@ -144,7 +150,7 @@ export function DashboardScreen() {
         <Card>
           <Text style={ds.cardH}>{monthName.toUpperCase()} RECAP</Text>
           <Text style={ds.actionP}>
-            {monthRecs.length} check-ins · {monthDelta >= 0 ? '▲ +' : '▼ '}{Math.abs(monthDelta).toFixed(1)} this month · strongest pillar: {bestPillar}
+            {monthRecs.length} check-ins · {monthDelta >= 0 ? '▲ +' : '▼ '}{Math.abs(monthDelta)} this month · strongest pillar: {bestPillar}
           </Text>
         </Card>
       )}
@@ -186,9 +192,14 @@ export function DeltaScreen() {
     <ScreenShell cta={<Btn label="Continue to dashboard" onPress={() => nav.go('dashboard')} />}>
       <View style={{ flex: 1, justifyContent: 'center', minHeight: 400, alignItems: 'center' }}>
         <Text style={[ds.deltaBig, { color: d >= 0 ? C.gold : C.auburn }]}>
-          {d >= 0 ? '▲ +' : '▼ '}{Math.abs(d).toFixed(1)}
+          {d === 0 ? '—' : d > 0 ? `▲ +${Math.abs(d)}` : `▼ ${Math.abs(d)}`}
         </Text>
-        <Text style={ds.deltaSub}>Your Index moved from {prev.result.score.toFixed(1)} to {last.result.score.toFixed(1)}</Text>
+        <Text style={ds.deltaSub}>
+          {d !== 0
+            ? `Your Index moved from ${prev.result.score} to ${last.result.score}`
+            : `Still a ${last.result.score}, but your body fat went ` +
+              `${prev.result.bodyFatPct}% → ${last.result.bodyFatPct}%`}
+        </Text>
         <View style={{ width: '100%', marginTop: 24 }}>
           {movers.map(m => (
             <View key={m.name} style={ds.moverRow}>
