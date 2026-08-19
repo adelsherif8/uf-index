@@ -69,6 +69,16 @@ export function indexFromBodyFat(gender: 'male' | 'female', bf: number): number 
   return 1;
 }
 
+/**
+ * The lean-mass percentages at which the score steps up, lowest first.
+ * Derived from the same category table as indexFromBodyFat, so the chart and
+ * the score can never disagree about where a boundary sits.
+ */
+export function leanThresholds(gender: 'male' | 'female'): { lean: number; score: number }[] {
+  const bfEdges = gender === 'male' ? [24, 17, 13, 5] : [31, 24, 20, 13];
+  return bfEdges.map((bf, idx) => ({ lean: 100 - bf, score: idx + 2 }));
+}
+
 export function computeScore(i: AssessmentInput): ScoreResult {
   const bf = bodyFat(i);
   const score = indexFromBodyFat(i.gender, bf);

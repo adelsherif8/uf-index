@@ -7,6 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { C, FONT } from '../lib/theme';
 import { play, vib } from '../lib/fx';
+import { FontAwesome } from '@expo/vector-icons';
 
 export function ScreenShell(props: {
   children: React.ReactNode;
@@ -182,7 +183,7 @@ export function CheckRow(props: { checked: boolean; onToggle: () => void; childr
     <Pressable onPress={() => { vib.tick(); props.onToggle(); }} hitSlop={6}
       style={({ pressed }) => [s.checkRow, pressed && { opacity: 0.75 }]}>
       <View style={[s.checkBox, props.checked && s.checkBoxOn]}>
-        {props.checked ? <Text style={s.checkMark}>✓</Text> : null}
+        {props.checked ? <FontAwesome name="check" size={12} color={C.black} /> : null}
       </View>
       <Text style={s.checkTxt}>{props.children}</Text>
     </Pressable>

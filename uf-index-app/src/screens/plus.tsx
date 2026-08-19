@@ -9,6 +9,7 @@ import { useStore } from '../lib/store';
 import { postPlusSession, startPlusTrial } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
+import { FontAwesome } from '@expo/vector-icons';
 
 // ---------- questionnaire definitions (official instruments) ----------
 const WHO5 = [
@@ -153,7 +154,9 @@ function QCard(props: {
       style={({ pressed }) => [ps.qcard, props.done && ps.qcardDone, pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={[ps.qbadge, props.done && ps.qbadgeDone]}>
-          <Text style={[ps.qbadgeTxt, props.done && { color: C.black }]}>{props.done ? '✓' : props.code[0]}</Text>
+          {props.done
+            ? <FontAwesome name="check" size={13} color={C.black} />
+            : <Text style={ps.qbadgeTxt}>{props.code[0]}</Text>}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={ps.qtitle}>{props.title}</Text>
@@ -187,7 +190,7 @@ export function PlusIntroScreen() {
   return (
     <ScreenShell onBack={() => nav.go('dashboard')} stepLabel={trialDay ? `Trial · day ${trialDay} of 7` : 'Premium'}
       cta={allDone
-        ? <Btn label="✦  Build my Plus profile" variant="blood" onPress={() => nav.go('plusResult')} />
+        ? <Btn label="Build my Plus profile" variant="blood" onPress={() => nav.go('plusResult')} />
         : <Btn label="See my Plus profile" variant="ghost" onPress={() => nav.go(p ? 'plusResult' : 'plus')} disabled={!p} />}>
       <H2>UF Index Plus</H2>
       <Sub>Three validated assessments. Take them in any order — pick whichever you want now.</Sub>
@@ -317,7 +320,7 @@ export function PsqiTroublesScreen() {
   };
   return (
     <ScreenShell onBack={() => nav.go('psqiTimes')} stepLabel="Sleep · 2 of 2"
-      cta={<Btn label="✦  Build my Plus profile" variant="blood" onPress={finish} />}>
+      cta={<Btn label="Build my Plus profile" variant="blood" onPress={finish} />}>
       <Prog step={2} />
       <H2>Sleep · your troubles</H2>
       <Sub>How often have you had trouble sleeping because you… 0 · Not in the past month — 3 · Three+ times a week</Sub>

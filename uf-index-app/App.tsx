@@ -26,6 +26,7 @@ import {
 import { SettingsScreen } from './src/screens/settings';
 import { ConsoleScreen } from './src/screens/console';
 import { PrivacyScreen } from './src/screens/privacy';
+import { FontAwesome } from '@expo/vector-icons';
 import {
   PlusProvider, PlusIntroScreen, Who5Screen, PssScreen, PsqiTimesScreen, PsqiTroublesScreen, PlusResultScreen,
 } from './src/screens/plus';
@@ -157,7 +158,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
     if (this.state.err) {
       return (
         <View style={{ flex: 1, backgroundColor: C.black, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Animated.Text style={{ color: '#D29133', fontSize: 40, marginBottom: 12 }}>⚡</Animated.Text>
+          <FontAwesome name="bolt" size={40} color="#D29133" style={{ marginBottom: 12 }} />
           <Animated.Text style={{ color: '#FFFFFF', fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
             The machine hiccuped.
           </Animated.Text>

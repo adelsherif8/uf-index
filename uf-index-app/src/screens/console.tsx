@@ -9,6 +9,7 @@ import { useNav } from '../lib/nav';
 import { useStore } from '../lib/store';
 import { useDraft } from '../lib/draft';
 import { play, vib } from '../lib/fx';
+import { FontAwesome } from '@expo/vector-icons';
 
 const TAGLINES = [
   'TAP TO TEST YOUR ENERGY',
@@ -59,7 +60,7 @@ export function ConsoleScreen() {
     <Pressable style={cs.wrap} onPress={begin}>
       <Pressable onPress={exitTap} style={cs.exitZone} />
       <Animated.View style={[cs.bolt, { transform: [{ scale: pulse }] }]}>
-        <Text style={cs.boltTxt}>⚡</Text>
+        <FontAwesome name="bolt" size={34} color={C.gold} />
       </Animated.View>
       <Text style={cs.title}>UF INDEX</Text>
       <Text style={cs.tagline}>{TAGLINES[tag]}</Text>

@@ -1,30 +1,62 @@
 // Dashboard, delta moment, history, badges, insights, coach — with real persistence.
 import React from 'react';
 import { View, Text, Pressable, Switch, StyleSheet, Alert, Modal } from 'react-native';
-import Svg, { Polyline, Circle, Line } from 'react-native-svg';
+import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore, streakWeeks, AssessmentRecord } from '../lib/store';
+import { leanThresholds } from '../lib/scoring';
 import { requestCall, deleteAssessment } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
 import { bandLabel } from '../lib/i18n';
+import { FontAwesome } from '@expo/vector-icons';
 
 const latest = (recs: AssessmentRecord[]) => recs[recs.length - 1];
 
+/**
+ * Lean mass over time, with the score bands drawn behind it.
+ *
+ * The 1–5 score is a category, so it only moves when someone crosses a
+ * boundary — plotting it draws a staircase that sits flat for weeks while the
+ * person is genuinely improving. Lean mass moves every check-in, and it rises
+ * as you improve, so the line goes the direction people expect.
+ *
+ * The bands behind it are the thing the number alone can't show: how close the
+ * next category is.
+ */
 const TrendChart = React.memo(function TrendChart({ records }: { records: AssessmentRecord[] }) {
-  const W = 300, H = 86, pad = 10;
-  const data = records.slice(-8).map(r => r.result.score);
+  const W = 300, H = 96, padX = 10, padY = 12, labelW = 20;
+  const recent = records.slice(-8);
+  const gender = recent[recent.length - 1]?.input.gender ?? 'female';
+  const data = recent.map(r => 100 - r.result.bodyFatPct);
   if (data.length === 1) data.unshift(data[0]);
-  const x = (i: number) => pad + (i * (W - 2 * pad)) / (data.length - 1);
-  const y = (v: number) => H - pad - ((v - 1) / 4) * (H - 2 * pad);
+
+  const edges = leanThresholds(gender);
+  const lo0 = Math.min(...data), hi0 = Math.max(...data);
+  // widen the window so at least one boundary is visible above and below
+  const below = [...edges].reverse().find(e => e.lean <= lo0)?.lean ?? lo0 - 3;
+  const above = edges.find(e => e.lean >= hi0)?.lean ?? hi0 + 3;
+  const lo = Math.min(lo0 - 2, below - 1), hi = Math.max(hi0 + 2, above + 1);
+
+  const x = (i: number) => labelW + padX + (i * (W - labelW - 2 * padX)) / (data.length - 1);
+  const y = (v: number) => H - padY - ((v - lo) / (hi - lo)) * (H - 2 * padY);
   const pts = data.map((v, i) => `${x(i)},${y(v)}`).join(' ');
+  const areaPts = `${x(0)},${H - padY} ${pts} ${x(data.length - 1)},${H - padY}`;
+
   return (
     <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`}>
-      {[2, 3, 4].map(v => (
-        <Line key={v} x1={pad} x2={W - pad} y1={y(v)} y2={y(v)} stroke="rgba(255,255,255,.09)" strokeWidth={1} />
+      {/* one faint band per score category that falls inside the window */}
+      {edges.filter(e => e.lean > lo && e.lean < hi).map(e => (
+        <React.Fragment key={e.score}>
+          <Line x1={labelW} x2={W - padX} y1={y(e.lean)} y2={y(e.lean)}
+            stroke={C.gold35} strokeWidth={1} strokeDasharray="3 3" />
+          <SvgText x={2} y={y(e.lean) + 3.5} fill={C.white73} fontSize={9}>{e.score}</SvgText>
+        </React.Fragment>
       ))}
-      <Polyline points={pts} fill="none" stroke={C.gold} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Polyline points={areaPts} fill={C.gold13} stroke="none" />
+      <Polyline points={pts} fill="none" stroke={C.gold} strokeWidth={2.5}
+        strokeLinecap="round" strokeLinejoin="round" />
       {data.map((v, i) => (
         <Circle key={i} cx={x(i)} cy={y(v)} r={i === data.length - 1 ? 4.5 : 3}
           fill={i === data.length - 1 ? C.white : C.auburn} stroke={C.gold} strokeWidth={1.2} />
@@ -32,6 +64,16 @@ const TrendChart = React.memo(function TrendChart({ records }: { records: Assess
     </Svg>
   );
 });
+
+/** "2.4% of lean mass from a 4" — the sentence the chart is really answering. */
+function nextBandLine(records: AssessmentRecord[]): string | null {
+  const last = records[records.length - 1];
+  if (!last) return null;
+  const lean = 100 - last.result.bodyFatPct;
+  const next = leanThresholds(last.input.gender).find(e => e.lean > lean);
+  if (!next) return `Lean mass ${lean.toFixed(1)}% — the top band.`;
+  return `Lean mass ${lean.toFixed(1)}% · ${(next.lean - lean).toFixed(1)}% more to reach ${next.score}`;
+}
 
 export function DashboardScreen() {
   const nav = useNav();
@@ -86,7 +128,7 @@ export function DashboardScreen() {
         <Text style={ds.hello}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {name}</Text>
         <Pressable onPress={() => { vib.tick(); nav.go('settings'); }} hitSlop={14}
           style={({ pressed }) => [{ marginLeft: 'auto', padding: 6 }, pressed && { opacity: 0.6 }]}>
-          <Text style={{ color: C.whiteA6, fontSize: 18 }}>⚙</Text>
+          <FontAwesome name="cog" size={18} color={C.whiteA6} />
         </Pressable>
       </View>
       <View style={[ds.scoreCard, lowBand && { borderColor: C.auburn, backgroundColor: C.auburn50 }]}>
@@ -110,6 +152,7 @@ export function DashboardScreen() {
       <Card>
         <Text style={ds.cardH}>YOUR TREND · {recs.length} CHECK-IN{recs.length > 1 ? 'S' : ''}</Text>
         <TrendChart records={recs} />
+        {nextBandLine(recs) && <Text style={ds.trendFoot}>{nextBandLine(recs)}</Text>}
         <Pressable onPress={() => { vib.tick(); nav.go('history'); }} hitSlop={8}
           style={({ pressed }) => pressed ? { opacity: 0.6 } : null}>
           <Text style={ds.link}>View full history →</Text></Pressable>
@@ -257,7 +300,7 @@ export function HistoryScreen() {
                 </Text>
               </View>
               <Pressable onPress={() => removeRecord(r.id)} hitSlop={10} style={{ padding: 6 }}>
-                <Text style={{ color: C.white73, fontSize: 16 }}>✕</Text>
+                <FontAwesome name="times" size={16} color={C.white73} />
               </Pressable>
             </Pressable>
           </View>
@@ -328,7 +371,7 @@ export function BadgesScreen() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {badges.map(b => (
           <View key={b.t} style={[ds.badge, !b.ok && { opacity: 0.38 }]}>
-            <View style={ds.medal}><Text style={{ fontSize: 22, color: C.gold }}>{b.ok ? '★' : '☆'}</Text></View>
+            <View style={ds.medal}><FontAwesome name={b.ok ? 'star' : 'star-o'} size={22} color={C.gold} /></View>
             <Text style={ds.badgeT}>{b.t}</Text>
             <Text style={ds.badgeD}>{b.ok ? 'Unlocked' : `Locked · ${b.d}`}</Text>
           </View>
@@ -365,7 +408,7 @@ export function CoachScreen() {
   return (
     <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Coach"
       cta={<Btn
-        label={sent ? `Request sent ✓ · ${new Date(state.coachRequestedAt as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Request my coach call'}
+        label={sent ? `Request sent · ${new Date(state.coachRequestedAt as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Request my coach call'}
         variant="blood"
         onPress={() => {
           if (sent) return;
@@ -393,6 +436,10 @@ export function CoachScreen() {
 }
 
 const ds = StyleSheet.create({
+  trendFoot: {
+    fontFamily: FONT.ui, fontSize: 11.5, color: C.white73,
+    marginTop: 6, textAlign: 'center',
+  },
   hello: { color: C.whiteA6, fontSize: 13, marginTop: 14 },
   scoreCard: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: C.auburn40, borderWidth: 1,

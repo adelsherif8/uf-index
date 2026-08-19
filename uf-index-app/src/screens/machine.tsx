@@ -15,6 +15,7 @@ import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { bandLabel } from '../lib/i18n';
 import { ConsoleHandoff } from './console';
+import { FontAwesome } from '@expo/vector-icons';
 
 const SEGMENTS = 16;
 const MSGS = ['Loading your inputs…', 'Measuring lean body mass…', 'Testing energy output…', 'Reading recovery & sleep…'];
@@ -282,7 +283,10 @@ export function TicketScreen() {
           isPeak && { borderWidth: 4, borderColor: C.gold, backgroundColor: '#FFFFFF' },
         ]}>
           {isPeak && stage !== 'printing' && (
-            <View style={tk.peakSeal}><Text style={tk.peakSealTxt}>★ PEAK</Text></View>
+            <View style={tk.peakSeal}>
+              <FontAwesome name="star" size={11} color={C.gold} style={{ marginRight: 5 }} />
+              <Text style={tk.peakSealTxt}>PEAK</Text>
+            </View>
           )}
           <View style={tk.tkHead}>
             <View style={tk.tkMark}><Text style={tk.tkMarkTxt}>UF</Text></View>
@@ -452,6 +456,7 @@ const tk = StyleSheet.create({
   peakSeal: {
     position: 'absolute', top: 10, right: 10, borderWidth: 2, borderColor: C.gold,
     borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3, backgroundColor: 'rgba(210,145,51,0.12)', zIndex: 3,
+    flexDirection: 'row', alignItems: 'center',
   },
   peakSealTxt: { color: C.gold, fontFamily: FONT.display, fontSize: 11, letterSpacing: 1 },
   story: {

@@ -9,6 +9,7 @@ import { OFFERED_LANGS } from '../lib/i18n';
 import { isConfigured, signUp, signIn, recordConsents } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Field, CheckRow, Card } from '../components/ui';
 import { STRINGS } from '../lib/i18n';
+import { FontAwesome } from '@expo/vector-icons';
 
 export function SplashScreen() {
   const nav = useNav();
@@ -78,7 +79,9 @@ export function WelcomeScreen() {
         >
           {SLIDES.map((sl, di) => (
             <View key={di} style={{ width: pageW, alignItems: 'center' }}>
-              <View style={os.glyph}><Text style={os.glyphTxt}>{['⚡', '◎', '↗'][di]}</Text></View>
+              <View style={os.glyph}>
+                <FontAwesome name={(['bolt', 'bullseye', 'line-chart'] as const)[di]} size={26} color={C.gold} />
+              </View>
               <Text style={os.slideTitle}>{sl.title}</Text>
               <Text style={os.slideBody}>{sl.body}</Text>
             </View>
