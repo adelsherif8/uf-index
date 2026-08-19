@@ -4,7 +4,7 @@ import { View, Text, Pressable, Switch, StyleSheet, Alert, Modal } from 'react-n
 import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
-import { useStore, streakWeeks, AssessmentRecord } from '../lib/store';
+import { useStore, streakWeeks, skipsProfile, AssessmentRecord } from '../lib/store';
 import { leanThresholds } from '../lib/scoring';
 import { requestCall, deleteAssessment } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Card } from '../components/ui';
@@ -122,7 +122,8 @@ export function DashboardScreen() {
 
   return (
     <ScreenShell
-      cta={<Btn label="Re-check · drop a token" variant="blood" onPress={() => nav.go('profile')} />}
+      cta={<Btn label="Re-check · drop a token" variant="blood"
+        onPress={() => nav.go(skipsProfile(state) ? 'measure' : 'profile')} />}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={ds.hello}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {name}</Text>

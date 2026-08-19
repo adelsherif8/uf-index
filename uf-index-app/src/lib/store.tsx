@@ -133,6 +133,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 export const useStore = () => useContext(Ctx);
 
 /** Consecutive weekly streak ending in the current week. */
+/**
+ * A returning check-in skips the profile step. Name, age, gender and
+ * organization do not change week to week, and asking again every time makes a
+ * two-minute check-in feel like a form. They stay editable in Settings.
+ */
+export const skipsProfile = (s: AppState): boolean =>
+  s.records.length > 0 && !!s.profile.name.trim() && !!s.profile.age.trim();
+
 export function streakWeeks(records: AssessmentRecord[]): number {
   if (!records.length) return 0;
   const weekOf = (d: Date) => Math.floor(d.getTime() / (7 * 864e5));

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
-import { useStore } from '../lib/store';
+import { useStore, skipsProfile } from '../lib/store';
 import { saveProfile } from '../lib/api';
 import { useDraft } from '../lib/draft';
 import { ScreenShell, Btn, H2, Sub, Field, ScaleRow, Seg } from '../components/ui';
@@ -71,6 +71,7 @@ export function ProfileScreen() {
 export function MeasureScreen() {
   const nav = useNav();
   const { state, patch } = useStore();
+  const skip = skipsProfile(state);
   const { draft, set } = useDraft();
   const [active, setActive] = useState<'neck' | 'waist' | 'hip' | null>(null);
   const [err, setErr] = useState<{ weight?: string; height?: string; tape?: string }>({});
@@ -92,7 +93,8 @@ export function MeasureScreen() {
   };
   return (
     <ScreenShell
-      stepLabel="Step 2 of 5" chargePct={40} onBack={() => nav.go('profile')}
+      stepLabel={skip ? "Step 1 of 4" : "Step 2 of 5"} chargePct={skip ? 25 : 40}
+      onBack={() => nav.go(skip ? 'dashboard' : 'profile')}
       cta={<Btn label="Continue" onPress={next} />}
     >
       <H2>Body measurements</H2>
@@ -125,11 +127,13 @@ export function MeasureScreen() {
 }
 
 export function EnergyScreen() {
+  const { state } = useStore();
+  const skip = skipsProfile(state);
   const nav = useNav();
   const { draft, set } = useDraft();
   return (
     <ScreenShell
-      stepLabel="Step 3 of 5" chargePct={60} onBack={() => nav.go('measure')}
+      stepLabel={skip ? "Step 2 of 4" : "Step 3 of 5"} chargePct={skip ? 50 : 60} onBack={() => nav.go('measure')}
       cta={<Btn label="Continue" onPress={() => nav.go('feel')} />}
     >
       <H2>How's your energy?</H2>
@@ -149,11 +153,13 @@ export function EnergyScreen() {
 }
 
 export function FeelScreen() {
+  const { state } = useStore();
+  const skip = skipsProfile(state);
   const nav = useNav();
   const { draft, set } = useDraft();
   return (
     <ScreenShell
-      stepLabel="Step 4 of 5" chargePct={80} onBack={() => nav.go('energy')}
+      stepLabel={skip ? "Step 3 of 4" : "Step 4 of 5"} chargePct={skip ? 75 : 80} onBack={() => nav.go('energy')}
       cta={<Btn label="Continue" onPress={() => nav.go('sleep')} />}
     >
       <H2>How you feel about your body</H2>
@@ -168,6 +174,8 @@ export function FeelScreen() {
 }
 
 export function SleepScreen() {
+  const { state } = useStore();
+  const skip = skipsProfile(state);
   const nav = useNav();
   const { draft, set } = useDraft();
   const [err, setErr] = useState('');
@@ -179,7 +187,7 @@ export function SleepScreen() {
   };
   return (
     <ScreenShell
-      stepLabel="Step 5 of 5" chargePct={96} onBack={() => nav.go('feel')}
+      stepLabel={skip ? "Step 4 of 4" : "Step 5 of 5"} chargePct={96} onBack={() => nav.go('feel')}
       cta={<Btn label="◎  Drop your UF token" variant="blood" onPress={drop} />}
     >
       <H2>Last one — your sleep</H2>

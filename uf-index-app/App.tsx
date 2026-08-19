@@ -10,7 +10,7 @@ import {
 } from '@expo-google-fonts/instrument-sans';
 import { C } from './src/lib/theme';
 import { NavCtx, Screen } from './src/lib/nav';
-import { StoreProvider, useStore } from './src/lib/store';
+import { StoreProvider, useStore, skipsProfile } from './src/lib/store';
 import { DraftProvider } from './src/lib/draft';
 import { initFx } from './src/lib/fx';
 import { syncNow } from './src/lib/sync';
@@ -82,7 +82,7 @@ function Root() {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(resp => {
       const target = resp.notification.request.content.data?.go;
-      if (target === 'profile') go('profile');
+      if (target === 'profile') go(skipsProfile(state) ? 'measure' : 'profile');
     });
     return () => sub.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,7 +90,10 @@ function Root() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      const target = BACK[prev.current];
+      let target = BACK[prev.current];
+      // returning users never see the profile step, so back from measurements
+      // belongs on the dashboard, not on a screen they skipped
+      if (target === 'profile' && skipsProfile(state)) target = 'dashboard';
       if (target) { go(target); return true; }
       return false;
     });
