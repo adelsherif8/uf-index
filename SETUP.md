@@ -299,6 +299,40 @@ npx eas-cli@16 update --branch preview --message "what changed"
 
 ---
 
+## 7c · View it on a desktop
+
+```
+https://uf-index-desktop.vercel.app
+```
+
+The same app compiled for the browser — real screens, real scoring, real backend.
+Useful for showing it on a call or a laptop without passing a phone around.
+
+Rebuild and redeploy after changes:
+
+```bash
+cd uf-index-app
+npx expo export --platform web --output-dir /tmp/uf-web
+cd /tmp/uf-web && npx vercel deploy --prod --yes
+```
+
+**What does not work in a browser**, by nature rather than by bug:
+
+| | |
+|---|---|
+| Haptics | No vibration motor. Guarded so nothing breaks. |
+| Push notifications | Browsers cannot take an Expo push token. |
+| Sound | Browsers block audio until the first click, so the earliest tick may be silent. |
+| Share / story export | Uses the native share sheet. |
+
+Everything else — sign-in, the assessment, the machine animation, scoring, sync,
+history, Plus — behaves as it does on a phone.
+
+**The phone is still the real target.** This is a convenience view, not a supported
+platform, and it is not what gets submitted to either store.
+
+---
+
 ## 8 · The demo account
 
 A seeded account so coaches, reviewers and app-store testers can open the app and see a

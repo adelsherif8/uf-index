@@ -1,5 +1,6 @@
 // Haptics + synthesized sound effects (bundled wavs, no network).
 import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
 import { Audio, AVPlaybackSource } from 'expo-av';
 
 const FILES: Record<string, AVPlaybackSource> = {
@@ -43,10 +44,18 @@ export function play(name: keyof typeof FILES): void {
   pool[name]?.replayAsync().catch(() => {});
 }
 
+// There is no haptic engine in a browser, and the module can throw
+// synchronously there rather than rejecting — which would take a button press
+// down with it. Guard once, here, instead of at every call site.
+const haptic = (fn: () => Promise<void>) => {
+  if (Platform.OS === 'web') return;
+  try { fn().catch(() => {}); } catch { /* no haptics on this device */ }
+};
+
 export const vib = {
-  tick: () => Haptics.selectionAsync().catch(() => {}),
-  light: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}),
-  medium: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}),
-  heavy: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {}),
-  success: () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {}),
+  tick: () => haptic(() => Haptics.selectionAsync()),
+  light: () => haptic(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
+  medium: () => haptic(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
+  heavy: () => haptic(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)),
+  success: () => haptic(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
 };
