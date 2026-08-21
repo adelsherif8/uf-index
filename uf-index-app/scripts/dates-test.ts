@@ -1,4 +1,4 @@
-import { ageOn, dobFromInput, dobToInput } from '../src/lib/dates';
+import { ageOn, dobFromInput, dobToInput, weekOf, daysUntilUnlock } from '../src/lib/dates';
 let fail = 0;
 const eq = (got: unknown, want: unknown, what: string) => {
   const ok = got === want;
@@ -24,5 +24,14 @@ eq(dobFromInput('1/3/1992'), '', 'unpadded');
 console.log('\nround trip');
 eq(dobToInput('1992-03-15'), '15/03/1992', 'stored -> display');
 eq(dobFromInput(dobToInput('1992-03-15')), '1992-03-15', 'there and back');
+console.log('\nweeks run Monday to Sunday');
+eq(weekOf(new Date('2026-08-17T09:00:00')) === weekOf(new Date('2026-08-23T23:00:00')), true, 'Mon and the following Sun are one week');
+eq(weekOf(new Date('2026-08-23T23:00:00')) === weekOf(new Date('2026-08-24T01:00:00')), false, 'Sun night and Mon morning are different weeks');
+eq(weekOf(new Date('2026-08-17T09:00:00')) === weekOf(new Date('2026-08-16T09:00:00')), false, 'the Sunday before is the previous week');
+console.log('\ndays until the gate lifts');
+eq(daysUntilUnlock(new Date('2026-08-17T10:00:00')), 7, 'Monday -> next Monday');
+eq(daysUntilUnlock(new Date('2026-08-22T10:00:00')), 2, 'Saturday -> Monday');
+eq(daysUntilUnlock(new Date('2026-08-23T10:00:00')), 1, 'Sunday -> tomorrow');
+
 console.log(fail === 0 ? '\nAll date handling correct.' : `\n${fail} FAILED`);
 if (fail) process.exit(1);

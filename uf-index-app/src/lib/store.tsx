@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AssessmentInput, ScoreResult } from './scoring';
-import { ageOn } from './dates';
+import { ageOn, weekOf } from './dates';
 import { syncNow } from './sync';
 
 export interface Profile {
@@ -155,11 +155,23 @@ export const useStore = () => useContext(Ctx);
 export const skipsProfile = (s: AppState): boolean =>
   s.records.length > 0 && !!s.profile.name.trim() && !!s.profile.dob.trim();
 
-export { ageOn, dobFromInput, dobToInput } from './dates';
+export { ageOn, dobFromInput, dobToInput, weekOf, daysUntilUnlock } from './dates';
+
+/**
+ * UF Index is a weekly measure, not a daily one. Body composition does not move
+ * enough in a day to be worth reading, so a second check-in inside the same week
+ * would only add noise and break the streak's meaning.
+ *
+ * The escape hatch for a mistake is deleting the check-in in History and
+ * retaking it — not letting people stack several in a day.
+ */
+export function checkedInThisWeek(records: AssessmentRecord[]): boolean {
+  const last = records[records.length - 1];
+  return !!last && weekOf(new Date(last.takenAt)) === weekOf(new Date());
+}
 
 export function streakWeeks(records: AssessmentRecord[]): number {
   if (!records.length) return 0;
-  const weekOf = (d: Date) => Math.floor(d.getTime() / (7 * 864e5));
   const weeks = new Set(records.map(r => weekOf(new Date(r.takenAt))));
   let streak = 0;
   let w = weekOf(new Date());

@@ -10,7 +10,7 @@ import {
 } from '@expo-google-fonts/instrument-sans';
 import { C } from './src/lib/theme';
 import { NavCtx, Screen } from './src/lib/nav';
-import { StoreProvider, useStore, skipsProfile, ageOn } from './src/lib/store';
+import { StoreProvider, useStore, skipsProfile, checkedInThisWeek, ageOn } from './src/lib/store';
 import { DraftProvider } from './src/lib/draft';
 import { initFx } from './src/lib/fx';
 import { syncNow } from './src/lib/sync';
@@ -82,7 +82,11 @@ function Root() {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(resp => {
       const target = resp.notification.request.content.data?.go;
-      if (target === 'profile') go(skipsProfile(state) ? 'measure' : 'profile');
+      if (target === 'profile') {
+        // if this week is already filed, the nudge lands on the dashboard
+        if (checkedInThisWeek(state.records)) go('dashboard');
+        else go(skipsProfile(state) ? 'measure' : 'profile');
+      }
     });
     return () => sub.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -31,3 +31,15 @@ export const dobToInput = (dob: string): string => {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
 };
 
+
+/** Monday-based week number, so a week runs Mon–Sun as the copy promises. */
+export const weekOf = (d: Date): number =>
+  Math.floor((d.getTime() - (d.getDay() === 0 ? 6 : d.getDay() - 1) * 864e5) / (7 * 864e5));
+
+
+/** Days until the week rolls over on Monday. */
+export function daysUntilUnlock(now: Date = new Date()): number {
+  const dow = now.getDay();               // 0 = Sunday
+  return dow === 0 ? 1 : 8 - dow;
+}
+

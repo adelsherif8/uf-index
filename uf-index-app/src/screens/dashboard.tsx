@@ -4,7 +4,7 @@ import { View, Text, Pressable, Switch, StyleSheet, Alert, Modal } from 'react-n
 import Svg, { Polyline, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
-import { useStore, streakWeeks, skipsProfile, AssessmentRecord } from '../lib/store';
+import { useStore, streakWeeks, skipsProfile, checkedInThisWeek, daysUntilUnlock, AssessmentRecord } from '../lib/store';
 import { leanThresholds } from '../lib/scoring';
 import { requestCall, deleteAssessment } from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Card } from '../components/ui';
@@ -101,11 +101,11 @@ export function DashboardScreen() {
   const weakest = [...last.result.pillars].sort((a, b) => a.value - b.value)[0];
   const lowBand = last.result.score < 3;
   // streak countdown: checked in this week already?
-  const weekOf = (dd: Date) => Math.floor(dd.getTime() / (7 * 864e5));
-  const doneThisWeek = weekOf(new Date(last.takenAt)) === weekOf(new Date());
+  const doneThisWeek = checkedInThisWeek(recs);
+  const unlockIn = daysUntilUnlock();
   const daysToSunday = (7 - new Date().getDay()) % 7;
   const dueLine = doneThisWeek
-    ? 'This week is charged. Next check-in unlocks Monday.'
+    ? `This week is charged. Next check-in unlocks ${unlockIn === 1 ? 'tomorrow' : `in ${unlockIn} days`}.`
     : daysToSunday === 0 ? 'Due today — keep the streak alive.'
     : `Due by Sunday — ${daysToSunday} day${daysToSunday === 1 ? '' : 's'} left.`;
   // monthly recap
@@ -122,8 +122,11 @@ export function DashboardScreen() {
 
   return (
     <ScreenShell
-      cta={<Btn label="Re-check · drop a token" variant="blood"
-        onPress={() => nav.go(skipsProfile(state) ? 'measure' : 'profile')} />}
+      cta={doneThisWeek
+        ? <Btn label={`Checked in · unlocks ${unlockIn === 1 ? 'tomorrow' : `in ${unlockIn} days`}`}
+            variant="ghost" disabled onPress={() => {}} />
+        : <Btn label="Re-check · drop a token" variant="blood"
+            onPress={() => nav.go(skipsProfile(state) ? 'measure' : 'profile')} />}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={ds.hello}>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {name}</Text>
