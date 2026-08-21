@@ -22,6 +22,9 @@ create table public.coaches (
   max_clients   integer not null default 25 check (max_clients between 1 and 500),
   -- The lenses this coach actually works in. Used by the specialism strategy.
   specialisms   text[] not null default '{}',
+  -- This coach's sub-calendar inside the UFAS Workspace calendar. Set once,
+  -- when the calendar is created for them.
+  google_calendar_id text,
   created_at    timestamptz not null default now()
 );
 
@@ -80,19 +83,32 @@ create unique index sessions_no_double_booking
   on public.sessions (coach_id, starts_at)
   where status in ('proposed', 'confirmed');
 
--- ------------------------------------------------------- calendar connection --
--- Google OAuth tokens, one row per coach. Separate table so it can carry
--- tighter policies than `coaches` and be revoked without touching the profile.
-create table public.coach_calendars (
-  coach_id       uuid primary key references public.coaches (id) on delete cascade,
-  google_email   text not null,
-  calendar_id    text not null default 'primary',
-  refresh_token  text not null,          -- encrypted at rest by Supabase
+-- --------------------------------------------------- the Workspace calendar --
+-- UFAS runs ONE Google Workspace calendar with a sub-calendar per coach, rather
+-- than each coach connecting a personal Google account.
+--
+-- Why: a coach who leaves takes a personal calendar with them, along with every
+-- appointment on it. A Workspace sub-calendar belongs to UFAS — access is
+-- removed, the schedule stays. It also gives the admin one genuine combined
+-- view instead of five stitched together.
+--
+-- So there is a single connection for the whole organisation, not one per
+-- coach. One row, enforced.
+create table public.workspace_calendar (
+  id             boolean primary key default true check (id),   -- exactly one row
+  google_domain  text not null,          -- ufaslive.com
+  client_email   text not null,          -- the service account
+  refresh_token  text,                   -- null when using domain-wide delegation
   sync_token     text,                   -- incremental sync cursor
   connected_at   timestamptz not null default now(),
   last_sync_at   timestamptz
 );
 
-comment on table public.coach_calendars is
-  'Google refresh tokens. NEVER exposed to the Data API — see the RLS file, which '
-  'grants no policy at all, so only the service role in an Edge Function can read it.';
+comment on table public.workspace_calendar is
+  'The single Google Workspace connection. NEVER exposed to the Data API — the '
+  'RLS file grants no policy at all, so only the service role inside an Edge '
+  'Function can read it. One row, enforced by the primary key.';
+
+comment on column public.coaches.google_calendar_id is
+  'The coach''s sub-calendar inside the UFAS Workspace calendar. A coach sees '
+  'only their own; the admin sees all of them overlaid.';

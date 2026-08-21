@@ -8,7 +8,7 @@
 alter table public.coaches         enable row level security;
 alter table public.coach_clients   enable row level security;
 alter table public.sessions        enable row level security;
-alter table public.coach_calendars enable row level security;
+alter table public.workspace_calendar enable row level security;
 
 -- Helpers. SECURITY DEFINER so a coach can be identified without granting
 -- everyone read access to the coaches table; both derive the caller from the
@@ -88,10 +88,12 @@ create policy "a coach updates their own sessions" on public.sessions
   using ( coach_id = (select auth.uid()) )
   with check ( coach_id = (select auth.uid()) );
 
--- --------------------------------------------------------- coach_calendars --
--- Deliberately no policy for `authenticated`. Refresh tokens are readable only
--- by the service role inside an Edge Function. A coach connects and disconnects
--- through a function, never by touching the row.
+-- ------------------------------------------------------ workspace_calendar --
+-- Deliberately no policy for `authenticated`, not even for the admin. The
+-- service-account credential is readable only by the service role inside an
+-- Edge Function. Connecting and disconnecting happens through a function, never
+-- by touching the row — so a compromised coach session cannot exfiltrate the
+-- credential that reaches every calendar in the organisation.
 
 -- ----------------------------------------------------------------- a view ---
 -- What a client is allowed to see about their own appointments.
