@@ -157,6 +157,31 @@ clearing local storage, and refuses to claim success if it fails.
 Returns one JSON object with the caller's profile, settings, consents, assessments (with scores)
 and Plus sessions. DPDP portability, in one call.
 
+### Coaching (Phase 2 — schema in place, not yet applied)
+
+```sql
+-- a coach must be able to log in, so they sign up in the app first
+select public.ensure_coach('someone@ufaslive.com', 'Parina', false, '{sleep,energy}');
+
+-- hand the admin seat over later
+select public.ensure_coach('ravish@ufstudios.in', 'Ravish Dhamija', true);
+select public.ensure_coach('adelsherif8@gmail.com', 'Adel Emad', false);  -- step down
+
+-- who has capacity right now
+select * from public.coach_caseload;
+
+-- assign one, or backfill everyone who has assessments but no coach
+select public.assign_client('<user-uuid>', 'organization');
+select public.assign_all_unassigned('organization');
+```
+
+Strategies: `lowest_load` (default), `round_robin`, `specialism`, `organization`.
+Each falls back to `lowest_load` rather than leaving someone unassigned.
+
+**The admin seat** is `coaches.is_admin`. One person holds it; they see every
+coach's clients, sessions and calendar. Everyone else sees only their own — enforced
+by RLS, not by the dashboard remembering to filter.
+
 ### Plain reads (PostgREST, no function needed)
 
 ```
