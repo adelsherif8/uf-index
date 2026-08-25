@@ -175,6 +175,15 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .act:hover{filter:brightness(1.2)}
 .act.primary{background:var(--gold);border-color:var(--gold);color:#0D0D0D}
 
+/* ── real sign in ── */
+.realIn{margin-top:22px;text-align:left}
+.orLine{display:flex;align-items:center;gap:12px;margin:0 0 14px;color:var(--dim);font-size:11.5px;
+  letter-spacing:.06em;text-transform:uppercase}
+.orLine::before,.orLine::after{content:'';flex:1;height:1px;background:var(--line)}
+.realIn .inp{width:100%;margin-bottom:9px}
+.realIn .btn{width:100%}
+.siErr{color:var(--gold);font-size:12.5px;min-height:17px;margin:8px 0 0;text-align:center}
+
 /* ── calendar ── */
 .calNav{display:flex;gap:6px;margin-left:auto}
 .calBtn{background:var(--card);border:1px solid var(--line);color:var(--ink);
@@ -511,7 +520,16 @@ body.mobile-view .railShow{display:none}
       <button class="who" data-coach="Manjula"><span class="avatar">M</span><b>Manjula</b><span class="sub">3 clients · 1 call request</span></button>
       <button class="who" data-coach="Adel"><span class="avatar">A</span><b>Adel</b><span class="sub">Admin · sees every coach</span></button>
     </div>
-    <p class="tiny">Prototype — no password, no real data.</p>
+    <p class="tiny">Demo accounts — no password, seeded data.</p>
+
+    <div class="realIn" id="realIn" hidden>
+      <div class="orLine"><span>or sign in with your UFAS account</span></div>
+      <input id="siEmail" class="inp" type="email" placeholder="you@ufaslive.com" autocomplete="username">
+      <input id="siPass" class="inp" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="btn" id="siGo">Sign in</button>
+      <p class="siErr" id="siErr"></p>
+      <p class="tiny">Live data. You will only see your own clients.</p>
+    </div>
   </div>
 </section>
 
@@ -770,7 +788,53 @@ body.mobile-view .railShow{display:none}
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+/* ============================================================================
+ * Live backend, optional.
+ *
+ * With no credentials the dashboard runs exactly as it does today: the seeded
+ * demo, saved in localStorage, no network. Fill these in and it signs coaches
+ * in for real and reads sessions from the database instead.
+ *
+ * The anon/publishable key is safe here — RLS is what protects the data, and a
+ * coach only ever sees their own clients because Postgres says so.
+ * ========================================================================== */
+const SB_URL  = 'https://aneshngmljfhkjblsvqd.supabase.co';
+const SB_KEY  = 'sb_publishable_dOpVrCDygwSa2HdA2PjQEg_avWyFOdR';
+const LIVE    = !!(SB_URL && SB_KEY && window.supabase);
+const sb      = LIVE ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+
+/** Sessions for a week, straight from the sessions table. RLS scopes them. */
+async function fetchSessions(mon) {
+  if (!sb) return null;
+  const end = new Date(mon); end.setDate(mon.getDate() + 7);
+  const { data, error } = await sb.from('sessions')
+    .select('id, coach_id, user_id, starts_at, ends_at, status, coaches(full_name), profiles:user_id(full_name)')
+    .gte('starts_at', mon.toISOString()).lt('starts_at', end.toISOString())
+    .order('starts_at');
+  if (error) { console.warn('sessions:', error.message); return null; }
+  return data.map(r => ({
+    id: r.id, clientId: r.user_id, coach: r.coaches?.full_name || '—',
+    clientName: r.profiles?.full_name || 'Client',
+    startsAt: r.starts_at, status: r.status,
+    mins: Math.round((new Date(r.ends_at) - new Date(r.starts_at)) / 60000),
+  }));
+}
+
+/** Write one proposed session. Returns null and logs if RLS refuses. */
+async function createSession(clientId, startsAt, mins) {
+  if (!sb) return null;
+  const { data: me } = await sb.auth.getUser();
+  if (!me?.user) return null;
+  const ends = new Date(new Date(startsAt).getTime() + mins * 60000).toISOString();
+  const { data, error } = await sb.from('sessions')
+    .insert({ coach_id: me.user.id, user_id: clientId, starts_at: startsAt, ends_at: ends, status: 'proposed' })
+    .select('id').single();
+  if (error) { console.warn('createSession:', error.message); return null; }
+  return data.id;
+}
+
 /* UF Index — coach prototype. No backend: state lives in localStorage. */
 (function () {
   const $ = (s, r) => (r || document).querySelector(s);
@@ -921,11 +985,45 @@ body.mobile-view .railShow{display:none}
   $('#backBtn').addEventListener('click', () => show('clients'));
 
   /* ══════════ sign in ══════════ */
-  $$('.who').forEach(b => b.addEventListener('click', () => { S.coach = b.dataset.coach; save(); enter(); }));
+  $$('.who').forEach(b => b.addEventListener('click', () => {
+    S.coach = b.dataset.coach; S.live = false; save(); enter();
+  }));
+
+  // Real sign-in appears only when the page is wired to a backend.
+  if (LIVE) {
+    $('#realIn').hidden = false;
+    const signIn = async () => {
+      const email = $('#siEmail').value.trim(), pass = $('#siPass').value;
+      $('#siErr').textContent = '';
+      if (!email || !pass) { $('#siErr').textContent = 'Email and password, please.'; return; }
+      $('#siGo').disabled = true; $('#siGo').textContent = 'One moment…';
+      try {
+        const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        // Being a user is not being a coach. The coaches row decides.
+        const { data: me } = await sb.auth.getUser();
+        const { data: coach } = await sb.from('coaches')
+          .select('full_name, is_admin').eq('id', me.user.id).maybeSingle();
+        if (!coach) {
+          await sb.auth.signOut();
+          $('#siErr').textContent = 'That account is not set up as a coach yet.';
+          return;
+        }
+        S.coach = coach.full_name; S.isAdmin = coach.is_admin; S.live = true; save();
+        enter();
+      } catch (e) {
+        $('#siErr').textContent = e.message || 'Could not sign in.';
+      } finally {
+        $('#siGo').disabled = false; $('#siGo').textContent = 'Sign in';
+      }
+    };
+    $('#siGo').addEventListener('click', signIn);
+    $('#siPass').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+  }
   function enter() {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
-    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>UFAS coach</span></div>`;
+    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.live ? (S.isAdmin ? 'Admin · live' : 'UFAS coach · live') : 'demo data'}</span></div>`;
     buildPhoneSel(); renderPhone(); show('today');
   }
 
@@ -1269,10 +1367,14 @@ body.mobile-view .railShow{display:none}
     x.setHours(0, 0, 0, 0); return x;
   }
   let calMon = startOfWeek(new Date());
-  const isAdmin = () => S.coach === ADMIN;
+  const isAdmin = () => (S.live ? !!S.isAdmin : S.coach === ADMIN);
   const visibleAppts = () => (S.appointments || []).filter(a => isAdmin() || a.coach === S.coach);
 
-  function renderCalendar() {
+  async function renderCalendar() {
+    if (S.live) {
+      const live = await fetchSessions(calMon);
+      if (live) S.appointments = live;     // RLS already scoped these to me
+    }
     const days = [...Array(7)].map((_, i) => {
       const d = new Date(calMon); d.setDate(calMon.getDate() + i); return d;
     });
@@ -1318,12 +1420,13 @@ body.mobile-view .railShow{display:none}
       const cell = $(`.calCell[data-day="${di}"][data-hr="${Math.floor(hr)}"]`);
       if (!cell) return;
       const c = byId(a.clientId);
+      const who = a.clientName || (c ? c.name : 'Client');
       const el = document.createElement('div');
       el.className = 'appt' + (a.status === 'proposed' ? ' proposed' : '');
       el.style.top = `${(hr - Math.floor(hr)) * SLOT}px`;
       el.style.height = `${Math.max(22, (a.mins / 60) * SLOT - 3)}px`;
       if (isAdmin()) el.style.borderLeftColor = COACH_HUE[a.coach] || 'var(--gold)';
-      el.innerHTML = `<b>${c ? c.name.split(' ')[0] : 'Client'}</b>
+      el.innerHTML = `<b>${who.split(' ')[0]}</b>
         <span>${st.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</span>`;
       el.addEventListener('click', ev => {
         ev.stopPropagation();
@@ -1370,6 +1473,7 @@ body.mobile-view .railShow{display:none}
           a.coach === S.coach && a.status !== 'cancelled' &&
           new Date(a.startsAt).getTime() === st.getTime());
         if (clash) { toast('You already have something at that time'); return; }
+        if (S.live) createSession(c.id, st.toISOString(), +$('#cLen').value).catch(() => {});
         S.appointments.push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
           startsAt: st.toISOString(), mins: +$('#cLen').value, status: 'proposed' });
         c.flag = null;
