@@ -192,6 +192,20 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── admin coach rows ── */
+.crow{display:flex;align-items:center;gap:14px;border:1px solid var(--line);
+  background:var(--card);border-radius:12px;padding:12px 15px;margin-bottom:8px;flex-wrap:wrap}
+.crow .cinfo{min-width:130px}
+.crow .cinfo b{display:block;font-size:15px}
+.crow .cinfo span{font-size:12px;color:var(--dim)}
+.crow .cnum{margin-left:auto;text-align:center;font-family:var(--disp);font-size:19px;
+  min-width:62px;line-height:1.1}
+.crow .cnum + .cnum{margin-left:0}
+.crow .cnum em{display:block;font-family:var(--ui);font-style:normal;font-size:10px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.crow .cnum.bad{color:var(--gold)}
+.crow .avatar.sm{border:1px solid var(--line)}
+
 /* ── pending sessions ── */
 .pend{margin-bottom:14px}
 .pend:empty{display:none}
@@ -887,6 +901,33 @@ async function fetchSessions(mon) {
   }));
 }
 
+/** Live clients, from client_summary. RLS decides whose. */
+async function fetchClients() {
+  if (!sb) return null;
+  const { data, error } = await sb.from('client_summary').select('*');
+  if (error) { console.warn('clients:', error.message); return null; }
+  return data.map(r => ({
+    id: r.user_id, name: r.full_name || 'Client', coach: r.coach_name,
+    org: r.organization || '—', since: r.assigned_at ? new Date(r.assigned_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '',
+    score: r.latest_score != null ? Number(r.latest_score) : null,
+    band: r.latest_band ? r.latest_band[0].toUpperCase() + r.latest_band.slice(1) : null,
+    checkins: r.checkins, done: r.sessions_done, noShows: r.no_shows,
+    upcoming: r.upcoming, pending: r.pending,
+    lastNote: '', lastAgreement: r.last_agreement,
+    lastSeen: r.last_checkin_at ? new Date(r.last_checkin_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'no check-in yet',
+    trend: [], pillars: {}, notes: [], sessions: [], plus: null,
+    flag: r.pending > 0 ? 'call' : (r.checkins === 0 ? 'new' : null),
+  }));
+}
+
+/** One row per coach, for the admin. */
+async function fetchCoachOverview() {
+  if (!sb) return null;
+  const { data, error } = await sb.from('coach_overview').select('*').order('full_name');
+  if (error) { console.warn('overview:', error.message); return null; }
+  return data;
+}
+
 /** Everything still waiting on somebody, in either direction. */
 async function fetchPending() {
   if (!sb) return null;
@@ -1117,7 +1158,12 @@ async function createSession(clientId, startsAt, mins) {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
     $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>`;
-    buildPhoneSel(); renderPhone(); show('today');
+    if (S.live) {
+      fetchClients().then(cs => {
+        if (cs) { S.clients = cs; save(); }
+        buildPhoneSel(); renderPhone(); show('today');
+      });
+    } else { buildPhoneSel(); renderPhone(); show('today'); }
   }
 
   /* ══════════ rows ══════════ */
@@ -1140,7 +1186,8 @@ async function createSession(clientId, startsAt, mins) {
   function wireRows() { $$('.row').forEach(r => r.addEventListener('click', () => openClient(r.dataset.id))); }
 
   /* ══════════ TODAY ══════════ */
-  function renderToday() {
+  async function renderToday() {
+    if (isAdmin()) return renderAdminHome();
     const cs = mine(), h = new Date().getHours();
     $('#greet').textContent = `Good ${h<12?'morning':h<18?'afternoon':'evening'}, ${S.coach}`;
     $('#todayDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -1157,6 +1204,65 @@ async function createSession(clientId, startsAt, mins) {
     $('#restList').innerHTML = rest.length ? rest.map(c=>row(c)).join('')
       : `<div class="empty"><b>That's everyone.</b><span>All of your clients are above.</span></div>`;
     wireRows(); badge();
+  }
+
+  /**
+   * The admin's home. Not a coach's Today with a wider filter — a different
+   * question. Who is carrying what, what is stuck, and where is it going wrong.
+   */
+  async function renderAdminHome() {
+    const h = new Date().getHours();
+    $('#greet').textContent = `Good ${h<12?'morning':h<18?'afternoon':'evening'}, ${S.coach}`;
+    $('#todayDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+    let rows = S.live ? await fetchCoachOverview() : null;
+    if (!rows) {
+      // demo fallback, derived from the seeded clients
+      const names = [...new Set(S.clients.map(c => c.coach))];
+      rows = names.map(n => {
+        const cs = S.clients.filter(c => c.coach === n);
+        return { full_name: n, clients: cs.length,
+          upcoming: (S.appointments||[]).filter(a=>a.coach===n&&a.status==='confirmed').length,
+          awaiting_coach: cs.filter(c=>c.flag==='call').length,
+          awaiting_client: (S.appointments||[]).filter(a=>a.coach===n&&a.status==='proposed').length,
+          sessions_done: 0, no_shows: 0, specialisms: [] };
+      });
+    }
+
+    const tot = (k) => rows.reduce((a,r)=>a+(+r[k]||0),0);
+    $('#stats').innerHTML = [
+      [rows.length, 'Coaches'],
+      [tot('clients'), 'Clients'],
+      [tot('awaiting_coach'), 'Waiting on a coach'],
+      [tot('upcoming'), 'Upcoming sessions'],
+    ].map(([v,l])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+
+    // Anything stuck is the only thing worth an alert.
+    const stuck = rows.filter(r => +r.awaiting_coach > 0 || +r.no_shows > 0 || +r.clients === 0);
+    $('#attention').innerHTML = stuck.length
+      ? stuck.map(r => {
+          const why = [];
+          if (+r.awaiting_coach) why.push(`${r.awaiting_coach} call request${+r.awaiting_coach>1?'s':''} unanswered`);
+          if (+r.no_shows) why.push(`${r.no_shows} no-show${+r.no_shows>1?'s':''}`);
+          if (+r.clients === 0) why.push('no clients assigned');
+          return `<div class="crow" data-coach="${r.full_name}">
+            <span class="avatar sm" style="background:${hueFor(r.full_name)}22;border-color:${hueFor(r.full_name)}">${r.full_name[0]}</span>
+            <div class="cinfo"><b>${r.full_name}</b><span>${why.join(' · ')}</span></div>
+            <span class="cnum">${r.clients}<em>clients</em></span></div>`;
+        }).join('')
+      : `<div class="empty"><b>Nothing stuck.</b><span>Every request has been answered and nobody is idle.</span></div>`;
+
+    $('#restList').innerHTML = rows.map(r => `
+      <div class="crow" data-coach="${r.full_name}">
+        <span class="avatar sm" style="background:${hueFor(r.full_name)}22;border-color:${hueFor(r.full_name)}">${r.full_name[0]}</span>
+        <div class="cinfo"><b>${r.full_name}</b>
+          <span>${(r.specialisms||[]).join(' · ') || 'no specialism set'}</span></div>
+        <span class="cnum">${r.clients}<em>clients</em></span>
+        <span class="cnum">${r.upcoming}<em>upcoming</em></span>
+        <span class="cnum">${r.sessions_done}<em>done</em></span>
+        <span class="cnum${+r.no_shows?' bad':''}">${r.no_shows}<em>no-show</em></span>
+      </div>`).join('');
+    badge();
   }
 
   /* ══════════ WEEK ══════════ */
