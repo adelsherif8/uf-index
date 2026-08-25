@@ -185,44 +185,68 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .siErr{color:var(--gold);font-size:12.5px;min-height:17px;margin:8px 0 0;text-align:center}
 
 /* ── calendar ── */
-.calNav{display:flex;gap:6px;margin-left:auto}
+.calNav{display:flex;gap:6px;margin-left:auto;align-items:center}
 .calBtn{background:var(--card);border:1px solid var(--line);color:var(--ink);
-  border-radius:9px;padding:7px 13px;font-size:13px;cursor:pointer}
+  border-radius:9px;padding:7px 13px;font-size:13px;cursor:pointer;white-space:nowrap}
 .calBtn:hover{background:var(--card2)}
+.calBtn.icon{padding:7px 11px;font-size:15px;line-height:1}
 .gcal{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   border:1px solid var(--line);background:var(--card);border-radius:12px;
-  padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--mut)}
+  padding:11px 14px;margin-bottom:14px;font-size:13px;color:var(--mut)}
 .gcal b{color:var(--ink)}
 .gdot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none}
 .gcal .calBtn{margin-left:auto}
-.calWrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.cal{min-width:760px}
-.calHead{display:grid;grid-template-columns:52px repeat(7,1fr);
-  border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
-.calHead div{padding:9px 6px;text-align:center;font-size:11px;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--dim)}
-.calHead div.isToday{color:var(--gold)}
-.calHead div b{display:block;font-family:var(--disp);font-size:17px;letter-spacing:0;
-  text-transform:none;color:var(--ink)}
-.calHead div.isToday b{color:var(--gold)}
-.calBody{display:grid;grid-template-columns:52px repeat(7,1fr);position:relative}
-.calHr{grid-column:1;font-size:10px;color:var(--dim);text-align:right;
-  padding:0 7px;height:46px;line-height:1;transform:translateY(-5px)}
-.calCell{height:46px;border-top:1px solid rgba(255,255,255,.055);
-  border-left:1px solid rgba(255,255,255,.055);position:relative;cursor:pointer}
-.calCell:hover{background:rgba(210,145,51,.09)}
-.calCell.todayCol{background:rgba(210,145,51,.035)}
-.appt{position:absolute;left:2px;right:2px;border-radius:7px;padding:4px 6px;
-  font-size:11px;line-height:1.25;overflow:hidden;z-index:1;cursor:pointer;
-  border-left:3px solid var(--gold);background:rgba(210,145,51,.20);color:var(--ink)}
-.appt.proposed{background:rgba(116,22,16,.55);border-left-color:var(--auburn);
-  border:1px dashed var(--auburn);border-left:3px solid var(--auburn)}
-.appt b{display:block;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-.appt span{color:var(--mut);font-size:10px}
+
+.calWrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#140b09}
+.calScroll{overflow:auto;max-height:calc(100vh - 300px)}
+.cal{min-width:720px}
+
+/* header: sticky, day + date, today picked out */
+.calHead{display:grid;grid-template-columns:56px repeat(7,minmax(84px,1fr));
+  position:sticky;top:0;z-index:3;background:#1b100d;border-bottom:1px solid var(--line)}
+.calHead > div{padding:8px 4px 9px;text-align:center}
+.calHead .dw{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.calHead .dd{font-family:var(--disp);font-size:18px;line-height:1.15;color:var(--ink)}
+.calHead .isToday .dw{color:var(--gold)}
+.calHead .isToday .dd{color:var(--gold);font-weight:700}
+
+/* body: one row per hour */
+.calBody{display:grid;grid-template-columns:56px repeat(7,minmax(84px,1fr));position:relative}
+.calHr{grid-column:1;height:42px;font-size:10.5px;color:var(--dim);
+  text-align:right;padding-right:8px;border-right:1px solid var(--line);
+  border-top:1px solid rgba(255,255,255,.05);position:relative}
+.calHr span{position:absolute;right:8px;top:-7px;background:#140b09;padding:0 2px}
+.calCell{height:42px;border-top:1px solid rgba(255,255,255,.05);
+  border-left:1px solid rgba(255,255,255,.05);position:relative;cursor:pointer}
+.calCell:hover{background:rgba(210,145,51,.10)}
+.calCell.todayCol{background:rgba(210,145,51,.04)}
+.calCell.past{opacity:.55;cursor:default}
+.calCell.past:hover{background:none}
+
+/* the current time */
+.nowLine{position:absolute;height:1px;background:var(--gold);z-index:2;pointer-events:none}
+.nowLine::before{content:'';position:absolute;left:-3px;top:-2.5px;
+  width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+/* an appointment */
+.appt{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;
+  overflow:hidden;z-index:1;cursor:pointer;border-left:3px solid var(--gold);
+  background:#4a3113;color:var(--ink);display:flex;flex-direction:column;justify-content:center}
+.appt:hover{filter:brightness(1.18)}
+.appt.proposed{background:#3a1310;border-left-color:var(--auburn);
+  outline:1px dashed rgba(210,145,51,.45);outline-offset:-3px}
+.appt .an{font-size:11.5px;font-weight:600;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appt .at{font-size:10px;line-height:1.2;color:rgba(255,255,255,.72);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appt.tight{padding:1px 6px;flex-direction:row;align-items:center;gap:6px}
+.appt.tight .at{color:rgba(255,255,255,.6)}
+
 .calKey{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--mut)}
-.calKey i{display:inline-block;width:11px;height:11px;border-radius:3px;
-  margin-right:6px;vertical-align:-1px;font-style:normal}
-.calEmpty{padding:26px;text-align:center;color:var(--dim);font-size:13px}
+.calKey span{display:inline-flex;align-items:center}
+.calKey i{width:11px;height:11px;border-radius:3px;margin-right:6px;flex:none;font-style:normal}
+.calEmpty{padding:22px;text-align:center;color:var(--dim);font-size:13px;
+  border-top:1px solid rgba(255,255,255,.06)}
 
 /* ── programmes ── */
 .progGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
@@ -603,13 +627,13 @@ body.mobile-view .railShow{display:none}
       <header class="head">
         <div><h2>Calendar</h2><p class="sub" id="calSub">Your sessions, Monday to Sunday.</p></div>
         <div class="calNav">
-          <button class="calBtn" id="calPrev">‹</button>
+          <button class="calBtn icon" id="calPrev" title="Previous week">‹</button>
           <button class="calBtn" id="calToday">This week</button>
-          <button class="calBtn" id="calNext">›</button>
+          <button class="calBtn icon" id="calNext" title="Next week">›</button>
         </div>
       </header>
       <div class="gcal" id="gcal"></div>
-      <div class="calWrap"><div class="cal" id="cal"></div></div>
+      <div class="calWrap"><div class="calScroll"><div class="cal" id="cal"></div></div></div>
       <div class="calKey" id="calKey"></div>
     </section>
 
@@ -1359,7 +1383,8 @@ async function createSession(clientId, startsAt, mins) {
   // only their own sub-calendar; the admin sees every one overlaid, colour-coded.
   // Google is a mirror — the session rows here are the source of truth, so the
   // schedule survives a coach leaving or the integration breaking.
-  const HR0 = 7, HR1 = 21, SLOT = 46;   // 7am–9pm, 46px an hour
+  const SLOT = 42;                 // px per hour, matches .calCell height
+  const DAY0 = 7, DAY1 = 21;       // the widest the grid ever goes
 
   function startOfWeek(d) {
     const x = new Date(d); const dow = x.getDay();
@@ -1369,17 +1394,32 @@ async function createSession(clientId, startsAt, mins) {
   let calMon = startOfWeek(new Date());
   const isAdmin = () => (S.live ? !!S.isAdmin : S.coach === ADMIN);
   const visibleAppts = () => (S.appointments || []).filter(a => isAdmin() || a.coach === S.coach);
+  const hhmm = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   async function renderCalendar() {
     if (S.live) {
       const live = await fetchSessions(calMon);
-      if (live) S.appointments = live;     // RLS already scoped these to me
+      if (live) S.appointments = live;
     }
     const days = [...Array(7)].map((_, i) => {
       const d = new Date(calMon); d.setDate(calMon.getDate() + i); return d;
     });
-    const todayKey = new Date().toDateString();
-    const fmtDay = d => d.toLocaleDateString('en-GB', { weekday: 'short' });
+    const now = new Date(), todayKey = now.toDateString();
+    const appts = visibleAppts();
+
+    // Only show hours that are actually in use, padded by one either side.
+    // A fixed 7am–9pm grid was mostly empty space with the sessions squashed
+    // into one corner of it.
+    let lo = 9, hi = 18;
+    appts.forEach(a => {
+      const st = new Date(a.startsAt);
+      if (days.some(d => d.toDateString() === st.toDateString())) {
+        lo = Math.min(lo, st.getHours());
+        hi = Math.max(hi, st.getHours() + Math.ceil(a.mins / 60));
+      }
+    });
+    lo = Math.max(DAY0, lo - 1); hi = Math.min(DAY1, hi + 1);
+    if (hi - lo < 6) hi = Math.min(DAY1, lo + 6);
 
     $('#calSub').textContent = isAdmin()
       ? 'Every coach, overlaid. Click a slot to schedule.'
@@ -1387,69 +1427,94 @@ async function createSession(clientId, startsAt, mins) {
 
     $('#gcal').innerHTML = `<span class="gdot"></span>
       <span>UFAS Workspace calendar · <b>${isAdmin() ? 'all coaches' : S.coach}</b></span>
-      <span class="tiny" style="color:var(--dim)">Not connected yet — this is the prototype view</span>
+      <span style="color:var(--dim);font-size:12px">Google not connected — sessions live in UF Index</span>
       <button class="calBtn" id="gConnect">Connect Google</button>`;
     $('#gConnect').addEventListener('click', () => toast('Needs the UFAS Google Workspace setup first'));
 
-    let head = '<div class="calHead"><div></div>';
-    days.forEach(d => {
+    const head = '<div class="calHead"><div></div>' + days.map(d => {
       const t = d.toDateString() === todayKey;
-      head += `<div class="${t ? 'isToday' : ''}">${fmtDay(d)}<b>${d.getDate()}</b></div>`;
-    });
-    head += '</div>';
+      return `<div class="${t ? 'isToday' : ''}">
+        <div class="dw">${d.toLocaleDateString('en-GB', { weekday: 'short' })}</div>
+        <div class="dd">${d.getDate()}</div></div>`;
+    }).join('') + '</div>';
 
-    let body = '<div class="calBody">';
-    for (let h = HR0; h < HR1; h++) {
-      body += `<div class="calHr">${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}</div>`;
+    let body = '<div class="calBody" id="calBody">';
+    for (let h = lo; h < hi; h++) {
+      const label = h === 12 ? 'noon' : `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`;
+      body += `<div class="calHr"><span>${label}</span></div>`;
       days.forEach((d, di) => {
         const t = d.toDateString() === todayKey;
-        body += `<div class="calCell ${t ? 'todayCol' : ''}" data-day="${di}" data-hr="${h}"></div>`;
+        const cellEnd = new Date(d); cellEnd.setHours(h + 1, 0, 0, 0);
+        const past = cellEnd < now;
+        body += `<div class="calCell${t ? ' todayCol' : ''}${past ? ' past' : ''}" data-day="${di}" data-hr="${h}"></div>`;
       });
     }
     body += '</div>';
     $('#cal').innerHTML = head + body;
 
-    // place each appointment over the grid
-    const appts = visibleAppts();
+    // group by day+hour so two sessions in one slot sit side by side
+    const buckets = {};
     appts.forEach(a => {
       const st = new Date(a.startsAt);
       const di = days.findIndex(d => d.toDateString() === st.toDateString());
-      if (di < 0) return;
-      const hr = st.getHours() + st.getMinutes() / 60;
-      if (hr < HR0 || hr >= HR1) return;
-      const cell = $(`.calCell[data-day="${di}"][data-hr="${Math.floor(hr)}"]`);
-      if (!cell) return;
-      const c = byId(a.clientId);
-      const who = a.clientName || (c ? c.name : 'Client');
-      const el = document.createElement('div');
-      el.className = 'appt' + (a.status === 'proposed' ? ' proposed' : '');
-      el.style.top = `${(hr - Math.floor(hr)) * SLOT}px`;
-      el.style.height = `${Math.max(22, (a.mins / 60) * SLOT - 3)}px`;
-      if (isAdmin()) el.style.borderLeftColor = COACH_HUE[a.coach] || 'var(--gold)';
-      el.innerHTML = `<b>${who.split(' ')[0]}</b>
-        <span>${st.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</span>`;
-      el.addEventListener('click', ev => {
-        ev.stopPropagation();
-        if (c && isMine(c)) openClient(c.id); else toast(`${a.coach}'s session — read only`);
-      });
-      cell.appendChild(el);
+      const hr = st.getHours();
+      if (di < 0 || hr < lo || hr >= hi) return;
+      (buckets[`${di}-${hr}`] ||= []).push(a);
     });
 
-    if (!appts.length) $('#cal').insertAdjacentHTML('beforeend',
-      '<div class="calEmpty">Nothing scheduled this week.</div>');
+    Object.entries(buckets).forEach(([key, list]) => {
+      const cell = $(`.calCell[data-day="${key.split('-')[0]}"][data-hr="${key.split('-')[1]}"]`);
+      if (!cell) return;
+      list.forEach((a, idx) => {
+        const st = new Date(a.startsAt);
+        const c = byId(a.clientId);
+        const who = a.clientName || (c ? c.name : 'Client');
+        const h = Math.max(20, (a.mins / 60) * SLOT - 2);
+        const el = document.createElement('div');
+        el.className = 'appt' + (a.status === 'proposed' ? ' proposed' : '') + (h < 30 ? ' tight' : '');
+        el.style.top = `${(st.getMinutes() / 60) * SLOT}px`;
+        el.style.height = `${h}px`;
+        const w = 100 / list.length;
+        el.style.left = `calc(${idx * w}% + 2px)`;
+        el.style.right = `calc(${(list.length - 1 - idx) * w}% + 2px)`;
+        if (isAdmin()) el.style.borderLeftColor = COACH_HUE[a.coach] || 'var(--gold)';
+        el.title = `${who} · ${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting the client' : ''}`;
+        el.innerHTML = `<div class="an">${who.split(' ')[0]}</div>
+          <div class="at">${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</div>`;
+        el.addEventListener('click', ev => {
+          ev.stopPropagation();
+          if (c && isMine(c)) openClient(c.id); else toast(el.title);
+        });
+        cell.appendChild(el);
+      });
+    });
 
-    // clicking an empty slot proposes a call there
-    $$('.calCell').forEach(cell => cell.addEventListener('click', () => {
+    // a line where we are now
+    const ti = days.findIndex(d => d.toDateString() === todayKey);
+    if (ti >= 0 && now.getHours() >= lo && now.getHours() < hi) {
+      const cell = $(`.calCell[data-day="${ti}"][data-hr="${now.getHours()}"]`);
+      if (cell) {
+        const ln = document.createElement('div');
+        ln.className = 'nowLine';
+        ln.style.top = `${(now.getMinutes() / 60) * SLOT}px`;
+        ln.style.left = '0'; ln.style.right = '0';
+        cell.appendChild(ln);
+      }
+    }
+
+    if (!appts.length) $('#cal').insertAdjacentHTML('beforeend',
+      `<div class="calEmpty">Nothing scheduled this week — click any slot to propose a call.</div>`);
+
+    $$('.calCell:not(.past)').forEach(cell => cell.addEventListener('click', () => {
       const d = new Date(days[+cell.dataset.day]); d.setHours(+cell.dataset.hr, 0, 0, 0);
       proposeAt(d);
     }));
 
-    $('#calKey').innerHTML = (isAdmin()
-      ? Object.entries(COACH_HUE).filter(([k]) => k !== ADMIN)
-          .map(([k, v]) => `<span><i style="background:${v}"></i>${k}</span>`).join('')
-      : '') +
-      '<span><i style="background:rgba(210,145,51,.5)"></i>Confirmed</span>' +
-      '<span><i style="background:rgba(116,22,16,.7)"></i>Proposed — awaiting the client</span>';
+    $('#calKey').innerHTML =
+      '<span><i style="background:#4a3113;border-left:3px solid var(--gold)"></i>Confirmed</span>' +
+      '<span><i style="background:#3a1310;border-left:3px solid var(--auburn)"></i>Proposed — awaiting the client</span>' +
+      (isAdmin() ? Object.entries(COACH_HUE).filter(([k]) => k !== ADMIN)
+        .map(([k, v]) => `<span><i style="background:${v}"></i>${k}</span>`).join('') : '');
   }
 
   function proposeAt(when) {
