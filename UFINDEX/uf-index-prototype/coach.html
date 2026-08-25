@@ -192,6 +192,43 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── client tracking ── */
+.track{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0}
+.track > div{background:#1b100d;padding:12px 10px;text-align:center}
+.track b{display:block;font-family:var(--disp);font-size:23px;line-height:1.1}
+.track b.warnN{color:var(--gold)}
+.track span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.sess{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px}
+.sess:last-child{border-bottom:0}
+.sdate{color:var(--dim);font-size:12px;min-width:52px;font-variant-numeric:tabular-nums}
+.sbadge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);
+  border-radius:999px;padding:2px 9px;color:var(--gold)}
+.sbadge.bad{border-color:var(--auburn);color:#E0B36B;background:rgba(116,22,16,.35)}
+.snote{color:var(--mut);flex:1;min-width:140px}
+.sby{font-size:11px;color:var(--dim)}
+.sagree{flex-basis:100%;font-size:12px;color:var(--gold)}
+.msg{display:flex;gap:9px;align-items:baseline;padding:7px 0;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,.06)}
+.msg:last-child{border-bottom:0}
+.msg b{font-size:12px;color:var(--gold);min-width:44px}
+.msg.client b{color:var(--mut)}
+.msg span{flex:1;color:var(--mut)}
+.msg em{font-style:normal;font-size:11px;color:var(--dim)}
+
+/* ── quick actions on a row ── */
+.qa{display:flex;gap:6px;margin-left:auto;flex:none}
+.qbtn{border:1px solid var(--line);background:rgba(13,13,13,.5);color:var(--mut);
+  border-radius:8px;padding:5px 10px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+.qbtn:hover{background:var(--card2);color:var(--ink)}
+.qbtn.go{border-color:var(--gold);color:var(--gold)}
+
+/* ── assignment ── */
+.assignRow{position:relative}
+.assignRow .move{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:12px;padding:5px 11px;z-index:2}
+
 /* ── grouped lists ── */
 .grpH{display:flex;align-items:center;gap:9px;font-size:14px;margin:20px 0 9px;color:var(--ink)}
 .grpH:first-child{margin-top:0}
@@ -690,7 +727,11 @@ body.mobile-view .railShow{display:none}
     </section>
 
     <section class="view" id="v-allclients">
-      <header class="head"><div><h2>All clients</h2><p class="sub">Everyone, and which coach holds them.</p></div></header>
+      <header class="head">
+        <div><h2>All clients</h2><p class="sub">Everyone, and which coach holds them.</p></div>
+        <div class="calNav"><button class="calBtn" id="assignAll">Assign everyone waiting</button></div>
+      </header>
+      <div id="unassigned"></div>
       <div id="allClientList"></div>
     </section>
 
@@ -930,6 +971,114 @@ async function fetchClients() {
     trend: [], pillars: {}, notes: [], sessions: [], plus: null,
     flag: r.pending > 0 ? 'call' : (r.checkins === 0 ? 'new' : null),
   }));
+}
+
+/**
+ * The full record for one client: trend, pillars and Plus.
+ * Fetched when a client is opened rather than with the list, because a coach
+ * opens two or three of thirty and pulling every history up front is waste.
+ */
+async function fetchClientDetail(userId) {
+  if (!sb) return null;
+  const [a, pl] = await Promise.all([
+    sb.from('assessments_with_scores')
+      .select('taken_at, uf_score, band, body_fat_pct, pillar_body, pillar_energy, pillar_sleep, pillar_feeling, note')
+      .eq('user_id', userId).order('taken_at', { ascending: true }),
+    sb.from('plus_sessions')
+      .select('completed_at, scaled_score, interpretation, questionnaires(code)')
+      .eq('user_id', userId).order('completed_at', { ascending: false }).limit(3),
+  ]);
+  if (a.error) { console.warn('detail:', a.error.message); return null; }
+  const rows = a.data || [];
+  const last = rows[rows.length - 1];
+  const plus = {};
+  (pl.data || []).forEach(r => {
+    const code = r.questionnaires?.code;
+    if (code && plus[code] === undefined) plus[code] = Number(r.scaled_score);
+  });
+  return {
+    trend: rows.map(r => Number(r.uf_score)),
+    pillars: last ? {
+      Body: Number(last.pillar_body), Energy: Number(last.pillar_energy),
+      Sleep: Number(last.pillar_sleep), Feeling: Number(last.pillar_feeling),
+    } : {},
+    lastNote: last?.note || '',
+    plus: Object.keys(plus).length
+      ? { who5: plus.WHO5 ?? '—', pss: plus.PSS10 ?? '—', psqi: plus.PSQI ?? '—' } : null,
+  };
+}
+
+/** Notes, messages and the session record for one client. */
+async function fetchClientRecord(userId) {
+  if (!sb) return null;
+  const [ses, notes, msgs] = await Promise.all([
+    sb.from('sessions')
+      .select('id, starts_at, status, outcome, notes, agreement, acted_by_role, coaches(full_name)')
+      .eq('user_id', userId).order('starts_at', { ascending: false }).limit(20),
+    sb.from('coach_notes').select('id, body, created_at, coaches(full_name)')
+      .eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
+    sb.from('messages').select('id, sender, body, created_at')
+      .eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
+  ]);
+  return {
+    sessions: (ses.data || []).map(r => ({
+      id: r.id, at: new Date(r.starts_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      when: r.starts_at, status: r.status,
+      outcome: r.outcome || r.status, note: r.notes || '', agreement: r.agreement || '',
+      by: r.acted_by_role, coach: r.coaches?.full_name,
+    })),
+    notes: (notes.data || []).map(r => ({
+      t: r.body, d: new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      who: r.coaches?.full_name })),
+    messages: (msgs.data || []).map(r => ({
+      sender: r.sender, body: r.body,
+      d: new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) })),
+  };
+}
+
+async function saveNote(userId, body) {
+  if (!sb) return false;
+  const { data: me } = await sb.auth.getUser();
+  const { error } = await sb.from('coach_notes')
+    .insert({ coach_id: me.user.id, user_id: userId, body });
+  if (error) { toast(error.message); return false; }
+  return true;
+}
+
+async function sendMessage(userId, body) {
+  if (!sb) return false;
+  const { data: me } = await sb.auth.getUser();
+  const { error } = await sb.from('messages')
+    .insert({ coach_id: me.user.id, user_id: userId, sender: 'coach', body });
+  if (error) { toast(error.message); return false; }
+  return true;
+}
+
+async function logSession(userId, outcome, notes, agreement) {
+  if (!sb) return false;
+  const { error } = await sb.rpc('log_session', {
+    p_user_id: userId, p_outcome: outcome, p_notes: notes || null, p_agreement: agreement || null });
+  if (error) { toast(error.message); return false; }
+  return true;
+}
+
+/** Assignment, the admin-facing wrappers. */
+async function adminUnassigned() {
+  if (!sb) return [];
+  const { data, error } = await sb.rpc('admin_unassigned');
+  return error ? [] : data;
+}
+async function adminAssignAll(strategy) {
+  if (!sb) return null;
+  const { data, error } = await sb.rpc('admin_assign_all', { p_strategy: strategy });
+  if (error) { toast(error.message); return null; }
+  return data;
+}
+async function adminTransfer(userId, toCoach, reason) {
+  if (!sb) return null;
+  const { error } = await sb.rpc('admin_transfer', { p_user_id: userId, p_to_coach: toCoach, p_reason: reason });
+  if (error) { toast(error.message); return null; }
+  return true;
 }
 
 /** One row per coach, for the admin. */
@@ -1336,15 +1485,62 @@ async function createSession(clientId, startsAt, mins) {
       </div>`).join('') || '<div class="empty"><b>No coaches yet.</b><span>Add one and they will appear here.</span></div>';
   }
 
-  function renderAllClients() {
+  async function renderAllClients() {
+    // The queue first: anyone with check-ins and no coach is the thing to act on.
+    const box = $('#unassigned');
+    const waiting = S.live ? await adminUnassigned() : [];
+    box.innerHTML = waiting.length ? `
+      <p class="pendH"><b>${waiting.length}</b> waiting to be assigned</p>
+      <div class="pList">${waiting.map(u => `
+        <div class="pRow">
+          <div class="pWho">${u.full_name || 'Client'}<em>${u.organization || 'no organisation'}</em></div>
+          <div class="pWhen">${u.checkins} check-in${u.checkins === 1 ? '' : 's'}</div>
+          <span class="pAct"><button class="pOk" data-assign="${u.user_id}">Assign</button></span>
+        </div>`).join('')}</div>` : '';
+
+    $$('#unassigned [data-assign]').forEach(b => b.addEventListener('click',
+      () => pickCoach(b.dataset.assign, null)));
+
     const byCoach = {};
     S.clients.forEach(c => { (byCoach[c.coach || 'Unassigned'] ||= []).push(c); });
     $('#allClientList').innerHTML = Object.entries(byCoach).map(([coach, cs]) => `
       <h3 class="grpH"><span class="dotc" style="background:${hueFor(coach)}"></span>${coach}
         <em>${cs.length} client${cs.length === 1 ? '' : 's'}</em></h3>
-      ${cs.map(c => row(c, { readonly: true })).join('')}`).join('')
+      ${cs.map(c => `<div class="assignRow">${row(c, { readonly: true })}
+        <button class="calBtn move" data-move="${c.id}">Move</button></div>`).join('')}`).join('')
       || '<div class="empty"><b>No clients yet.</b></div>';
     wireRows();
+    $$('#allClientList [data-move]').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation();
+      const c = byId(b.dataset.move);
+      pickCoach(b.dataset.move, c ? c.coach : null);
+    }));
+  }
+
+  /** Assign or move one client. Shows each coach's spare capacity. */
+  async function pickCoach(userId, currentCoach) {
+    const rows = await coachRows();
+    const opts = rows.filter(r => r.full_name !== currentCoach);
+    if (!opts.length) { toast('No other coach to move them to'); return; }
+    modal(currentCoach ? `Move to another coach` : `Assign a coach`, `
+      <label class="lbl">Coach</label>
+      <select id="mvC" class="inp">${opts.map(r =>
+        `<option value="${r.coach_id || r.full_name}">${r.full_name} — ${r.clients} client${r.clients === 1 ? '' : 's'}</option>`).join('')}</select>
+      <label class="lbl">Why (optional)</label>
+      <input id="mvR" class="inp" placeholder="Parina on leave">
+      ${currentCoach ? '<p class="tiny">Their upcoming sessions with ' + currentCoach + ' are cancelled. Past ones stay on the record.</p>' : ''}`,
+      currentCoach ? 'Move' : 'Assign', async () => {
+        const to = $('#mvC').value, why = ($('#mvR').value || '').trim() || null;
+        if (S.live) {
+          const ok = await adminTransfer(userId, to, why);
+          if (!ok) return;
+          const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+        } else {
+          const c = byId(userId); if (c) { c.coach = to; save(); }
+        }
+        toast(currentCoach ? 'Moved' : 'Assigned');
+        renderAllClients();
+      });
   }
 
   async function renderAllCalls() {
@@ -1391,6 +1587,26 @@ async function createSession(clientId, startsAt, mins) {
       renderAllCalls();
     }));
   }
+
+  $('#assignAll') && $('#assignAll').addEventListener('click', () => {
+    modal('Assign everyone waiting', `
+      <label class="lbl">How</label>
+      <select id="asS" class="inp">
+        <option value="organization">Keep each organisation together</option>
+        <option value="lowest_load">Give to whoever has fewest clients</option>
+        <option value="round_robin">Strict rotation</option>
+        <option value="specialism">Match their weakest area to a specialism</option>
+      </select>
+      <p class="tiny">Anyone already with a coach is left alone. A coach at capacity is skipped.</p>`,
+      'Assign', async () => {
+        if (!S.live) { toast('Needs the live backend'); return; }
+        const n = await adminAssignAll($('#asS').value);
+        if (n === null) return;
+        const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+        toast(n ? `${n} assigned` : 'Nobody was waiting');
+        renderAllClients();
+      });
+  });
 
   /* ══════════ WEEK ══════════ */
   function renderWeek() {
@@ -1460,7 +1676,7 @@ async function createSession(clientId, startsAt, mins) {
   }
 
   /* ══════════ CLIENT DETAIL ══════════ */
-  function openClient(id) {
+  async function openClient(id) {
     cur = id; const c = byId(id); const other = !isMine(c);
     setPhone(id);
     if (c.score == null) {
@@ -1470,6 +1686,15 @@ async function createSession(clientId, startsAt, mins) {
         pillars and prep brief appear here.</span></div>
         ${other?'':'<div class="actions"><button class="act primary" data-a="nudge">Send a reminder</button></div>'}`;
       wireActs(c); show('client'); return;
+    }
+    // pull the live record once, then render as normal
+    if (S.live) {
+      const [det, rec] = await Promise.all([
+        c._loaded ? null : fetchClientDetail(c.id),
+        fetchClientRecord(c.id),
+      ]);
+      if (det) Object.assign(c, det, { _loaded: true });
+      if (rec) Object.assign(c, rec);
     }
     const w = weakest(c), d = delta(c);
     const fall = c.trend.length > 2 && c.trend[c.trend.length-1] < c.trend[0];
@@ -1516,6 +1741,28 @@ async function createSession(clientId, startsAt, mins) {
           <p class="consent">✓ Score history shared with coach<br>✓ Terms approved · privacy-v1.0<br>✗ Social media — not granted</p>
           <p class="tiny">You can only see this because they allowed it.</p></div>
       </div>
+
+      <div class="track">
+        <div><b>${c.done ?? (c.sessions||[]).filter(x=>x.outcome==='done'||x.outcome==='Went well').length}</b><span>sessions</span></div>
+        <div><b class="${(c.noShows||0)?'warnN':''}">${c.noShows ?? 0}</b><span>no-shows</span></div>
+        <div><b>${c.checkins ?? (c.trend||[]).length}</b><span>check-ins</span></div>
+        <div><b>${c.upcoming ?? 0}</b><span>upcoming</span></div>
+        <div><b>${(c.notes||[]).length}</b><span>notes</span></div>
+      </div>
+
+      ${(c.sessions && c.sessions.length) ? `<div class="card"><h4>Session history</h4>
+        ${c.sessions.slice(0,6).map(x=>`<div class="sess">
+          <span class="sdate">${x.at}</span>
+          <span class="sbadge ${/no_show|No-show/.test(x.outcome)?'bad':''}">${
+            String(x.outcome).replace('no_show','no-show').replace('done','attended')}</span>
+          <span class="snote">${x.note || '—'}</span>
+          ${x.by==='admin'?'<span class="sby">logged by admin</span>':''}
+          ${x.agreement?`<span class="sagree">agreed: ${x.agreement}</span>`:''}
+        </div>`).join('')}</div>` : ''}
+
+      ${(c.messages && c.messages.length) ? `<div class="card"><h4>Messages</h4>
+        ${c.messages.slice(0,5).map(m=>`<div class="msg ${m.sender}">
+          <b>${m.sender==='coach'?'You':first(c)}</b><span>${m.body}</span><em>${m.d}</em></div>`).join('')}</div>` : ''}
 
       <div class="card"><h4>Programme</h4>
         <p class="prog">${PROGRAMME.n} · <span class="muted">${PROGRAMME.w}</span></p></div>
@@ -1595,11 +1842,13 @@ async function createSession(clientId, startsAt, mins) {
           </div>
           <label class="lbl">Message</label>
           <textarea id="mX" class="inp" rows="4" placeholder="Write something…"></textarea>`,
-          'Send', () => {
+          'Send', async () => {
             const t = ($('#mX').value||'').trim();
             if (!t) { toast('Nothing to send — the message was empty'); return; }
+            if (S.live) { const ok = await sendMessage(c.id, t); if (!ok) return; }
             log(c.id,'Message sent'); toast(`Message sent to ${f}`);
             pushToPhone(c.id, `Message from ${S.coach}`, t);
+            openClient(c.id);
           });
         setTimeout(()=>$$('#modalBody .chip').forEach(ch=>ch.addEventListener('click',()=>{ $('#mX').value = ch.dataset.t; })),0);
       }
@@ -1616,12 +1865,23 @@ async function createSession(clientId, startsAt, mins) {
         <label class="lbl">What did they agree to?</label>
         <input id="sA" class="inp" placeholder="Lights out by 11pm on off-days">
         <p class="tiny">This shows up in the next prep brief — so future-you knows what to check.</p>`,
-        'Save session', () => {
+        'Save session', async () => {
           const o = $('#modalBody .chip.on')?.dataset.o || 'Went well';
-          c.sessions.unshift({ at: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-            outcome:o, note:($('#sN').value||'').trim()||'No notes.', agreement:($('#sA').value||'').trim() });
-          if (o === 'Needs follow-up') c.flag = 'call';
-          save(); toast('Session logged'); openClient(c.id);
+          const note = ($('#sN').value || '').trim();
+          const agree = ($('#sA').value || '').trim();
+          const outcome = o === 'No-show' ? 'no_show' : 'done';
+          if (S.live) {
+            const ok = await logSession(c.id, outcome, note, agree);
+            if (!ok) return;
+            const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+            toast(outcome === 'no_show' ? 'Marked as a no-show' : 'Session logged');
+          } else {
+            c.sessions.unshift({ at: new Date().toLocaleDateString('en-GB',{month:'short',day:'numeric'}),
+              outcome:o, note: note || 'No notes.', agreement: agree });
+            if (o === 'Needs follow-up') c.flag = 'call';
+            save(); toast('Session logged');
+          }
+          openClient(c.id);
         });
       setTimeout(()=>$$('#modalBody .chips.out .chip').forEach(ch=>ch.addEventListener('click',()=>{
         $$('#modalBody .chips.out .chip').forEach(x=>x.classList.remove('on')); ch.classList.add('on');
@@ -1630,9 +1890,10 @@ async function createSession(clientId, startsAt, mins) {
       if (a === 'note') modal(`Private note about ${f}`, `
         <p class="tiny">Only you see this. ${f} never does.</p>
         <textarea id="nX" class="inp" rows="4" placeholder="Mentioned night shifts twice…"></textarea>`,
-        'Save note', () => {
+        'Save note', async () => {
           const t = ($('#nX').value||'').trim(); if (!t) return;
-          c.notes.unshift({ t, d:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}) });
+          if (S.live) { const ok = await saveNote(c.id, t); if (!ok) return; }
+          else c.notes.unshift({ t, d:new Date().toLocaleDateString('en-GB',{month:'short',day:'numeric'}) });
           save(); toast('Note saved'); openClient(c.id);
         });
 
