@@ -135,6 +135,69 @@ export async function startPlusTrial(): Promise<{ trial_ends_at?: string; alread
 
 // -------------------------------------------------------- coach calls -----
 
+export interface CoachInfo { coachId: string; name: string }
+export interface SessionRow {
+  id: string; startsAt: string; endsAt: string; status: string; coachName: string;
+}
+
+/** Who coaches me, if anyone has been assigned yet. */
+export async function myCoach(): Promise<CoachInfo | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('coach_clients')
+    .select('coach_id, coaches(full_name)')
+    .eq('status', 'active')
+    .maybeSingle();
+  if (error || !data) return null;
+  const c = data as { coach_id: string; coaches?: { full_name?: string } };
+  return { coachId: c.coach_id, name: c.coaches?.full_name ?? 'Your coach' };
+}
+
+/**
+ * When my coach is actually free — their working hours minus what is booked.
+ * Offering real openings beats letting someone pick a time and be declined.
+ */
+export async function freeSlots(coachId: string, days = 14, mins = 45): Promise<string[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc('coach_free_slots', {
+    p_coach_id: coachId, p_days: days, p_mins: mins,
+  });
+  if (error) return [];
+  return (data as Array<{ slot: string }>).map(r => r.slot);
+}
+
+/** Ask for one of those slots. The coach still has to confirm it. */
+export async function requestCallAt(startsAt: string, mins = 45): Promise<boolean> {
+  if (!supabase) return false;
+  const { error } = await supabase.rpc('request_call', { p_starts_at: startsAt, p_mins: mins });
+  return !error;
+}
+
+/** My appointments — mine only, through the client-facing view. */
+export async function mySessions(): Promise<SessionRow[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('id, starts_at, ends_at, status, coaches(full_name)')
+    .in('status', ['requested', 'proposed', 'confirmed'])
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at');
+  if (error) return [];
+  return (data as Array<Record<string, unknown>>).map(r => ({
+    id: String(r.id), startsAt: String(r.starts_at), endsAt: String(r.ends_at),
+    status: String(r.status),
+    coachName: (r.coaches as { full_name?: string } | null)?.full_name ?? 'Your coach',
+  }));
+}
+
+/** Accept or decline a time the coach proposed. */
+export async function answerProposal(id: string, accept: boolean): Promise<string | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('respond_to_session', { p_id: id, p_accept: accept });
+  return error ? null : (data as string);
+}
+
+
 /** "Request my coach call" — a real row a coach can pick up, not just local state. */
 export async function requestCall(): Promise<boolean> {
   if (!supabase) return true;            // local-only build: the button still works

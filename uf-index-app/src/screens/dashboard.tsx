@@ -6,7 +6,10 @@ import { C, FONT } from '../lib/theme';
 import { useNav } from '../lib/nav';
 import { useStore, streakWeeks, skipsProfile, checkedInThisWeek, daysUntilUnlock, AssessmentRecord } from '../lib/store';
 import { leanThresholds } from '../lib/scoring';
-import { requestCall, deleteAssessment } from '../lib/api';
+import {
+  requestCall, deleteAssessment, isConfigured, myCoach, freeSlots, requestCallAt,
+  mySessions, answerProposal, type CoachInfo, type SessionRow,
+} from '../lib/api';
 import { ScreenShell, Btn, H2, Sub, Card } from '../components/ui';
 import { play, vib } from '../lib/fx';
 import { bandLabel } from '../lib/i18n';
@@ -408,36 +411,173 @@ export function InsightsScreen() {
 export function CoachScreen() {
   const nav = useNav();
   const { state, patch } = useStore();
-  const sent = !!state.coachRequestedAt;
+  const [coach, setCoach] = React.useState<CoachInfo | null>(null);
+  const [slots, setSlots] = React.useState<string[]>([]);
+  const [mine, setMine] = React.useState<SessionRow[]>([]);
+  const [busy, setBusy] = React.useState(false);
+  const [loaded, setLoaded] = React.useState(false);
+
+  const refresh = React.useCallback(async () => {
+    if (!isConfigured()) { setLoaded(true); return; }
+    const c = await myCoach();
+    setCoach(c);
+    setMine(await mySessions());
+    if (c) setSlots(await freeSlots(c.coachId));
+    setLoaded(true);
+  }, []);
+  React.useEffect(() => { refresh().catch(() => setLoaded(true)); }, [refresh]);
+
+  const book = async (iso: string) => {
+    setBusy(true);
+    const ok = await requestCallAt(iso);
+    setBusy(false);
+    if (!ok) { Alert.alert('Could not send that', 'Please try another time.'); return; }
+    play('ding'); vib.success();
+    patch({ coachRequestedAt: new Date().toISOString() });
+    refresh();
+  };
+
+  const answer = async (id: string, yes: boolean) => {
+    setBusy(true);
+    const out = await answerProposal(id, yes);
+    setBusy(false);
+    if (out === 'confirmed') { play('ding'); vib.success(); }
+    refresh();
+  };
+
+  // Group the openings by day so it reads like a diary, not a list of stamps.
+  const byDay: Array<[string, string[]]> = [];
+  slots.slice(0, 40).forEach(iso => {
+    const key = new Date(iso).toDateString();
+    const last = byDay[byDay.length - 1];
+    if (last && last[0] === key) last[1].push(iso); else byDay.push([key, [iso]]);
+  });
+
+  const dayLabel = (k: string) =>
+    new Date(k).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+  const timeLabel = (iso: string) =>
+    new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  const pending = mine.filter(m => m.status === 'proposed');
+  const waiting = mine.filter(m => m.status === 'requested');
+  const booked  = mine.filter(m => m.status === 'confirmed');
+
+  // No backend, or no coach yet: the original pitch, unchanged.
+  if (!isConfigured() || (loaded && !coach)) {
+    const sent = !!state.coachRequestedAt;
+    return (
+      <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Coach"
+        cta={<Btn
+          label={sent ? `Request sent · ${new Date(state.coachRequestedAt as string).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}` : 'Request my coach call'}
+          variant="blood"
+          onPress={() => {
+            if (sent) return;
+            patch({ coachRequestedAt: new Date().toISOString() });
+            requestCall().catch(() => {});
+            play('ding'); vib.success();
+          }} />}>
+        <H2>Ready for a next step?</H2>
+        <Sub>A UFAS coach reviews your UF Index and history, then builds a plan with you — no commitment for the first chat.</Sub>
+        <Card><Text style={ds.actionT}>1 · Share your score</Text>
+          <Text style={ds.actionP}>Your latest UF Index and trend go to your coach — only with your consent.</Text></Card>
+        <Card><Text style={ds.actionT}>2 · 15-minute call</Text>
+          <Text style={ds.actionP}>Talk through what your score means and where to start.</Text></Card>
+        <Card><Text style={ds.actionT}>3 · Your program</Text>
+          <Text style={ds.actionP}>The UF 90-Day Programme, built around your weakest pillar.</Text></Card>
+        <Text style={ds.hashtag}>#ITSURJATIME</Text>
+      </ScreenShell>
+    );
+  }
+
   return (
-    <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Coach"
-      cta={<Btn
-        label={sent ? `Request sent · ${new Date(state.coachRequestedAt as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Request my coach call'}
-        variant="blood"
-        onPress={() => {
-          if (sent) return;
-          patch({ coachRequestedAt: new Date().toISOString() });
-          requestCall().catch(() => {});   // a row a coach can actually pick up
-          play('ding'); vib.success();
-        }} />}>
-      <H2>Ready for a next step?</H2>
-      <Sub>A UFAS coach reviews your UF Index and history, then builds a plan with you — no commitment for the first chat.</Sub>
-      <Card>
-        <Text style={ds.actionT}>1 · Share your score</Text>
-        <Text style={ds.actionP}>Your latest UF Index and trend go to your coach — only with your consent.</Text>
-      </Card>
-      <Card>
-        <Text style={ds.actionT}>2 · 15-minute call</Text>
-        <Text style={ds.actionP}>Talk through what your score means and where to start.</Text>
-      </Card>
-      <Card>
-        <Text style={ds.actionT}>3 · Your program</Text>
-        <Text style={ds.actionP}>Get matched to a UFAS program built around your weakest pillar.</Text>
-      </Card>
+    <ScreenShell onBack={() => nav.go('dashboard')} stepLabel="Coach">
+      <H2>{coach ? coach.name : 'Your coach'}</H2>
+      <Sub>Pick a time that suits you. {coach ? coach.name.split(' ')[0] : 'Your coach'} confirms it, and it lands in your calendar.</Sub>
+
+      {pending.length > 0 && (
+        <Card>
+          <Text style={ds.actionT}>{coach?.name.split(' ')[0]} suggested a time</Text>
+          {pending.map(p => (
+            <View key={p.id} style={cs.pRow}>
+              <Text style={cs.pWhen}>{dayLabel(new Date(p.startsAt).toDateString())} · {timeLabel(p.startsAt)}</Text>
+              <View style={cs.pBtns}>
+                <Pressable disabled={busy} onPress={() => answer(p.id, false)} style={cs.no}>
+                  <Text style={cs.noTxt}>No</Text></Pressable>
+                <Pressable disabled={busy} onPress={() => answer(p.id, true)} style={cs.yes}>
+                  <Text style={cs.yesTxt}>Accept</Text></Pressable>
+              </View>
+            </View>
+          ))}
+        </Card>
+      )}
+
+      {booked.length > 0 && (
+        <Card>
+          <Text style={ds.actionT}>Confirmed</Text>
+          {booked.map(b => (
+            <Text key={b.id} style={cs.confirmed}>
+              {dayLabel(new Date(b.startsAt).toDateString())} · {timeLabel(b.startsAt)}
+            </Text>
+          ))}
+        </Card>
+      )}
+
+      {waiting.length > 0 && (
+        <Card>
+          <Text style={ds.actionT}>Waiting on {coach?.name.split(' ')[0]}</Text>
+          {waiting.map(w => (
+            <Text key={w.id} style={cs.waiting}>
+              {dayLabel(new Date(w.startsAt).toDateString())} · {timeLabel(w.startsAt)} — not confirmed yet
+            </Text>
+          ))}
+        </Card>
+      )}
+
+      {!loaded && <Text style={cs.note}>Checking when they are free…</Text>}
+
+      {loaded && byDay.length === 0 && (
+        <Card><Text style={ds.actionP}>
+          No open times in the next two weeks. {coach?.name.split(' ')[0]} will reach out.
+        </Text></Card>
+      )}
+
+      {byDay.map(([day, times]) => (
+        <Card key={day}>
+          <Text style={ds.actionT}>{dayLabel(day)}</Text>
+          <View style={cs.slotWrap}>
+            {times.map(iso => (
+              <Pressable key={iso} disabled={busy} onPress={() => book(iso)}
+                style={({ pressed }) => [cs.slot, pressed && { opacity: 0.7 }]}>
+                <Text style={cs.slotTxt}>{timeLabel(iso)}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+      ))}
+
       <Text style={ds.hashtag}>#ITSURJATIME</Text>
     </ScreenShell>
   );
 }
+
+const cs = StyleSheet.create({
+  slotWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  slot: {
+    borderWidth: 1, borderColor: C.auburn, backgroundColor: C.auburn24,
+    borderRadius: 10, paddingVertical: 9, paddingHorizontal: 14,
+  },
+  slotTxt: { color: C.white, fontFamily: FONT.uiMedium, fontSize: 14 },
+  pRow: { marginTop: 10 },
+  pWhen: { color: C.white, fontFamily: FONT.uiMedium, fontSize: 15 },
+  pBtns: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  yes: { backgroundColor: C.gold, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 18 },
+  yesTxt: { color: C.black, fontFamily: FONT.uiSemiBold, fontSize: 14 },
+  no: { borderWidth: 1, borderColor: C.auburn, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 16 },
+  noTxt: { color: C.white73, fontFamily: FONT.ui, fontSize: 14 },
+  confirmed: { color: C.gold, fontFamily: FONT.uiMedium, fontSize: 15, marginTop: 6 },
+  waiting: { color: C.white73, fontFamily: FONT.ui, fontSize: 14, marginTop: 6 },
+  note: { color: C.white73, fontFamily: FONT.ui, fontSize: 13, textAlign: 'center', marginTop: 14 },
+});
 
 const ds = StyleSheet.create({
   trendFoot: {
