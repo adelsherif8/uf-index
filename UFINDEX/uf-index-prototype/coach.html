@@ -175,6 +175,46 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .act:hover{filter:brightness(1.2)}
 .act.primary{background:var(--gold);border-color:var(--gold);color:#0D0D0D}
 
+/* ── calendar ── */
+.calNav{display:flex;gap:6px;margin-left:auto}
+.calBtn{background:var(--card);border:1px solid var(--line);color:var(--ink);
+  border-radius:9px;padding:7px 13px;font-size:13px;cursor:pointer}
+.calBtn:hover{background:var(--card2)}
+.gcal{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border:1px solid var(--line);background:var(--card);border-radius:12px;
+  padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--mut)}
+.gcal b{color:var(--ink)}
+.gdot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none}
+.gcal .calBtn{margin-left:auto}
+.calWrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.cal{min-width:760px}
+.calHead{display:grid;grid-template-columns:52px repeat(7,1fr);
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2}
+.calHead div{padding:9px 6px;text-align:center;font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim)}
+.calHead div.isToday{color:var(--gold)}
+.calHead div b{display:block;font-family:var(--disp);font-size:17px;letter-spacing:0;
+  text-transform:none;color:var(--ink)}
+.calHead div.isToday b{color:var(--gold)}
+.calBody{display:grid;grid-template-columns:52px repeat(7,1fr);position:relative}
+.calHr{grid-column:1;font-size:10px;color:var(--dim);text-align:right;
+  padding:0 7px;height:46px;line-height:1;transform:translateY(-5px)}
+.calCell{height:46px;border-top:1px solid rgba(255,255,255,.055);
+  border-left:1px solid rgba(255,255,255,.055);position:relative;cursor:pointer}
+.calCell:hover{background:rgba(210,145,51,.09)}
+.calCell.todayCol{background:rgba(210,145,51,.035)}
+.appt{position:absolute;left:2px;right:2px;border-radius:7px;padding:4px 6px;
+  font-size:11px;line-height:1.25;overflow:hidden;z-index:1;cursor:pointer;
+  border-left:3px solid var(--gold);background:rgba(210,145,51,.20);color:var(--ink)}
+.appt.proposed{background:rgba(116,22,16,.55);border-left-color:var(--auburn);
+  border:1px dashed var(--auburn);border-left:3px solid var(--auburn)}
+.appt b{display:block;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.appt span{color:var(--mut);font-size:10px}
+.calKey{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--mut)}
+.calKey i{display:inline-block;width:11px;height:11px;border-radius:3px;
+  margin-right:6px;vertical-align:-1px;font-style:normal}
+.calEmpty{padding:26px;text-align:center;color:var(--dim);font-size:13px}
+
 /* ── programmes ── */
 .progGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .progGrid .prog{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;font-size:inherit}
@@ -449,7 +489,7 @@ body.mobile-view .railShow{display:none}
     <div class="ovlist">
       <div><b>Worth trying</b></div>
       <div>· Open a client and read the prep brief as if you had a call with them next</div>
-      <div>· Propose a call, send a message, assign a programme</div>
+      <div>· Propose a call, send a message, log a session</div>
       <div>· Log a session afterwards — that's the bit that feeds the next brief</div>
       <div>· On the right there's <b>the client's phone</b>. Make them take a check-in and watch this screen react</div>
     </div>
@@ -469,6 +509,7 @@ body.mobile-view .railShow{display:none}
     <div class="whoGrid">
       <button class="who" data-coach="Parina"><span class="avatar">P</span><b>Parina</b><span class="sub">5 clients · 2 need attention</span></button>
       <button class="who" data-coach="Manjula"><span class="avatar">M</span><b>Manjula</b><span class="sub">3 clients · 1 call request</span></button>
+      <button class="who" data-coach="Adel"><span class="avatar">A</span><b>Adel</b><span class="sub">Admin · sees every coach</span></button>
     </div>
     <p class="tiny">Prototype — no password, no real data.</p>
   </div>
@@ -483,8 +524,8 @@ body.mobile-view .railShow{display:none}
       <button data-v="week"><i>▤</i>This week</button>
       <button data-v="clients"><i>☰</i>Clients</button>
       <button data-v="calls"><i>◉</i>Call requests<em id="callBadge">3</em></button>
+      <button data-v="calendar"><i>▦</i>Calendar</button>
       <button data-v="cohorts"><i>⬢</i>Cohorts</button>
-      <button data-v="programs"><i>✦</i>Programmes</button>
       <button data-v="future"><i>✧</i>Coming next</button>
       <button data-v="help"><i>?</i>Help &amp; feedback</button>
     </nav>
@@ -540,15 +581,23 @@ body.mobile-view .railShow{display:none}
     </section>
 
     <!-- COHORTS -->
+    <section class="view" id="v-calendar">
+      <header class="head">
+        <div><h2>Calendar</h2><p class="sub" id="calSub">Your sessions, Monday to Sunday.</p></div>
+        <div class="calNav">
+          <button class="calBtn" id="calPrev">‹</button>
+          <button class="calBtn" id="calToday">This week</button>
+          <button class="calBtn" id="calNext">›</button>
+        </div>
+      </header>
+      <div class="gcal" id="gcal"></div>
+      <div class="calWrap"><div class="cal" id="cal"></div></div>
+      <div class="calKey" id="calKey"></div>
+    </section>
+
     <section class="view" id="v-cohorts">
       <header class="head"><div><h2>Cohorts</h2><p class="sub">Clients grouped by the organisation they came from.</p></div></header>
       <div id="cohortList"></div>
-    </section>
-
-    <!-- PROGRAMS -->
-    <section class="view" id="v-programs">
-      <header class="head"><div><h2>Programmes</h2><p class="sub">Assign by whichever pillar is lowest.</p></div></header>
-      <div class="progGrid" id="progGrid"></div>
     </section>
 
     <!-- FUTURE -->
@@ -729,6 +778,28 @@ body.mobile-view .railShow{display:none}
   const KEY = 'uf-coach-demo-v2';
 
   /* ══════════ seed ══════════ */
+  // Which coach is the admin. Adel holds the seat for now — he sees every
+  // coach's sessions overlaid; a coach sees only their own.
+  const ADMIN = 'Adel';
+  const COACH_HUE = { Parina: '#D29133', Manjula: '#741610', Adel: '#FFFFFF' };
+
+  // Appointments live as real datetimes. The prototype seeds a few relative to
+  // today, so the calendar always has something in it whenever it is opened.
+  function seedAppointments() {
+    const mon = startOfWeek(new Date());
+    const at = (day, hh, mm) => {
+      const d = new Date(mon); d.setDate(mon.getDate() + day); d.setHours(hh, mm, 0, 0); return d.toISOString();
+    };
+    return [
+      { id:'a1', clientId:'c1', coach:'Parina',  startsAt:at(1, 17, 30), mins:45, status:'confirmed' },
+      { id:'a2', clientId:'c3', coach:'Parina',  startsAt:at(2, 19,  0), mins:30, status:'confirmed' },
+      { id:'a3', clientId:'c4', coach:'Parina',  startsAt:at(4, 10,  0), mins:45, status:'proposed'  },
+      { id:'a4', clientId:'c6', coach:'Manjula', startsAt:at(1, 18,  0), mins:45, status:'confirmed' },
+      { id:'a5', clientId:'c7', coach:'Manjula', startsAt:at(3,  9, 30), mins:30, status:'proposed'  },
+      { id:'a6', clientId:'c8', coach:'Manjula', startsAt:at(5, 11,  0), mins:45, status:'confirmed' },
+    ];
+  }
+
   const SEED = {
     coach: null,
     clients: [
@@ -773,14 +844,9 @@ body.mobile-view .railShow{display:none}
     ],
     inbox: [],
   };
-  const PROGRAMS = [
-    { n:'URJA Sleep Reset', w:'4 weeks', d:'Wind-down routine, light discipline, shift-work adaptations.', tag:'Sleep' },
-    { n:'Morning Charge', w:'3 weeks', d:'Daylight, movement and breath before 9 am.', tag:'Energy' },
-    { n:'The Anchor Practice', w:'6 weeks', d:'The UFAS core — movement, nutrition, recovery.', tag:'All pillars' },
-    { n:'Body Kindness', w:'4 weeks', d:'Reframing body image with guided sessions.', tag:'Feeling' },
-    { n:'Station Strong', w:'8 weeks', d:'Cohort programme built around police shifts.', tag:'Cohort' },
-    { n:'Recovery Basics', w:'2 weeks', d:'The starter block for Depleted clients.', tag:'Depleted' },
-  ];
+  // UFAS runs one programme. The catalogue of six was a prototype invention and
+  // is gone; when a second programme genuinely exists, this becomes a list again.
+  const PROGRAMME = { n: 'UF 90-Day Programme', w: '90 days' };
   const TIP = {
     Sleep:'Sleep is the lever. Ask about their week first — shifts, screens, what time the lights go out.',
     Energy:'Their energy dips are the story. Morning light and 10 minutes of movement before 9 am move this fastest.',
@@ -791,8 +857,19 @@ body.mobile-view .railShow{display:none}
   /* ══════════ state ══════════ */
   let S = load();
   function load() {
-    try { const r = localStorage.getItem(KEY); if (r) return JSON.parse(r); } catch (e) {}
-    return JSON.parse(JSON.stringify(SEED));
+    try {
+      const r = localStorage.getItem(KEY);
+      if (r) {
+        const st = JSON.parse(r);
+        // appointments are seeded relative to today, so an old saved copy would
+        // show an empty week — refresh them rather than leaving a blank grid
+        if (!st.appointments || !st.appointments.length) st.appointments = seedAppointments();
+        return st;
+      }
+    } catch (e) {}
+    const fresh = JSON.parse(JSON.stringify(SEED));
+    fresh.appointments = seedAppointments();
+    return fresh;
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
   const mine = () => S.clients.filter(c => c.coach === S.coach);
@@ -838,7 +915,7 @@ body.mobile-view .railShow{display:none}
     $$('#nav button, #tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     ({ today: renderToday, week: renderWeek, clients: renderClients,
-       calls: renderCalls, cohorts: renderCohorts, programs: renderPrograms }[v] || (()=>{}))();
+       calls: renderCalls, cohorts: renderCohorts, calendar: renderCalendar }[v] || (()=>{}))();
   }
   $$('#nav button, #tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.v)));
   $('#backBtn').addEventListener('click', () => show('clients'));
@@ -1017,7 +1094,7 @@ body.mobile-view .railShow{display:none}
       </div>
 
       <div class="card"><h4>Programme</h4>
-        ${c.program?`<p class="prog">Currently on <b>${c.program}</b></p>`:'<p class="muted">No programme assigned.</p>'}</div>
+        <p class="prog">${PROGRAMME.n} · <span class="muted">${PROGRAMME.w}</span></p></div>
 
       ${c.sessions.length?`<div class="card"><h4>Session history</h4>
         ${c.sessions.map(s=>`<div class="sess"><div class="sessTop"><b>${s.at}</b>
@@ -1031,7 +1108,6 @@ body.mobile-view .railShow{display:none}
         <button class="act primary" data-a="call">Propose a call</button>
         <button class="act" data-a="msg">Send a message</button>
         <button class="act" data-a="log">Log a session</button>
-        <button class="act" data-a="prog">Assign a programme</button>
         <button class="act" data-a="note">Private note</button>
       </div>`}`;
     wireActs(c); show('client');
@@ -1046,16 +1122,41 @@ body.mobile-view .railShow{display:none}
     $$('#clientDetail .act').forEach(b => b.addEventListener('click', () => {
       const a = b.dataset.a, f = first(c);
 
-      if (a === 'call') modal(`Propose a call with ${f}`, `
-        <label class="lbl">When</label>
-        <select id="mT" class="inp"><option>Tomorrow · 5:30 PM</option><option>Tomorrow · 7:00 PM</option>
-        <option>Tuesday · 5:30 PM</option><option>Saturday · 10:00 AM</option></select>`,
-        'Send invite', () => {
-          const t = $('#mT').value; c.flag = null; log(c.id, `Proposed a call · ${t}`); save();
-          toast(`Call invite sent to ${f}`);
-          openClient(c.id);
-          pushToPhone(c.id, 'Your coach proposed a call', `${S.coach} suggested ${t}. Tap to accept.`);
-        });
+      if (a === 'call') {
+        // the next four working slots, so a coach can propose without leaving
+        // the client — the calendar is for picking a specific time
+        const slots = [];
+        const base = new Date(); base.setMinutes(0, 0, 0);
+        for (let d = 1; slots.length < 4; d++) {
+          const t = new Date(base); t.setDate(base.getDate() + d);
+          [17.5, 19].forEach(h => {
+            if (slots.length >= 4) return;
+            const x = new Date(t); x.setHours(Math.floor(h), (h % 1) * 60);
+            slots.push(x);
+          });
+        }
+        modal(`Propose a call with ${f}`, `
+          <label class="lbl">When</label>
+          <select id="mT" class="inp">${slots.map((x, i) =>
+            `<option value="${i}">${x.toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</option>`).join('')}</select>
+          <p class="tiny">Or open the Calendar and click the slot you want.</p>`,
+          'Send invite', () => {
+            const st = slots[+$('#mT').value];
+            const clash = (S.appointments || []).some(a2 =>
+              a2.coach === S.coach && a2.status !== 'cancelled' &&
+              new Date(a2.startsAt).getTime() === st.getTime());
+            if (clash) { toast('You already have something at that time'); return; }
+            S.appointments.push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
+              startsAt: st.toISOString(), mins: 45, status: 'proposed' });
+            c.flag = null;
+            log(c.id, `Proposed a call · ${st.toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}`);
+            save();
+            toast(`Call invite sent to ${f}`);
+            openClient(c.id);
+            pushToPhone(c.id, 'Your coach proposed a call',
+              `${S.coach} suggested ${st.toLocaleString('en-GB', { weekday: 'long', hour: '2-digit', minute: '2-digit' })}. Tap to accept.`);
+          });
+      }
 
       if (a === 'msg') {
         const w = weakest(c), tip = w ? TIP[w[0]].split('.')[0] + '.' : '';
@@ -1101,20 +1202,6 @@ body.mobile-view .railShow{display:none}
       setTimeout(()=>$$('#modalBody .chips.out .chip').forEach(ch=>ch.addEventListener('click',()=>{
         $$('#modalBody .chips.out .chip').forEach(x=>x.classList.remove('on')); ch.classList.add('on');
       })),0);
-
-      if (a === 'prog') {
-        const w = weakest(c), sug = w ? PROGRAMS.find(p=>p.tag===w[0]) : null;
-        modal(`Assign a programme to ${f}`, `
-          ${sug?`<p class="sugg">Suggested for their lowest pillar: <b>${sug.n}</b></p>`:''}
-          <label class="lbl">Programme</label>
-          <select id="mP" class="inp">${PROGRAMS.map(p=>`<option ${sug&&p.n===sug.n?'selected':''}>${p.n}</option>`).join('')}</select>`,
-          'Assign', () => {
-            c.program = $('#mP').value; log(c.id,`Assigned ${c.program}`); save();
-            toast(`${f} is on ${c.program}`);
-            openClient(c.id);
-            pushToPhone(c.id,'Your coach set you a programme',`${c.program} — starts this week.`);
-          });
-      }
 
       if (a === 'note') modal(`Private note about ${f}`, `
         <p class="tiny">Only you see this. ${f} never does.</p>
@@ -1164,18 +1251,139 @@ body.mobile-view .railShow{display:none}
           <div class="cohAvg">${avg?avg.toFixed(1):'—'}<span>avg Index</span></div></div>
         ${low?`<div class="cohLow">Weakest across the group: <b>${low[0].toLowerCase()}</b> at ${low[1].toFixed(1)}/5</div>`:''}
         <div class="cohMembers">${list.map(c=>`<span class="mini ${c.flag?'warn':''}">${c.name.split(' ')[0]} ${c.score?c.score.toFixed(1):'—'}</span>`).join('')}</div>
-        ${low?`<p class="cohTip">A cohort programme targeting ${low[0].toLowerCase()} would lift the whole group — see Programmes.</p>`:''}
+        ${low?`<p class="cohTip">${low[0]} is the weakest across this cohort — worth building the next block around.</p>`:''}
       </div>`;
     }).join('');
   }
 
-  /* ══════════ PROGRAMS ══════════ */
-  function renderPrograms() {
-    const n = {}; S.clients.forEach(c=>{ if(c.program) n[c.program]=(n[c.program]||0)+1; });
-    $('#progGrid').innerHTML = PROGRAMS.map(p=>`<div class="prog"><b>${p.n}</b><span class="pw">${p.w}</span>
-      <span class="pd">${p.d}</span><div class="pFoot"><span class="tag">${p.tag}</span>
-      <span class="tiny">${n[p.n]?`${n[p.n]} on this`:'nobody yet'}</span></div></div>`).join('');
+  /* ══════════ CALENDAR ══════════ */
+  // One UFAS Workspace calendar with a sub-calendar per coach. A coach sees
+  // only their own sub-calendar; the admin sees every one overlaid, colour-coded.
+  // Google is a mirror — the session rows here are the source of truth, so the
+  // schedule survives a coach leaving or the integration breaking.
+  const HR0 = 7, HR1 = 21, SLOT = 46;   // 7am–9pm, 46px an hour
+
+  function startOfWeek(d) {
+    const x = new Date(d); const dow = x.getDay();
+    x.setDate(x.getDate() - (dow === 0 ? 6 : dow - 1));
+    x.setHours(0, 0, 0, 0); return x;
   }
+  let calMon = startOfWeek(new Date());
+  const isAdmin = () => S.coach === ADMIN;
+  const visibleAppts = () => (S.appointments || []).filter(a => isAdmin() || a.coach === S.coach);
+
+  function renderCalendar() {
+    const days = [...Array(7)].map((_, i) => {
+      const d = new Date(calMon); d.setDate(calMon.getDate() + i); return d;
+    });
+    const todayKey = new Date().toDateString();
+    const fmtDay = d => d.toLocaleDateString('en-GB', { weekday: 'short' });
+
+    $('#calSub').textContent = isAdmin()
+      ? 'Every coach, overlaid. Click a slot to schedule.'
+      : `Your sessions only — ${S.coach}'s sub-calendar.`;
+
+    $('#gcal').innerHTML = `<span class="gdot"></span>
+      <span>UFAS Workspace calendar · <b>${isAdmin() ? 'all coaches' : S.coach}</b></span>
+      <span class="tiny" style="color:var(--dim)">Not connected yet — this is the prototype view</span>
+      <button class="calBtn" id="gConnect">Connect Google</button>`;
+    $('#gConnect').addEventListener('click', () => toast('Needs the UFAS Google Workspace setup first'));
+
+    let head = '<div class="calHead"><div></div>';
+    days.forEach(d => {
+      const t = d.toDateString() === todayKey;
+      head += `<div class="${t ? 'isToday' : ''}">${fmtDay(d)}<b>${d.getDate()}</b></div>`;
+    });
+    head += '</div>';
+
+    let body = '<div class="calBody">';
+    for (let h = HR0; h < HR1; h++) {
+      body += `<div class="calHr">${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}</div>`;
+      days.forEach((d, di) => {
+        const t = d.toDateString() === todayKey;
+        body += `<div class="calCell ${t ? 'todayCol' : ''}" data-day="${di}" data-hr="${h}"></div>`;
+      });
+    }
+    body += '</div>';
+    $('#cal').innerHTML = head + body;
+
+    // place each appointment over the grid
+    const appts = visibleAppts();
+    appts.forEach(a => {
+      const st = new Date(a.startsAt);
+      const di = days.findIndex(d => d.toDateString() === st.toDateString());
+      if (di < 0) return;
+      const hr = st.getHours() + st.getMinutes() / 60;
+      if (hr < HR0 || hr >= HR1) return;
+      const cell = $(`.calCell[data-day="${di}"][data-hr="${Math.floor(hr)}"]`);
+      if (!cell) return;
+      const c = byId(a.clientId);
+      const el = document.createElement('div');
+      el.className = 'appt' + (a.status === 'proposed' ? ' proposed' : '');
+      el.style.top = `${(hr - Math.floor(hr)) * SLOT}px`;
+      el.style.height = `${Math.max(22, (a.mins / 60) * SLOT - 3)}px`;
+      if (isAdmin()) el.style.borderLeftColor = COACH_HUE[a.coach] || 'var(--gold)';
+      el.innerHTML = `<b>${c ? c.name.split(' ')[0] : 'Client'}</b>
+        <span>${st.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</span>`;
+      el.addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (c && isMine(c)) openClient(c.id); else toast(`${a.coach}'s session — read only`);
+      });
+      cell.appendChild(el);
+    });
+
+    if (!appts.length) $('#cal').insertAdjacentHTML('beforeend',
+      '<div class="calEmpty">Nothing scheduled this week.</div>');
+
+    // clicking an empty slot proposes a call there
+    $$('.calCell').forEach(cell => cell.addEventListener('click', () => {
+      const d = new Date(days[+cell.dataset.day]); d.setHours(+cell.dataset.hr, 0, 0, 0);
+      proposeAt(d);
+    }));
+
+    $('#calKey').innerHTML = (isAdmin()
+      ? Object.entries(COACH_HUE).filter(([k]) => k !== ADMIN)
+          .map(([k, v]) => `<span><i style="background:${v}"></i>${k}</span>`).join('')
+      : '') +
+      '<span><i style="background:rgba(210,145,51,.5)"></i>Confirmed</span>' +
+      '<span><i style="background:rgba(116,22,16,.7)"></i>Proposed — awaiting the client</span>';
+  }
+
+  function proposeAt(when) {
+    const list = mine();
+    if (!list.length) { toast('No clients to schedule'); return; }
+    modal(`Propose a call · ${when.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })}`, `
+      <label class="lbl">Client</label>
+      <select id="cWho" class="inp">${list.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
+      <label class="lbl">Time</label>
+      <select id="cTime" class="inp">${[0, 30].map(m => {
+        const d = new Date(when); d.setMinutes(m);
+        return `<option value="${m}">${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</option>`;
+      }).join('')}</select>
+      <label class="lbl">Length</label>
+      <select id="cLen" class="inp"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option></select>
+      <p class="tiny">They get a notification and can accept. It stays dashed on your calendar until they do.</p>`,
+      'Send invite', () => {
+        const c = byId($('#cWho').value); if (!c) return;
+        const st = new Date(when); st.setMinutes(+$('#cTime').value);
+        const clash = (S.appointments || []).some(a =>
+          a.coach === S.coach && a.status !== 'cancelled' &&
+          new Date(a.startsAt).getTime() === st.getTime());
+        if (clash) { toast('You already have something at that time'); return; }
+        S.appointments.push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
+          startsAt: st.toISOString(), mins: +$('#cLen').value, status: 'proposed' });
+        c.flag = null;
+        log(c.id, `Proposed a call · ${st.toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}`);
+        save(); renderCalendar();
+        toast(`Invite sent to ${first(c)}`);
+        pushToPhone(c.id, 'Your coach proposed a call',
+          `${S.coach} suggested ${st.toLocaleString('en-GB', { weekday: 'long', hour: '2-digit', minute: '2-digit' })}. Tap to accept.`);
+      });
+  }
+
+  $('#calPrev').addEventListener('click', () => { calMon.setDate(calMon.getDate() - 7); renderCalendar(); });
+  $('#calNext').addEventListener('click', () => { calMon.setDate(calMon.getDate() + 7); renderCalendar(); });
+  $('#calToday').addEventListener('click', () => { calMon = startOfWeek(new Date()); renderCalendar(); });
 
   /* ══════════ LIVE CLIENT PHONE ══════════ */
   let phoneId = null, phoneNotif = null;
