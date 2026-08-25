@@ -184,6 +184,33 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .realIn .btn{width:100%}
 .siErr{color:var(--gold);font-size:12.5px;min-height:17px;margin:8px 0 0;text-align:center}
 
+/* ── session detail ── */
+.sdGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:4px}
+.sdGrid > div{background:#1b100d;padding:11px 13px}
+.sdGrid span{display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:3px}
+.sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
+
+/* ── pending sessions ── */
+.pend{margin-bottom:14px}
+.pend:empty{display:none}
+.pendH{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+  font-weight:700;margin:0 0 8px}
+.pRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  border:1px solid var(--line);background:var(--card);border-radius:11px;
+  padding:11px 14px;margin-bottom:8px}
+.pRow .pWho{font-weight:600}
+.pRow .pWhen{color:var(--mut);font-size:13px}
+.pRow .pTag{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--gold)}
+.pRow .pAct{margin-left:auto;display:flex;gap:7px}
+.pOk,.pNo{border-radius:9px;padding:7px 14px;font-size:13px;cursor:pointer;border:1px solid var(--line)}
+.pOk{background:var(--gold);color:#0D0D0D;border-color:var(--gold);font-weight:600}
+.pNo{background:transparent;color:var(--mut)}
+.pOk:hover{filter:brightness(1.08)} .pNo:hover{color:var(--ink)}
+.pWait{margin-left:auto;color:var(--dim);font-size:12.5px}
+
 /* ── calendar ── */
 .calNav{display:flex;gap:6px;margin-left:auto;align-items:center}
 .calBtn{background:var(--card);border:1px solid var(--line);color:var(--ink);
@@ -633,6 +660,7 @@ body.mobile-view .railShow{display:none}
         </div>
       </header>
       <div class="gcal" id="gcal"></div>
+      <div class="pend" id="pend"></div>
       <div class="calWrap"><div class="calScroll"><div class="cal" id="cal"></div></div></div>
       <div class="calKey" id="calKey"></div>
     </section>
@@ -830,11 +858,16 @@ const LIVE    = !!(SB_URL && SB_KEY && window.supabase);
 const sb      = LIVE ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
 /** Sessions for a week, straight from the sessions table. RLS scopes them. */
+const SESSION_COLS =
+  'id, coach_id, user_id, starts_at, ends_at, status, coaches(full_name), profiles:user_id(full_name)';
+
+/** Confirmed sessions for one week. Only these are drawn on the grid. */
 async function fetchSessions(mon) {
   if (!sb) return null;
   const end = new Date(mon); end.setDate(mon.getDate() + 7);
   const { data, error } = await sb.from('sessions')
-    .select('id, coach_id, user_id, starts_at, ends_at, status, coaches(full_name), profiles:user_id(full_name)')
+    .select(SESSION_COLS)
+    .eq('status', 'confirmed')
     .gte('starts_at', mon.toISOString()).lt('starts_at', end.toISOString())
     .order('starts_at');
   if (error) { console.warn('sessions:', error.message); return null; }
@@ -844,6 +877,26 @@ async function fetchSessions(mon) {
     startsAt: r.starts_at, status: r.status,
     mins: Math.round((new Date(r.ends_at) - new Date(r.starts_at)) / 60000),
   }));
+}
+
+/** Everything still waiting on somebody, in either direction. */
+async function fetchPending() {
+  if (!sb) return null;
+  const { data, error } = await sb.from('sessions')
+    .select(SESSION_COLS)
+    .in('status', ['requested', 'proposed'])
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at');
+  if (error) { console.warn('pending:', error.message); return null; }
+  return data;
+}
+
+/** Confirm or decline. The database refuses if it is not your turn. */
+async function respondToSession(id, accept) {
+  if (!sb) return null;
+  const { data, error } = await sb.rpc('respond_to_session', { p_id: id, p_accept: accept });
+  if (error) { toast(error.message); return null; }
+  return data;
 }
 
 /** Write one proposed session. Returns null and logs if RLS refuses. */
@@ -869,7 +922,15 @@ async function createSession(clientId, startsAt, mins) {
   // Which coach is the admin. Adel holds the seat for now — he sees every
   // coach's sessions overlaid; a coach sees only their own.
   const ADMIN = 'Adel';
-  const COACH_HUE = { Parina: '#D29133', Manjula: '#741610', Adel: '#FFFFFF' };
+  // A colour per coach. Kept inside the brand: gold and auburn are the bases,
+  // the rest are tints of them, so the admin view stays recognisably UFAS.
+  const HUES = ['#D29133', '#741610', '#E0B36B', '#A32A20', '#8A6A1F', '#5E100C'];
+  const COACH_HUE = { Parina: HUES[0], Manjula: HUES[1], Adel: '#FFFFFF' };
+  const hueFor = name => {
+    if (COACH_HUE[name]) return COACH_HUE[name];
+    let h = 0; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return (COACH_HUE[name] = HUES[h % HUES.length]);
+  };
 
   // Appointments live as real datetimes. The prototype seeds a few relative to
   // today, so the calendar always has something in it whenever it is opened.
@@ -1393,7 +1454,10 @@ async function createSession(clientId, startsAt, mins) {
   }
   let calMon = startOfWeek(new Date());
   const isAdmin = () => (S.live ? !!S.isAdmin : S.coach === ADMIN);
-  const visibleAppts = () => (S.appointments || []).filter(a => isAdmin() || a.coach === S.coach);
+  // The grid is confirmed only. Anything still pending lives in the strip above
+  // it, because a proposal on a calendar reads as a booking that is not one.
+  const visibleAppts = () => (S.appointments || [])
+    .filter(a => (isAdmin() || a.coach === S.coach) && a.status === 'confirmed');
   const hhmm = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   async function renderCalendar() {
@@ -1430,6 +1494,8 @@ async function createSession(clientId, startsAt, mins) {
       <span style="color:var(--dim);font-size:12px">Google not connected — sessions live in UF Index</span>
       <button class="calBtn" id="gConnect">Connect Google</button>`;
     $('#gConnect').addEventListener('click', () => toast('Needs the UFAS Google Workspace setup first'));
+
+    await renderPending();
 
     const head = '<div class="calHead"><div></div>' + days.map(d => {
       const t = d.toDateString() === todayKey;
@@ -1477,14 +1543,11 @@ async function createSession(clientId, startsAt, mins) {
         const w = 100 / list.length;
         el.style.left = `calc(${idx * w}% + 2px)`;
         el.style.right = `calc(${(list.length - 1 - idx) * w}% + 2px)`;
-        if (isAdmin()) el.style.borderLeftColor = COACH_HUE[a.coach] || 'var(--gold)';
+        if (isAdmin()) el.style.borderLeftColor = hueFor(a.coach);
         el.title = `${who} · ${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting the client' : ''}`;
         el.innerHTML = `<div class="an">${who.split(' ')[0]}</div>
           <div class="at">${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</div>`;
-        el.addEventListener('click', ev => {
-          ev.stopPropagation();
-          if (c && isMine(c)) openClient(c.id); else toast(el.title);
-        });
+        el.addEventListener('click', ev => { ev.stopPropagation(); sessionDetail(a); });
         cell.appendChild(el);
       });
     });
@@ -1513,8 +1576,104 @@ async function createSession(clientId, startsAt, mins) {
     $('#calKey').innerHTML =
       '<span><i style="background:#4a3113;border-left:3px solid var(--gold)"></i>Confirmed</span>' +
       '<span><i style="background:#3a1310;border-left:3px solid var(--auburn)"></i>Proposed — awaiting the client</span>' +
-      (isAdmin() ? Object.entries(COACH_HUE).filter(([k]) => k !== ADMIN)
-        .map(([k, v]) => `<span><i style="background:${v}"></i>${k}</span>`).join('') : '');
+      (isAdmin()
+        ? [...new Set(appts.map(a => a.coach))].sort()
+            .map(k => `<span><i style="background:${hueFor(k)}"></i>${k}</span>`).join('')
+        : '');
+  }
+
+  /**
+   * Everything waiting on somebody. A session only reaches the grid once both
+   * sides have agreed, so this is where the other half of the handshake lives.
+   *
+   * You can only act on the ones waiting on YOU: a coach answers a client's
+   * request, a client answers a coach's proposal. The database enforces that
+   * too, so this is convenience rather than the actual guard.
+   */
+  async function renderPending() {
+    const box = $('#pend');
+    if (!S.live) {
+      const mineP = (S.appointments || []).filter(a => a.status === 'proposed' && (isAdmin() || a.coach === S.coach));
+      box.innerHTML = mineP.length
+        ? `<p class="pendH">${mineP.length} waiting on the client</p>` + mineP.map(a => {
+            const c = byId(a.clientId);
+            return `<div class="pRow"><span class="pWho">${c ? c.name : 'Client'}</span>
+              <span class="pWhen">${new Date(a.startsAt).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
+              <span class="pTag">You proposed</span>
+              <span class="pWait">Waiting for them to accept</span></div>`;
+          }).join('')
+        : '';
+      return;
+    }
+
+    const rows = await fetchPending();
+    if (!rows || !rows.length) { box.innerHTML = ''; return; }
+
+    const mineNow = rows.filter(r => r.status === 'requested');   // waiting on me
+    const theirs  = rows.filter(r => r.status === 'proposed');    // waiting on them
+
+    box.innerHTML =
+      (mineNow.length ? `<p class="pendH">${mineNow.length} waiting on you</p>` + mineNow.map(r => `
+        <div class="pRow" data-sid="${r.id}">
+          <span class="pWho">${r.profiles?.full_name || 'Client'}</span>
+          <span class="pWhen">${new Date(r.starts_at).toLocaleString('en-GB', { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
+          <span class="pTag">They asked</span>
+          <span class="pAct">
+            <button class="pNo" data-act="no">Decline</button>
+            <button class="pOk" data-act="yes">Confirm</button>
+          </span>
+        </div>`).join('') : '') +
+      (theirs.length ? `<p class="pendH" style="margin-top:14px">${theirs.length} waiting on the client</p>` + theirs.map(r => `
+        <div class="pRow">
+          <span class="pWho">${r.profiles?.full_name || 'Client'}</span>
+          <span class="pWhen">${new Date(r.starts_at).toLocaleString('en-GB', { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
+          <span class="pTag">You proposed</span>
+          <span class="pWait">Waiting for them to accept</span>
+        </div>`).join('') : '');
+
+    $$('#pend .pRow [data-act]').forEach(b => b.addEventListener('click', async () => {
+      const row = b.closest('.pRow'); const yes = b.dataset.act === 'yes';
+      b.disabled = true; b.textContent = yes ? 'Confirming…' : 'Declining…';
+      const out = await respondToSession(row.dataset.sid, yes);
+      if (out) { toast(out === 'confirmed' ? 'Confirmed — it is on your calendar' : 'Declined'); }
+      renderCalendar();
+    }));
+  }
+
+  /** Everything known about one appointment, without leaving the calendar. */
+  function sessionDetail(a) {
+    const c = byId(a.clientId);
+    const who = a.clientName || (c ? c.name : 'Client');
+    const st = new Date(a.startsAt);
+    const en = new Date(st.getTime() + (a.mins || 45) * 60000);
+    const when = st.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const mineC = c && isMine(c);
+
+    // What we know about them. Live mode has only what the session join carried;
+    // the demo has the full seeded record. Say which, rather than showing blanks.
+    const facts = [];
+    if (c) {
+      facts.push(['Organisation', c.org]);
+      if (c.score != null) facts.push(['UF Index', `${c.score.toFixed(1)} · ${c.band}`]);
+      const w = c.score != null ? weakest(c) : null;
+      if (w) facts.push(['Lowest pillar', `${w[0]} ${w[1].toFixed(1)}`]);
+      if (c.lastSeen) facts.push(['Last check-in', c.lastSeen]);
+      const last = c.sessions && c.sessions[0];
+      if (last && last.agreement) facts.push(['Agreed last time', last.agreement]);
+    }
+
+    modal(`${who}`, `
+      <div class="sdGrid">
+        <div><span>When</span><b>${when}</b></div>
+        <div><span>Time</span><b>${hhmm(st)} – ${hhmm(en)}</b></div>
+        <div><span>Coach</span><b>${a.coach}</b></div>
+        <div><span>Status</span><b style="text-transform:capitalize">${a.status}</b></div>
+        ${facts.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}
+      </div>
+      ${!c ? '<p class="tiny">This client is not in the demo list — live sessions carry only the name.</p>' : ''}
+      ${!mineC && c ? `<p class="tiny">${a.coach}'s client. You can look, not act.</p>` : ''}`,
+      mineC ? 'Open client' : 'Close',
+      () => { if (mineC) openClient(c.id); });
   }
 
   function proposeAt(when) {
@@ -1538,9 +1697,14 @@ async function createSession(clientId, startsAt, mins) {
           a.coach === S.coach && a.status !== 'cancelled' &&
           new Date(a.startsAt).getTime() === st.getTime());
         if (clash) { toast('You already have something at that time'); return; }
-        if (S.live) createSession(c.id, st.toISOString(), +$('#cLen').value).catch(() => {});
-        S.appointments.push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
-          startsAt: st.toISOString(), mins: +$('#cLen').value, status: 'proposed' });
+        if (S.live) {
+          // written as 'proposed' — it reaches the grid only once the client accepts
+          createSession(c.id, st.toISOString(), +$('#cLen').value)
+            .then(() => renderCalendar()).catch(() => {});
+        } else {
+          S.appointments.push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
+            startsAt: st.toISOString(), mins: +$('#cLen').value, status: 'proposed' });
+        }
         c.flag = null;
         log(c.id, `Proposed a call · ${st.toLocaleString('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}`);
         save(); renderCalendar();
