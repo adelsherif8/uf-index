@@ -195,21 +195,29 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 /* ── pending sessions ── */
 .pend{margin-bottom:14px}
 .pend:empty{display:none}
-.pendH{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
-  font-weight:700;margin:0 0 8px}
-.pRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  border:1px solid var(--line);background:var(--card);border-radius:11px;
-  padding:11px 14px;margin-bottom:8px}
-.pRow .pWho{font-weight:600}
-.pRow .pWhen{color:var(--mut);font-size:13px}
-.pRow .pTag{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
-  border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--gold)}
-.pRow .pAct{margin-left:auto;display:flex;gap:7px}
-.pOk,.pNo{border-radius:9px;padding:7px 14px;font-size:13px;cursor:pointer;border:1px solid var(--line)}
+.pendH{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);
+  font-weight:700;margin:0 0 7px}
+.pendH b{color:var(--gold)}
+.pList{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pRow{display:grid;grid-template-columns:minmax(120px,1.4fr) minmax(150px,1.2fr) auto;
+  align-items:center;gap:14px;padding:10px 14px;background:var(--card);
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.pRow:last-child{border-bottom:0}
+.pRow .pWho{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pRow .pWho em{display:block;font-style:normal;font-size:11.5px;color:var(--dim);font-weight:400}
+.pRow .pWhen{font-size:13px;color:var(--mut);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pRow .pAct{display:flex;gap:7px;justify-self:end}
+.pOk,.pNo{border-radius:8px;padding:6px 13px;font-size:12.5px;cursor:pointer;
+  border:1px solid var(--line);white-space:nowrap}
 .pOk{background:var(--gold);color:#0D0D0D;border-color:var(--gold);font-weight:600}
 .pNo{background:transparent;color:var(--mut)}
 .pOk:hover{filter:brightness(1.08)} .pNo:hover{color:var(--ink)}
-.pWait{margin-left:auto;color:var(--dim);font-size:12.5px}
+.pWait{justify-self:end;color:var(--dim);font-size:12px;white-space:nowrap}
+@media (max-width:640px){
+  .pRow{grid-template-columns:1fr auto;row-gap:6px}
+  .pRow .pWhen{grid-column:1/-1}
+}
 
 /* ── calendar ── */
 .calNav{display:flex;gap:6px;margin-left:auto;align-items:center}
@@ -569,7 +577,7 @@ body.mobile-view .railShow{display:none}
     <div class="whoGrid">
       <button class="who" data-coach="Parina"><span class="avatar">P</span><b>Parina</b><span class="sub">5 clients · 2 need attention</span></button>
       <button class="who" data-coach="Manjula"><span class="avatar">M</span><b>Manjula</b><span class="sub">3 clients · 1 call request</span></button>
-      <button class="who" data-coach="Adel"><span class="avatar">A</span><b>Adel</b><span class="sub">Admin · sees every coach</span></button>
+      <button class="who admin" data-coach="Adel"><span class="avatar">A</span><b>Adel</b><span class="sub">Admin · oversight of every coach</span></button>
     </div>
     <p class="tiny">Demo accounts — no password, seeded data.</p>
 
@@ -1108,7 +1116,7 @@ async function createSession(clientId, startsAt, mins) {
   function enter() {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
-    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.live ? (S.isAdmin ? 'Admin · live' : 'UFAS coach · live') : 'demo data'}</span></div>`;
+    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>`;
     buildPhoneSel(); renderPhone(); show('today');
   }
 
@@ -1486,11 +1494,11 @@ async function createSession(clientId, startsAt, mins) {
     if (hi - lo < 6) hi = Math.min(DAY1, lo + 6);
 
     $('#calSub').textContent = isAdmin()
-      ? 'Every coach, overlaid. Click a slot to schedule.'
+      ? 'Every coach, overlaid. Read-only — coaches schedule their own calls.'
       : `Your sessions only — ${S.coach}'s sub-calendar.`;
 
     $('#gcal').innerHTML = `<span class="gdot"></span>
-      <span>UFAS Workspace calendar · <b>${isAdmin() ? 'all coaches' : S.coach}</b></span>
+      <span>UFAS Workspace calendar · <b>${isAdmin() ? 'all coaches' : S.coach + "'s sub-calendar"}</b></span>
       <span style="color:var(--dim);font-size:12px">Google not connected — sessions live in UF Index</span>
       <button class="calBtn" id="gConnect">Connect Google</button>`;
     $('#gConnect').addEventListener('click', () => toast('Needs the UFAS Google Workspace setup first'));
@@ -1568,7 +1576,9 @@ async function createSession(clientId, startsAt, mins) {
     if (!appts.length) $('#cal').insertAdjacentHTML('beforeend',
       `<div class="calEmpty">Nothing scheduled this week — click any slot to propose a call.</div>`);
 
-    $$('.calCell:not(.past)').forEach(cell => cell.addEventListener('click', () => {
+    // An admin does not book calls. They have no clients and no working hours,
+    // and a call booked by someone who is not on it helps nobody.
+    if (!isAdmin()) $$('.calCell:not(.past)').forEach(cell => cell.addEventListener('click', () => {
       const d = new Date(days[+cell.dataset.day]); d.setHours(+cell.dataset.hr, 0, 0, 0);
       proposeAt(d);
     }));
@@ -1590,90 +1600,86 @@ async function createSession(clientId, startsAt, mins) {
    * request, a client answers a coach's proposal. The database enforces that
    * too, so this is convenience rather than the actual guard.
    */
+  /**
+   * Everything waiting on somebody.
+   *
+   * A coach sees two lists: requests to answer, and proposals their clients
+   * have not accepted. An admin sees neither as theirs — nothing is ever
+   * waiting on the admin — so they get one oversight list naming the coach,
+   * because "you proposed" is false when Parina proposed it.
+   */
   async function renderPending() {
     const box = $('#pend');
-    if (!S.live) {
-      const mineP = (S.appointments || []).filter(a => a.status === 'proposed' && (isAdmin() || a.coach === S.coach));
-      box.innerHTML = mineP.length
-        ? `<p class="pendH">${mineP.length} waiting on the client</p>` + mineP.map(a => {
-            const c = byId(a.clientId);
-            return `<div class="pRow"><span class="pWho">${c ? c.name : 'Client'}</span>
-              <span class="pWhen">${new Date(a.startsAt).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
-              <span class="pTag">You proposed</span>
-              <span class="pWait">Waiting for them to accept</span></div>`;
-          }).join('')
-        : '';
+    const when = t => new Date(t).toLocaleString('en-GB',
+      { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+    let rows;
+    if (S.live) {
+      rows = await fetchPending();
+      if (!rows) { box.innerHTML = ''; return; }
+      rows = rows.map(r => ({
+        id: r.id, who: r.profiles?.full_name || 'Client',
+        coach: r.coaches?.full_name || '—', at: r.starts_at, status: r.status,
+      }));
+    } else {
+      rows = (S.appointments || [])
+        .filter(a => a.status !== 'confirmed' && (isAdmin() || a.coach === S.coach))
+        .map(a => ({ id: a.id, who: (byId(a.clientId) || {}).name || 'Client',
+                     coach: a.coach, at: a.startsAt, status: a.status }));
+    }
+    if (!rows.length) { box.innerHTML = ''; return; }
+
+    const list = inner => `<div class="pList">${inner}</div>`;
+
+    if (isAdmin()) {
+      // Oversight, not an inbox. Name the coach, and never offer an action the
+      // admin should not be taking on a coach's behalf.
+      box.innerHTML = `<p class="pendH"><b>${rows.length}</b> unconfirmed across all coaches</p>` +
+        list(rows.map(r => `
+          <div class="pRow">
+            <div class="pWho">${r.who}<em>${r.coach}</em></div>
+            <div class="pWhen">${when(r.at)}</div>
+            <span class="pWait">${r.status === 'requested'
+              ? 'waiting on ' + r.coach : 'waiting on the client'}</span>
+          </div>`).join(''));
       return;
     }
 
-    const rows = await fetchPending();
-    if (!rows || !rows.length) { box.innerHTML = ''; return; }
-
-    const mineNow = rows.filter(r => r.status === 'requested');   // waiting on me
-    const theirs  = rows.filter(r => r.status === 'proposed');    // waiting on them
-
+    const onMe = rows.filter(r => r.status === 'requested');
+    const onThem = rows.filter(r => r.status === 'proposed');
     box.innerHTML =
-      (mineNow.length ? `<p class="pendH">${mineNow.length} waiting on you</p>` + mineNow.map(r => `
-        <div class="pRow" data-sid="${r.id}">
-          <span class="pWho">${r.profiles?.full_name || 'Client'}</span>
-          <span class="pWhen">${new Date(r.starts_at).toLocaleString('en-GB', { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
-          <span class="pTag">They asked</span>
-          <span class="pAct">
-            <button class="pNo" data-act="no">Decline</button>
-            <button class="pOk" data-act="yes">Confirm</button>
-          </span>
-        </div>`).join('') : '') +
-      (theirs.length ? `<p class="pendH" style="margin-top:14px">${theirs.length} waiting on the client</p>` + theirs.map(r => `
-        <div class="pRow">
-          <span class="pWho">${r.profiles?.full_name || 'Client'}</span>
-          <span class="pWhen">${new Date(r.starts_at).toLocaleString('en-GB', { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
-          <span class="pTag">You proposed</span>
-          <span class="pWait">Waiting for them to accept</span>
-        </div>`).join('') : '');
+      (onMe.length ? `<p class="pendH"><b>${onMe.length}</b> waiting on you</p>` +
+        list(onMe.map(r => `
+          <div class="pRow" data-sid="${r.id}">
+            <div class="pWho">${r.who}<em>asked for this time</em></div>
+            <div class="pWhen">${when(r.at)}</div>
+            <span class="pAct">
+              <button class="pNo" data-act="no">Decline</button>
+              <button class="pOk" data-act="yes">Confirm</button>
+            </span>
+          </div>`).join('')) : '') +
+      (onThem.length ? `<p class="pendH" style="margin-top:13px"><b>${onThem.length}</b> waiting on the client</p>` +
+        list(onThem.map(r => `
+          <div class="pRow">
+            <div class="pWho">${r.who}<em>you proposed</em></div>
+            <div class="pWhen">${when(r.at)}</div>
+            <span class="pWait">not accepted yet</span>
+          </div>`).join('')) : '');
 
     $$('#pend .pRow [data-act]').forEach(b => b.addEventListener('click', async () => {
-      const row = b.closest('.pRow'); const yes = b.dataset.act === 'yes';
-      b.disabled = true; b.textContent = yes ? 'Confirming…' : 'Declining…';
-      const out = await respondToSession(row.dataset.sid, yes);
-      if (out) { toast(out === 'confirmed' ? 'Confirmed — it is on your calendar' : 'Declined'); }
+      const row = b.closest('.pRow'), yes = b.dataset.act === 'yes';
+      row.querySelectorAll('button').forEach(x => x.disabled = true);
+      b.textContent = yes ? 'Confirming…' : 'Declining…';
+      if (S.live) {
+        const out = await respondToSession(row.dataset.sid, yes);
+        if (out) toast(out === 'confirmed' ? 'Confirmed — it is on your calendar' : 'Declined');
+      } else {
+        const a = (S.appointments || []).find(x => x.id === row.dataset.sid);
+        if (a) { a.status = yes ? 'confirmed' : 'declined'; save(); }
+        toast(yes ? 'Confirmed' : 'Declined');
+      }
       renderCalendar();
     }));
-  }
-
-  /** Everything known about one appointment, without leaving the calendar. */
-  function sessionDetail(a) {
-    const c = byId(a.clientId);
-    const who = a.clientName || (c ? c.name : 'Client');
-    const st = new Date(a.startsAt);
-    const en = new Date(st.getTime() + (a.mins || 45) * 60000);
-    const when = st.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-    const mineC = c && isMine(c);
-
-    // What we know about them. Live mode has only what the session join carried;
-    // the demo has the full seeded record. Say which, rather than showing blanks.
-    const facts = [];
-    if (c) {
-      facts.push(['Organisation', c.org]);
-      if (c.score != null) facts.push(['UF Index', `${c.score.toFixed(1)} · ${c.band}`]);
-      const w = c.score != null ? weakest(c) : null;
-      if (w) facts.push(['Lowest pillar', `${w[0]} ${w[1].toFixed(1)}`]);
-      if (c.lastSeen) facts.push(['Last check-in', c.lastSeen]);
-      const last = c.sessions && c.sessions[0];
-      if (last && last.agreement) facts.push(['Agreed last time', last.agreement]);
-    }
-
-    modal(`${who}`, `
-      <div class="sdGrid">
-        <div><span>When</span><b>${when}</b></div>
-        <div><span>Time</span><b>${hhmm(st)} – ${hhmm(en)}</b></div>
-        <div><span>Coach</span><b>${a.coach}</b></div>
-        <div><span>Status</span><b style="text-transform:capitalize">${a.status}</b></div>
-        ${facts.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}
-      </div>
-      ${!c ? '<p class="tiny">This client is not in the demo list — live sessions carry only the name.</p>' : ''}
-      ${!mineC && c ? `<p class="tiny">${a.coach}'s client. You can look, not act.</p>` : ''}`,
-      mineC ? 'Open client' : 'Close',
-      () => { if (mineC) openClient(c.id); });
   }
 
   function proposeAt(when) {
