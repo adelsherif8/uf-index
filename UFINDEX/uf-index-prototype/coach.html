@@ -192,6 +192,12 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── grouped lists ── */
+.grpH{display:flex;align-items:center;gap:9px;font-size:14px;margin:20px 0 9px;color:var(--ink)}
+.grpH:first-child{margin-top:0}
+.grpH em{font-style:normal;font-size:12px;color:var(--dim);margin-left:auto;font-family:var(--ui)}
+.dotc{width:9px;height:9px;border-radius:50%;flex:none}
+
 /* ── admin coach rows ── */
 .crow{display:flex;align-items:center;gap:14px;border:1px solid var(--line);
   background:var(--card);border-radius:12px;padding:12px 15px;margin-bottom:8px;flex-wrap:wrap}
@@ -610,16 +616,7 @@ body.mobile-view .railShow{display:none}
 <div class="shell" id="shell" hidden>
   <aside class="side">
     <div class="brand"><span class="bmark">UF</span><b>UF Index</b></div>
-    <nav class="nav" id="nav">
-      <button data-v="today" class="on"><i>◈</i>Today</button>
-      <button data-v="week"><i>▤</i>This week</button>
-      <button data-v="clients"><i>☰</i>Clients</button>
-      <button data-v="calls"><i>◉</i>Call requests<em id="callBadge">3</em></button>
-      <button data-v="calendar"><i>▦</i>Calendar</button>
-      <button data-v="cohorts"><i>⬢</i>Cohorts</button>
-      <button data-v="future"><i>✧</i>Coming next</button>
-      <button data-v="help"><i>?</i>Help &amp; feedback</button>
-    </nav>
+    <nav class="nav" id="nav"></nav>
     <div class="vt" id="vt">
       <button data-view="desktop" class="on">Desktop</button>
       <button data-view="mobile">Phone</button>
@@ -685,6 +682,21 @@ body.mobile-view .railShow{display:none}
       <div class="pend" id="pend"></div>
       <div class="calWrap"><div class="calScroll"><div class="cal" id="cal"></div></div></div>
       <div class="calKey" id="calKey"></div>
+    </section>
+
+    <section class="view" id="v-coaches">
+      <header class="head"><div><h2>Coaches</h2><p class="sub">Who is carrying what.</p></div></header>
+      <div id="coachList"></div>
+    </section>
+
+    <section class="view" id="v-allclients">
+      <header class="head"><div><h2>All clients</h2><p class="sub">Everyone, and which coach holds them.</p></div></header>
+      <div id="allClientList"></div>
+    </section>
+
+    <section class="view" id="v-allcalls">
+      <header class="head"><div><h2>All calls</h2><p class="sub">Every call still unconfirmed, across every coach.</p></div></header>
+      <div id="allCallList"></div>
     </section>
 
     <section class="view" id="v-cohorts">
@@ -1070,7 +1082,7 @@ async function createSession(clientId, startsAt, mins) {
     return fresh;
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-  const mine = () => S.clients.filter(c => c.coach === S.coach);
+  const mine = () => isAdmin() ? S.clients : S.clients.filter(c => c.coach === S.coach);
   const byId = id => S.clients.find(c => c.id === id);
   const isMine = c => c.coach === S.coach;
 
@@ -1113,9 +1125,10 @@ async function createSession(clientId, startsAt, mins) {
     $$('#nav button, #tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     ({ today: renderToday, week: renderWeek, clients: renderClients,
-       calls: renderCalls, cohorts: renderCohorts, calendar: renderCalendar }[v] || (()=>{}))();
+       calls: renderCalls, cohorts: renderCohorts, calendar: renderCalendar,
+       coaches: renderCoaches, allclients: renderAllClients, allcalls: renderAllCalls,
+     }[v] || (()=>{}))();
   }
-  $$('#nav button, #tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.v)));
   $('#backBtn').addEventListener('click', () => show('clients'));
 
   /* ══════════ sign in ══════════ */
@@ -1154,16 +1167,45 @@ async function createSession(clientId, startsAt, mins) {
     $('#siGo').addEventListener('click', signIn);
     $('#siPass').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
   }
+  // Two different jobs, two different navigations. A coach works with people;
+  // an admin runs the operation. Sharing one set of tabs is what made this feel
+  // muddled — "Clients" meaning my caseload to one and everyone to the other.
+  const NAV = {
+    coach: [['today','◈','Today'], ['week','▤','This week'], ['clients','☰','My clients'],
+            ['calls','◉','Call requests'], ['calendar','▦','My calendar'],
+            ['cohorts','⬢','Cohorts'], ['help','?','Help & feedback']],
+    admin: [['today','◈','Overview'], ['coaches','⬢','Coaches'], ['allclients','☰','All clients'],
+            ['allcalls','◉','All calls'], ['calendar','▦','All calendars'],
+            ['help','?','Help & feedback']],
+  };
+
+  function buildNav() {
+    const items = NAV[isAdmin() ? 'admin' : 'coach'];
+    $('#nav').innerHTML = items.map(([v, i, label], n) =>
+      `<button data-v="${v}"${n === 0 ? ' class="on"' : ''}><i>${i}</i>${label}` +
+      (v === 'calls' ? '<em id="callBadge">0</em>' : '') + '</button>').join('');
+    $('#tabs').innerHTML = items.slice(0, 5).map(([v, i, label], n) =>
+      `<button data-v="${v}"${n === 0 ? ' class="on"' : ''}><i>${i}</i><span>${label.replace('My ','').replace(' requests','')}</span>` +
+      (v === 'calls' ? '<em id="callBadge2">0</em>' : '') + '</button>').join('');
+    }
+
   function enter() {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
     $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>`;
+    buildNav();
+    // An admin has no client phone to simulate — they never take the calls.
+    if (isAdmin()) { $('#rail').hidden = true; $('#railShow').hidden = true; }
     if (S.live) {
       fetchClients().then(cs => {
         if (cs) { S.clients = cs; save(); }
-        buildPhoneSel(); renderPhone(); show('today');
+        if (!isAdmin()) { buildPhoneSel(); renderPhone(); }
+        show('today');
       });
-    } else { buildPhoneSel(); renderPhone(); show('today'); }
+    } else {
+      if (!isAdmin()) { buildPhoneSel(); renderPhone(); }
+      show('today');
+    }
   }
 
   /* ══════════ rows ══════════ */
@@ -1263,6 +1305,91 @@ async function createSession(clientId, startsAt, mins) {
         <span class="cnum${+r.no_shows?' bad':''}">${r.no_shows}<em>no-show</em></span>
       </div>`).join('');
     badge();
+  }
+
+  /* ══════════ ADMIN VIEWS ══════════ */
+  async function coachRows() {
+    if (S.live) { const r = await fetchCoachOverview(); if (r) return r; }
+    return [...new Set(S.clients.map(c => c.coach))].filter(Boolean).map(n => {
+      const cs = S.clients.filter(c => c.coach === n);
+      const ap = (S.appointments || []).filter(a => a.coach === n);
+      return { full_name: n, clients: cs.length, specialisms: [],
+        upcoming: ap.filter(a => a.status === 'confirmed').length,
+        awaiting_coach: ap.filter(a => a.status === 'requested').length,
+        awaiting_client: ap.filter(a => a.status === 'proposed').length,
+        sessions_done: 0, no_shows: 0 };
+    });
+  }
+
+  async function renderCoaches() {
+    const rows = await coachRows();
+    $('#coachList').innerHTML = rows.map(r => `
+      <div class="crow">
+        <span class="avatar sm" style="background:${hueFor(r.full_name)}22;border-color:${hueFor(r.full_name)}">${r.full_name[0]}</span>
+        <div class="cinfo"><b>${r.full_name}</b>
+          <span>${(r.specialisms || []).join(' · ') || 'no specialism set'}</span></div>
+        <span class="cnum">${r.clients}<em>clients</em></span>
+        <span class="cnum">${r.upcoming}<em>upcoming</em></span>
+        <span class="cnum${+r.awaiting_coach ? ' bad' : ''}">${r.awaiting_coach}<em>to answer</em></span>
+        <span class="cnum">${r.sessions_done}<em>done</em></span>
+        <span class="cnum${+r.no_shows ? ' bad' : ''}">${r.no_shows}<em>no-show</em></span>
+      </div>`).join('') || '<div class="empty"><b>No coaches yet.</b><span>Add one and they will appear here.</span></div>';
+  }
+
+  function renderAllClients() {
+    const byCoach = {};
+    S.clients.forEach(c => { (byCoach[c.coach || 'Unassigned'] ||= []).push(c); });
+    $('#allClientList').innerHTML = Object.entries(byCoach).map(([coach, cs]) => `
+      <h3 class="grpH"><span class="dotc" style="background:${hueFor(coach)}"></span>${coach}
+        <em>${cs.length} client${cs.length === 1 ? '' : 's'}</em></h3>
+      ${cs.map(c => row(c, { readonly: true })).join('')}`).join('')
+      || '<div class="empty"><b>No clients yet.</b></div>';
+    wireRows();
+  }
+
+  async function renderAllCalls() {
+    let rows;
+    if (S.live) {
+      const r = await fetchPending();
+      rows = (r || []).map(x => ({ id: x.id, who: x.profiles?.full_name || 'Client',
+        coach: x.coaches?.full_name || '—', at: x.starts_at, status: x.status }));
+    } else {
+      rows = (S.appointments || []).filter(a => a.status !== 'confirmed')
+        .map(a => ({ id: a.id, who: (byId(a.clientId) || {}).name || 'Client',
+                     coach: a.coach, at: a.startsAt, status: a.status }));
+    }
+    const age = t => {
+      const h = Math.round((Date.now() - new Date(t).getTime()) / 36e5);
+      return h < 0 ? '' : h < 24 ? `${h}h` : `${Math.round(h / 24)}d`;
+    };
+    $('#allCallList').innerHTML = rows.length ? `<div class="pList">${rows.map(r => `
+      <div class="pRow" data-sid="${r.id}">
+        <div class="pWho">${r.who}<em>${r.coach}</em></div>
+        <div class="pWhen">${new Date(r.at).toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</div>
+        ${r.status === 'requested'
+          ? `<span class="pAct">
+               <button class="pNo" data-act="no">Decline</button>
+               <button class="pOk" data-act="yes">Confirm for ${r.coach.split(' ')[0]}</button>
+             </span>`
+          : '<span class="pWait">waiting on the client</span>'}
+      </div>`).join('')}</div>`
+      : '<div class="empty"><b>Nothing unconfirmed.</b><span>Every request has been answered.</span></div>';
+
+    // Cover for a coach who is away. Recorded as the admin having done it.
+    $$('#allCallList [data-act]').forEach(b => b.addEventListener('click', async () => {
+      const rw = b.closest('.pRow'), yes = b.dataset.act === 'yes';
+      rw.querySelectorAll('button').forEach(x => x.disabled = true);
+      b.textContent = '…';
+      if (S.live) {
+        const out = await respondToSession(rw.dataset.sid, yes);
+        if (out) toast(`${out} on the coach's behalf — logged as admin`);
+      } else {
+        const a = (S.appointments || []).find(x => x.id === rw.dataset.sid);
+        if (a) { a.status = yes ? 'confirmed' : 'declined'; save(); }
+        toast('Logged as admin');
+      }
+      renderAllCalls();
+    }));
   }
 
   /* ══════════ WEEK ══════════ */
