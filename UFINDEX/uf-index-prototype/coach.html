@@ -967,7 +967,8 @@ async function fetchClients() {
     checkins: r.checkins, done: r.sessions_done, noShows: r.no_shows,
     upcoming: r.upcoming, pending: r.pending,
     lastNote: '', lastAgreement: r.last_agreement,
-    lastSeen: r.last_checkin_at ? new Date(r.last_checkin_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'no check-in yet',
+    lastSeen: r.last_checkin_at ? new Date(r.last_checkin_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'never',
+    lastCheckinISO: r.last_checkin_at || null,
     trend: [], pillars: {}, notes: [], sessions: [], plus: null,
     flag: r.pending > 0 ? 'call' : (r.checkins === 0 ? 'new' : null),
   }));
@@ -1006,6 +1007,28 @@ async function fetchClientDetail(userId) {
     plus: Object.keys(plus).length
       ? { who5: plus.WHO5 ?? '—', pss: plus.PSS10 ?? '—', psqi: plus.PSQI ?? '—' } : null,
   };
+}
+
+/**
+ * Every client's score history in one request. RLS already scopes it to the
+ * caller's clients, so this is one round trip rather than one per client — and
+ * without it the week view has no trend to reason about and reports zeros.
+ */
+async function fetchTrends() {
+  if (!sb) return null;
+  const { data, error } = await sb.from('assessments_with_scores')
+    .select('user_id, taken_at, uf_score, pillar_body, pillar_energy, pillar_sleep, pillar_feeling')
+    .order('taken_at', { ascending: true });
+  if (error) { console.warn('trends:', error.message); return null; }
+  const by = {};
+  (data || []).forEach(r => {
+    const e = (by[r.user_id] ||= { trend: [], pillars: {} });
+    e.trend.push(Number(r.uf_score));
+    // last row wins, so this ends up being their most recent reading
+    e.pillars = { Body: Number(r.pillar_body), Energy: Number(r.pillar_energy),
+                  Sleep: Number(r.pillar_sleep), Feeling: Number(r.pillar_feeling) };
+  });
+  return by;
 }
 
 /** Notes, messages and the session record for one client. */
@@ -1242,7 +1265,12 @@ async function createSession(clientId, startsAt, mins) {
   const delta = c => (!c.trend || c.trend.length < 2) ? 0
     : +(c.trend[c.trend.length-1] - c.trend[c.trend.length-2]).toFixed(1);
   const first = c => c.name.split(' ')[0];
-  const staleDays = c => { const m = /(\d+)\s*day/.exec(c.lastSeen); return m ? +m[1] : (c.lastSeen === 'never' ? 99 : 0); };
+  const staleDays = c => {
+    // live data carries a real timestamp; the demo carries phrases like "4 days ago"
+    if (c.lastCheckinISO) return Math.floor((Date.now() - new Date(c.lastCheckinISO)) / 864e5);
+    const m = /(\d+)\s*day/.exec(c.lastSeen || '');
+    return m ? +m[1] : ((c.lastSeen === 'never' || !c.lastSeen) ? 99 : 0);
+  };
 
   function spark(v, w = 70, h = 22) {
     if (!v || v.length < 2) return '';
@@ -1346,8 +1374,11 @@ async function createSession(clientId, startsAt, mins) {
     // An admin has no client phone to simulate — they never take the calls.
     if (isAdmin()) { $('#rail').hidden = true; $('#railShow').hidden = true; }
     if (S.live) {
-      fetchClients().then(cs => {
-        if (cs) { S.clients = cs; save(); }
+      Promise.all([fetchClients(), fetchTrends()]).then(([cs, tr]) => {
+        if (cs) {
+          if (tr) cs.forEach(c => { const e = tr[c.id]; if (e) { c.trend = e.trend; c.pillars = e.pillars; } });
+          S.clients = cs; save();
+        }
         if (!isAdmin()) { buildPhoneSel(); renderPhone(); }
         show('today');
       });
@@ -1456,6 +1487,14 @@ async function createSession(clientId, startsAt, mins) {
     badge();
   }
 
+  /** Refetch the list and its trends together — they are useless apart. */
+  async function reloadClients() {
+    const [cs, tr] = await Promise.all([fetchClients(), fetchTrends()]);
+    if (!cs) return;
+    if (tr) cs.forEach(c => { const e = tr[c.id]; if (e) { c.trend = e.trend; c.pillars = e.pillars; } });
+    S.clients = cs; save();
+  }
+
   /* ══════════ ADMIN VIEWS ══════════ */
   async function coachRows() {
     if (S.live) { const r = await fetchCoachOverview(); if (r) return r; }
@@ -1534,7 +1573,7 @@ async function createSession(clientId, startsAt, mins) {
         if (S.live) {
           const ok = await adminTransfer(userId, to, why);
           if (!ok) return;
-          const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+          await reloadClients();
         } else {
           const c = byId(userId); if (c) { c.coach = to; save(); }
         }
@@ -1602,7 +1641,7 @@ async function createSession(clientId, startsAt, mins) {
         if (!S.live) { toast('Needs the live backend'); return; }
         const n = await adminAssignAll($('#asS').value);
         if (n === null) return;
-        const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+        await reloadClients();
         toast(n ? `${n} assigned` : 'Nobody was waiting');
         renderAllClients();
       });
@@ -1690,7 +1729,7 @@ async function createSession(clientId, startsAt, mins) {
     // pull the live record once, then render as normal
     if (S.live) {
       const [det, rec] = await Promise.all([
-        c._loaded ? null : fetchClientDetail(c.id),
+        (c._loaded || (c.trend && c.trend.length)) ? null : fetchClientDetail(c.id),
         fetchClientRecord(c.id),
       ]);
       if (det) Object.assign(c, det, { _loaded: true });
@@ -1873,7 +1912,7 @@ async function createSession(clientId, startsAt, mins) {
           if (S.live) {
             const ok = await logSession(c.id, outcome, note, agree);
             if (!ok) return;
-            const cs = await fetchClients(); if (cs) { S.clients = cs; save(); }
+            await reloadClients();
             toast(outcome === 'no_show' ? 'Marked as a no-show' : 'Session logged');
           } else {
             c.sessions.unshift({ at: new Date().toLocaleDateString('en-GB',{month:'short',day:'numeric'}),
