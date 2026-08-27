@@ -192,6 +192,19 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── session rows ── */
+.sRow{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:11px;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.sRow:last-child{border-bottom:0}
+.sWhen{font-size:12.5px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sBadge{font-size:10px;letter-spacing:.07em;text-transform:uppercase;border-radius:999px;
+  padding:3px 9px;border:1px solid var(--hair);color:var(--mut);white-space:nowrap}
+.sBadge.ok{border-color:var(--gold);color:var(--gold)}
+.sBadge.bad{border-color:#B8341F;color:#E0B36B;background:rgba(184,52,31,.16)}
+.sNote{font-size:13.5px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sBy{font-size:11px;color:var(--dim);white-space:nowrap}
+.sAgree{grid-column:1/-1;font-size:12.5px;color:var(--gold);margin-top:-2px}
+
 /* ── client tracking ── */
 .track{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0}
@@ -225,9 +238,9 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .qbtn.go{border-color:var(--gold);color:var(--gold)}
 
 /* ── assignment ── */
-.assignRow{position:relative}
-.assignRow .move{position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  font-size:12px;padding:5px 11px;z-index:2}
+.assignRow{display:flex;align-items:stretch;gap:9px;margin-bottom:9px}
+.assignRow > .row{flex:1;min-width:0;margin-bottom:0}
+.assignRow .move{flex:none;align-self:center;font-size:12px;padding:7px 13px}
 
 /* ── grouped lists ── */
 .grpH{display:flex;align-items:center;gap:9px;font-size:14px;margin:20px 0 9px;color:var(--ink)}
@@ -248,6 +261,9 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:2px}
 .crow .cnum.bad{color:var(--gold)}
 .crow .avatar.sm{border:1px solid var(--line)}
+.crow.open{cursor:pointer;transition:background .15s}
+.crow.open:hover{background:var(--card2)}
+.crow .chev{color:var(--dim);font-size:19px;margin-left:4px;flex:none}
 
 /* ── pending sessions ── */
 .pend{margin-bottom:14px}
@@ -256,21 +272,24 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   font-weight:700;margin:0 0 7px}
 .pendH b{color:var(--gold)}
 .pList{border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.pRow{display:grid;grid-template-columns:minmax(120px,1.4fr) minmax(150px,1.2fr) auto;
-  align-items:center;gap:14px;padding:10px 14px;background:var(--card);
+.pRow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;
+  align-items:center;gap:14px;padding:11px 15px;background:var(--card);
   border-bottom:1px solid rgba(255,255,255,.07)}
 .pRow:last-child{border-bottom:0}
 .pRow .pWho{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pRow .pWho em{display:block;font-style:normal;font-size:11.5px;color:var(--dim);font-weight:400}
-.pRow .pWhen{font-size:13px;color:var(--mut);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.pRow .pWhen{font-size:13px;color:var(--mut);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
 .pRow .pAct{display:flex;gap:7px;justify-self:end}
 .pOk,.pNo{border-radius:8px;padding:6px 13px;font-size:12.5px;cursor:pointer;
   border:1px solid var(--line);white-space:nowrap}
 .pOk{background:var(--gold);color:#0D0D0D;border-color:var(--gold);font-weight:600}
 .pNo{background:transparent;color:var(--mut)}
 .pOk:hover{filter:brightness(1.08)} .pNo:hover{color:var(--ink)}
-.pWait{justify-self:end;color:var(--dim);font-size:12px;white-space:nowrap}
+.pWait{justify-self:end;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--hair);border-radius:999px;padding:4px 10px;
+  white-space:nowrap}
+.pWait.onCoach{color:var(--gold);border-color:var(--gold)}
 @media (max-width:640px){
   .pRow{grid-template-columns:1fr auto;row-gap:6px}
   .pRow .pWhen{grid-column:1/-1}
@@ -1383,7 +1402,12 @@ async function createSession(clientId, startsAt, mins) {
     $('#tabs').innerHTML = items.slice(0, 5).map(([v, i, label], n) =>
       `<button data-v="${v}"${n === 0 ? ' class="on"' : ''}><i>${i}</i><span>${label.replace('My ','').replace(' requests','')}</span>` +
       (v === 'calls' ? '<em id="callBadge2">0</em>' : '') + '</button>').join('');
-    }
+
+    // The buttons are rebuilt per role, so their listeners have to be attached
+    // here. Wiring them once at load left the admin nav completely dead.
+    $$('#nav button, #tabs button').forEach(b =>
+      b.addEventListener('click', () => show(b.dataset.v)));
+  }
 
   function enter() {
     $('#v-signin').classList.remove('on');
@@ -1531,7 +1555,7 @@ async function createSession(clientId, startsAt, mins) {
   async function renderCoaches() {
     const rows = await coachRows();
     $('#coachList').innerHTML = rows.map(r => `
-      <div class="crow">
+      <div class="crow open" data-coach="${r.full_name}">
         <span class="avatar sm" style="background:${hueFor(r.full_name)}22;border-color:${hueFor(r.full_name)}">${r.full_name[0]}</span>
         <div class="cinfo"><b>${r.full_name}</b>
           <span>${(r.specialisms || []).join(' · ') || 'no specialism set'}</span></div>
@@ -1540,7 +1564,44 @@ async function createSession(clientId, startsAt, mins) {
         <span class="cnum${+r.awaiting_coach ? ' bad' : ''}">${r.awaiting_coach}<em>to answer</em></span>
         <span class="cnum">${r.sessions_done}<em>done</em></span>
         <span class="cnum${+r.no_shows ? ' bad' : ''}">${r.no_shows}<em>no-show</em></span>
+        <span class="chev">›</span>
       </div>`).join('') || '<div class="empty"><b>No coaches yet.</b><span>Add one and they will appear here.</span></div>';
+    $$('#coachList .crow.open').forEach(el =>
+      el.addEventListener('click', () => coachDetail(el.dataset.coach, rows)));
+  }
+
+  /** Everything about one coach, without leaving the roster. */
+  function coachDetail(name, rows) {
+    const r = rows.find(x => x.full_name === name) || {};
+    const theirs = S.clients.filter(c => c.coach === name);
+    const sc = theirs.filter(c => c.score != null);
+    const avg = sc.length ? (sc.reduce((a, c) => a + c.score, 0) / sc.length).toFixed(1) : '—';
+    const orgs = [...new Set(theirs.map(c => c.org).filter(Boolean))];
+    const attn = theirs.filter(c => c.flag);
+    const cap = r.max_clients || 25;
+
+    modal(name, `
+      <div class="track">
+        <div><b>${r.clients ?? theirs.length}</b><span>of ${cap}</span></div>
+        <div><b>${avg}</b><span>avg index</span></div>
+        <div><b class="${+r.awaiting_coach ? 'warnN' : ''}">${r.awaiting_coach ?? 0}</b><span>to answer</span></div>
+        <div><b>${r.upcoming ?? 0}</b><span>upcoming</span></div>
+        <div><b>${r.sessions_done ?? 0}</b><span>done</span></div>
+        <div><b class="${+r.no_shows ? 'warnN' : ''}">${r.no_shows ?? 0}</b><span>no-shows</span></div>
+      </div>
+      <div class="card"><h4>Groups they carry</h4>
+        <p class="prog">${orgs.join(' · ') || 'none yet'}</p></div>
+      ${attn.length ? `<div class="card"><h4>Needs attention</h4>
+        ${attn.map(c => `<div class="sess"><span class="snote">${c.name}</span>
+          <span class="sbadge">${c.flag === 'call' ? 'asked for a call' : c.flag === 'alert' ? 'score falling' : 'no check-in yet'}</span></div>`).join('')}</div>` : ''}
+      <div class="card"><h4>Their clients</h4>
+        ${theirs.length ? theirs.map(c => `<div class="sess">
+          <span class="snote">${c.name}</span>
+          <span class="sdate">${c.org || ''}</span>
+          <span class="sbadge">${c.score != null ? c.score.toFixed(1) + ' · ' + c.band : 'no score'}</span>
+        </div>`).join('') : '<p class="muted">Nobody assigned yet.</p>'}</div>
+      ${r.last_session_at ? `<p class="tiny">Last session ${new Date(r.last_session_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}.</p>` : ''}`,
+      'Close', () => {});
   }
 
   async function renderAllClients() {
@@ -1625,7 +1686,7 @@ async function createSession(clientId, startsAt, mins) {
                <button class="pNo" data-act="no">Decline</button>
                <button class="pOk" data-act="yes">Confirm for ${r.coach.split(' ')[0]}</button>
              </span>`
-          : '<span class="pWait">waiting on the client</span>'}
+          : '<span class="pWait">client</span>'}
       </div>`).join('')}</div>`
       : '<div class="empty"><b>Nothing unconfirmed.</b><span>Every request has been answered.</span></div>';
 
@@ -1819,15 +1880,22 @@ async function createSession(clientId, startsAt, mins) {
         <div><b>${(c.notes||[]).length}</b><span>notes</span></div>
       </div>
 
-      ${(c.sessions && c.sessions.length) ? `<div class="card"><h4>Session history</h4>
-        ${c.sessions.slice(0,6).map(x=>`<div class="sess">
-          <span class="sdate">${x.at}</span>
-          <span class="sbadge ${/no_show|No-show/.test(x.outcome)?'bad':''}">${
-            String(x.outcome).replace('no_show','no-show').replace('done','attended')}</span>
-          <span class="snote">${x.note || '—'}</span>
-          ${x.by==='admin'?'<span class="sby">logged by admin</span>':''}
-          ${x.agreement?`<span class="sagree">agreed: ${x.agreement}</span>`:''}
-        </div>`).join('')}</div>` : ''}
+      ${(c.sessions && c.sessions.length) ? `<div class="card"><h4>Sessions</h4>
+        ${c.sessions.slice(0,8).map(x => {
+          const st = String(x.status || x.outcome);
+          const label = { done:'Attended', no_show:'No-show', cancelled:'Cancelled',
+                          confirmed:'Booked', proposed:'Offered', requested:'Requested',
+                          declined:'Declined' }[st] || st;
+          const tone = st === 'no_show' ? ' bad' : (st === 'done' ? ' ok' : '');
+          const when = x.when ? new Date(x.when) : null;
+          return `<div class="sRow">
+            <span class="sWhen">${when ? when.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : x.at}</span>
+            <span class="sBadge${tone}">${label}</span>
+            <span class="sNote">${x.note || (st === 'confirmed' ? 'upcoming' : '—')}</span>
+            ${x.by === 'admin' ? '<span class="sBy">by admin</span>' : ''}
+            ${x.agreement ? `<span class="sAgree">Agreed — ${x.agreement}</span>` : ''}
+          </div>`;
+        }).join('')}</div>` : ''}
 
       ${(c.messages && c.messages.length) ? `<div class="card"><h4>Messages</h4>
         ${c.messages.slice(0,5).map(m=>`<div class="msg ${m.sender}">
@@ -1835,11 +1903,6 @@ async function createSession(clientId, startsAt, mins) {
 
       <div class="card"><h4>Programme</h4>
         <p class="prog">${PROGRAMME.n} · <span class="muted">${PROGRAMME.w}</span></p></div>
-
-      ${c.sessions.length?`<div class="card"><h4>Session history</h4>
-        ${c.sessions.map(s=>`<div class="sess"><div class="sessTop"><b>${s.at}</b>
-          <span class="pill ${s.outcome==='No-show'?'r':s.outcome==='Needs follow-up'?'o':'g'}">${s.outcome}</span></div>
-          <p>${s.note}</p>${s.agreement?`<span class="sessAgr">Agreed: ${s.agreement}</span>`:''}</div>`).join('')}</div>`:''}
 
       ${c.notes.length?`<div class="card"><h4>Your private notes</h4>
         ${c.notes.map(n=>`<div class="note">${n.t}<span>${n.d}</span></div>`).join('')}</div>`:''}
@@ -2261,13 +2324,13 @@ async function createSession(clientId, startsAt, mins) {
     if (isAdmin()) {
       // Oversight, not an inbox. Name the coach, and never offer an action the
       // admin should not be taking on a coach's behalf.
-      box.innerHTML = `<p class="pendH"><b>${rows.length}</b> unconfirmed across all coaches</p>` +
+      box.innerHTML = `<p class="pendH"><b>${rows.length}</b> unconfirmed · the pill says who it is waiting on</p>` +
         list(rows.map(r => `
           <div class="pRow">
             <div class="pWho">${r.who}<em>${r.coach}</em></div>
             <div class="pWhen">${when(r.at)}</div>
-            <span class="pWait">${r.status === 'requested'
-              ? 'waiting on ' + r.coach : 'waiting on the client'}</span>
+            <span class="pWait${r.status === 'requested' ? ' onCoach' : ''}">${
+              r.status === 'requested' ? r.coach.split(' ')[0] : 'client'}</span>
           </div>`).join(''));
       return;
     }
@@ -2290,7 +2353,7 @@ async function createSession(clientId, startsAt, mins) {
           <div class="pRow">
             <div class="pWho">${r.who}<em>you proposed</em></div>
             <div class="pWhen">${when(r.at)}</div>
-            <span class="pWait">not accepted yet</span>
+            <span class="pWait">client</span>
           </div>`).join('')) : '');
 
     $$('#pend .pRow [data-act]').forEach(b => b.addEventListener('click', async () => {
