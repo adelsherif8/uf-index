@@ -1031,6 +1031,25 @@ async function fetchTrends() {
   return by;
 }
 
+/**
+ * Push a notification to a client's phone. Logged server-side either way, so a
+ * client with no device registered still sees it next time they open the app.
+ * Returns false and says why if the function is not deployed yet.
+ */
+async function notifyClient(userId, title, body, type = 'coach_message') {
+  if (!sb) return false;
+  const { error } = await sb.rpc('notify_client', {
+    p_user_id: userId, p_title: title, p_body: body, p_type: type,
+  });
+  if (error) {
+    console.warn('notify:', error.message);
+    if (error.code === 'PGRST202') toast('Reminders need the latest migration pushed');
+    else toast(error.message);
+    return false;
+  }
+  return true;
+}
+
 /** Notes, messages and the session record for one client. */
 async function fetchClientRecord(userId) {
   if (!sb) return null;
@@ -1704,10 +1723,21 @@ async function createSession(clientId, startsAt, mins) {
       <label class="lbl">Message</label>
       <textarea id="bText" class="inp" rows="3">Quick check-in when you get a minute — it takes three minutes and keeps your streak alive.</textarea>
       <div class="who4">${list.map(c=>`<span class="mini">${c.name}</span>`).join('')}</div>`,
-      'Send to all', () => {
-        const txt = $('#bText').value;
+      'Send to all', async () => {
+        const txt = ($('#bText').value || '').trim();
+        if (!txt) { toast('Nothing to send'); return; }
+        if (S.live) {
+          // one call per client — the server decides who is actually reachable
+          const outs = await Promise.all(list.map(c =>
+            notifyClient(c.id, 'Time to recharge', txt, 'weekly_reminder')));
+          const ok = outs.filter(Boolean).length;
+          toast(ok === list.length
+            ? `Reminder sent to ${list.length}`
+            : `Sent to ${ok} of ${list.length} — the rest have no device registered`);
+        } else {
+          toast(`Reminder sent to ${list.length} client${list.length===1?'':'s'}`);
+        }
         list.forEach(c => log(c.id, 'Reminder sent'));
-        toast(`Reminder sent to ${list.length} client${list.length===1?'':'s'}`);
         pushToPhone(list[0].id, 'Time to recharge', txt);
         picked.clear(); $('#bulkBar').hidden = true;
         show($('.view.on').id === 'v-week' ? 'week' : 'clients');
@@ -1884,7 +1914,10 @@ async function createSession(clientId, startsAt, mins) {
           'Send', async () => {
             const t = ($('#mX').value||'').trim();
             if (!t) { toast('Nothing to send — the message was empty'); return; }
-            if (S.live) { const ok = await sendMessage(c.id, t); if (!ok) return; }
+            if (S.live) {
+              const ok = await sendMessage(c.id, t); if (!ok) return;
+              notifyClient(c.id, `Message from ${S.coach}`, t, 'coach_message');
+            }
             log(c.id,'Message sent'); toast(`Message sent to ${f}`);
             pushToPhone(c.id, `Message from ${S.coach}`, t);
             openClient(c.id);

@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Who Coaches Whom · UFAS</title>
-<meta name="description" content="How UF Index clients are distributed to coaches — the four strategies, what each does to a cohort, and the rules still to decide.">
+<meta name="description" content="Play with how UF Index clients are split between coaches, and see what each way does to a cohort.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
 <style>
 :root{
-  --auburn:#741610; --gold:#D29133; --bg:#0D0D0D; --ink:#FFFFFF;
-  --mut:rgba(255,255,255,.68); --dim:rgba(255,255,255,.44);
-  --card:rgba(116,22,16,.22); --line:#741610; --hair:rgba(255,255,255,.08);
+  --gold:#D29133; --auburn:#741610; --bg:#0D0D0D; --ink:#FFFFFF;
+  --mut:rgba(255,255,255,.66); --dim:rgba(255,255,255,.42);
+  --card:rgba(116,22,16,.20); --line:#741610; --hair:rgba(255,255,255,.09);
   --disp:Georgia,'Times New Roman',serif;
   --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -19,58 +19,90 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
-  font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:860px;margin:0 auto;padding:44px 22px 90px}
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:40px 20px 80px}
+
 .eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--gold);font-weight:700;margin:0 0 12px}
-h1{font-family:var(--disp);font-weight:600;font-size:clamp(28px,5.4vw,40px);
-  line-height:1.12;margin:0 0 10px;text-wrap:balance}
-.lede{font-size:16px;color:var(--mut);margin:0;max-width:62ch}
-h2{font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.25;
-  margin:0 0 4px;color:var(--gold);text-wrap:balance}
-h3{font-size:14px;font-weight:700;margin:0 0 6px}
-p{margin:0 0 12px;color:var(--mut);max-width:70ch}
+  color:var(--gold);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(27px,5.6vw,38px);
+  line-height:1.14;margin:0 0 10px;text-wrap:balance}
+.lede{font-size:16px;color:var(--mut);margin:0;max-width:56ch}
+h2{font-family:var(--disp);font-weight:600;font-size:21px;margin:0 0 14px;color:var(--gold)}
+p{margin:0 0 12px;color:var(--mut);max-width:66ch}
 p:last-child{margin-bottom:0}
-b,strong{color:var(--ink);font-weight:650}
-code{font-family:var(--mono);font-size:12.5px;background:rgba(210,145,51,.14);
-  padding:1.5px 5px;border-radius:4px;color:var(--ink)}
-section{margin-top:52px}
-.shead{display:flex;align-items:baseline;gap:12px;padding-bottom:10px;
-  margin-bottom:20px;border-bottom:1px solid var(--line)}
-.snum{font-family:var(--mono);font-size:11px;color:var(--dim);flex:none;padding-top:3px}
+b{color:var(--ink);font-weight:650}
+section{margin-top:46px}
 
-.flag{border:1px solid var(--line);border-left:3px solid var(--gold);
-  background:var(--card);border-radius:0 12px 12px 0;padding:18px 20px;margin:26px 0}
-.flag h3{color:var(--gold);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase}
+/* ── the simulator ── */
+.sim{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);margin-top:26px}
+.simBar{display:flex;gap:8px;flex-wrap:wrap;padding:14px;border-bottom:1px solid var(--line);
+  background:rgba(13,13,13,.45)}
+.pill{border:1px solid var(--line);background:transparent;color:var(--mut);
+  border-radius:999px;padding:8px 15px;font:inherit;font-size:13.5px;cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--gold);border-color:var(--gold);color:#0D0D0D;font-weight:650}
 
-.tscroll{overflow-x:auto;border:1px solid var(--hair);border-radius:12px}
-table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
-th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--hair);vertical-align:top}
-th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
-  font-weight:700;background:var(--card)}
-tr:last-child td{border-bottom:0}
-td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
-.win{color:var(--gold);font-weight:650}
+.simBody{padding:18px 16px 20px}
+.verdict{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.verdict .big{font-family:var(--disp);font-size:34px;line-height:1;color:var(--gold)}
+.verdict .big.bad{color:#E0B36B}
+.verdict .say{font-size:14px;color:var(--mut);max-width:44ch}
 
-.strat{border:1px solid var(--line);border-radius:14px;padding:20px;
-  background:var(--card);margin-bottom:16px}
-.strat h3{font-family:var(--disp);font-size:18px;font-weight:600;color:var(--gold);margin-bottom:2px}
-.strat .code{font-family:var(--mono);font-size:11px;color:var(--dim);
-  letter-spacing:.04em;margin-bottom:12px}
-.strat .when{border-top:1px solid var(--hair);margin-top:12px;padding-top:11px;
-  font-size:13.5px;color:var(--mut)}
-.strat .when b{color:var(--gold)}
-.pick{border-left:3px solid var(--gold)}
+.coach{margin-bottom:13px}
+.cTop{display:flex;align-items:baseline;gap:8px;font-size:13px;margin-bottom:5px}
+.cTop b{font-size:14px}
+.cTop .n{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
+.cTop .over{color:var(--gold)}
+.bar{display:flex;height:26px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.05)}
+.seg{position:relative;transition:width .35s cubic-bezier(.4,0,.2,1)}
+.seg:hover{filter:brightness(1.25)}
+.bar .empty{flex:1;background:repeating-linear-gradient(45deg,
+  rgba(255,255,255,.03) 0 6px,transparent 6px 12px)}
 
-.q{border:1px solid var(--hair);border-radius:12px;padding:17px 19px;margin-bottom:12px}
-.q h3{color:var(--ink);font-size:15px;margin-bottom:7px}
-.q .opts{margin:9px 0 0;padding-left:18px}
-.q .opts li{color:var(--mut);font-size:14px;margin:5px 0}
-.q .rec{margin-top:10px;font-size:13.5px;color:var(--gold)}
+.legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--hair)}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);
+  border:1px solid var(--hair);border-radius:999px;padding:4px 10px;cursor:default}
+.lg i{width:10px;height:10px;border-radius:3px;flex:none;font-style:normal}
+.lg em{font-style:normal;color:var(--dim)}
+.lg.split{border-color:var(--gold);color:var(--gold)}
+.lg.split em{color:var(--gold)}
 
-.foot{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);
+.knobs{display:flex;gap:22px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);
+  background:rgba(13,13,13,.45)}
+.knob{flex:1;min-width:190px}
+.knob label{display:flex;justify-content:space-between;font-size:11.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.knob label span{color:var(--gold);font-family:var(--mono);letter-spacing:0}
+input[type=range]{width:100%;accent-color:var(--gold);height:20px}
+
+/* ── decisions ── */
+.q{border:1px solid var(--hair);border-radius:13px;padding:16px 18px;margin-bottom:11px}
+.q summary{cursor:pointer;font-size:15px;font-weight:650;color:var(--ink);
+  list-style:none;display:flex;align-items:center;gap:10px}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:'+';font-family:var(--mono);color:var(--gold);font-size:17px;flex:none}
+.q[open] summary::before{content:'−'}
+.q summary .tag{margin-left:auto;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--hair);border-radius:999px;padding:3px 9px;font-weight:400}
+.q summary .tag.first{color:var(--gold);border-color:var(--gold)}
+.qb{padding-top:12px}
+.qb ul{margin:8px 0 0;padding-left:18px}
+.qb li{color:var(--mut);font-size:14px;margin:5px 0}
+.rec{margin-top:11px;padding:10px 13px;border-left:2px solid var(--gold);
+  background:rgba(210,145,51,.09);border-radius:0 8px 8px 0;font-size:13.5px;color:var(--ink)}
+.rec b{color:var(--gold)}
+
+.built{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.bcard{border:1px solid var(--hair);border-radius:11px;padding:13px 15px}
+.bcard b{display:block;font-size:13.5px;margin-bottom:3px}
+.bcard span{font-size:12.5px;color:var(--mut);line-height:1.5}
+
+.foot{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);
   font-size:12px;color:var(--dim)}
-:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:3px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){.seg{transition:none}}
 </style>
 </head>
 <body>
@@ -78,182 +110,240 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 
   <p class="eyebrow">UFAS · UF Index</p>
   <h1>Who coaches whom</h1>
-  <p class="lede">A hundred assessments arrive and there are five coaches. This is how they
-  get divided, why the obvious answer is the wrong one, and the five rules still to settle.</p>
+  <p class="lede">A hundred people sign up. There are five coaches. Try each way of splitting
+  them and watch what it does to a cohort.</p>
 
-  <div class="flag">
-    <h3>The fact that decides it</h3>
-    <p>UFAS does not take clients one at a time. They arrive as <b>cohorts</b> — Gurgaon Police,
-    PPS, IOU, Everon — thirty people from one station who know each other, share a shift pattern,
-    and compare notes. Every sensible-sounding way of splitting them evenly destroys that, and it
-    is the thing worth protecting.</p>
+  <div class="sim">
+    <div class="simBar" id="strategies"></div>
+
+    <div class="simBody">
+      <div class="verdict">
+        <span class="big" id="vNum">—</span>
+        <span class="say" id="vSay"></span>
+      </div>
+      <div id="coaches"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="knobs">
+      <div class="knob">
+        <label>Coaches <span id="lC">5</span></label>
+        <input type="range" id="rC" min="2" max="8" value="5">
+      </div>
+      <div class="knob">
+        <label>Clients each coach can hold <span id="lK">25</span></label>
+        <input type="range" id="rK" min="10" max="40" value="25">
+      </div>
+    </div>
   </div>
 
-  <!-- ───────────────────────────────── 01 -->
+  <p style="margin-top:18px;font-size:13.5px">Each block is one organisation. When a coach's bar
+  is one colour, one person understands that whole group. When it is five colours, nobody does.</p>
+
+  <!-- ─────────────────────────────── -->
   <section>
-    <div class="shead"><span class="snum">01</span><h2>The four ways to split</h2></div>
-    <p>All four are built. The choice is one argument to a function, so it can be changed
-    later — but not retroactively, because clients will already be with coaches.</p>
+    <h2>Five things to decide</h2>
+    <p>The strategy is the easy half, and it can be changed later. These cannot, once people are
+    already with coaches.</p>
 
-    <div class="strat pick">
-      <h3>Keep each organisation together</h3>
-      <p class="code">organization &nbsp;·&nbsp; RECOMMENDED</p>
-      <p>Everyone from one organisation goes to the coach who already has people from it.
-      That coach learns how a police shift rota works once, instead of five coaches each
-      learning it badly.</p>
-      <p class="when"><b>Costs:</b> caseloads end up uneven — 25 against 16 — and a cohort
-      bigger than one coach's cap has to be split anyway.</p>
-    </div>
+    <details class="q" open>
+      <summary>Can a client ask for a particular coach? <span class="tag first">answer first</span></summary>
+      <div class="qb">
+        <p>Not built. This matters more than the strategy: some clients will want a female coach,
+        or someone who speaks their language. Asked after assignment, it becomes a transfer — and
+        that costs them the relationship they had started.</p>
+        <div class="rec"><b>Answer this before switching automatic assignment on.</b> If clients
+        can ask, the strategy becomes a default rather than a rule, and that is a different build.</div>
+      </div>
+    </details>
 
-    <div class="strat">
-      <h3>Give to whoever has fewest clients</h3>
-      <p class="code">lowest_load &nbsp;·&nbsp; the default and the fallback</p>
-      <p>Fewest active clients wins; ties break on who has been waiting longest. Perfectly
-      even, and completely blind to who the person is.</p>
-      <p class="when"><b>Costs:</b> shreds every cohort. Thirty colleagues from one station
-      end up with five different coaches and five different answers.</p>
-    </div>
+    <details class="q">
+      <summary>What is a real caseload? <span class="tag">the cap</span></summary>
+      <div class="qb">
+        <p>Currently 25, which is a number I invented. It is a hard stop — a full coach is skipped,
+        and if everyone is full the assignment refuses rather than quietly overloading someone.</p>
+        <div class="rec">Ask Parina and Manjula where coaching turns into admin. <b>Their answer
+        is the number.</b></div>
+      </div>
+    </details>
 
-    <div class="strat">
-      <h3>Strict rotation</h3>
-      <p class="code">round_robin</p>
-      <p>Next client goes to whoever went longest without one. Trivial to explain, which is
-      its whole appeal — nobody can claim favouritism.</p>
-      <p class="when"><b>Costs:</b> the same cohort damage as lowest-load, plus it ignores how
-      heavy each caseload actually is. Ten quiet clients and ten in crisis count the same.</p>
-    </div>
+    <details class="q">
+      <summary>When does someone get a coach? <span class="tag">timing</span></summary>
+      <div class="qb">
+        <ul>
+          <li><b>On sign-up</b> — everyone has a coach immediately, including people who never
+            check in. Caseloads fill with ghosts.</li>
+          <li><b>On first check-in</b> — only people who actually engaged.</li>
+          <li><b>Manually</b> — you work the queue. Most control, stops scaling around fifty.</li>
+        </ul>
+        <div class="rec"><b>On first check-in.</b> A caseload should be people, not sign-ups.</div>
+      </div>
+    </details>
 
-    <div class="strat">
-      <h3>Match their weakest area to a specialism</h3>
-      <p class="code">specialism</p>
-      <p>Whichever of energy, sleep or body-feeling is lowest on their last check-in picks the
-      coach who works in it.</p>
-      <p class="when"><b>Costs:</b> only worth anything if coaches genuinely differ. Body
-      composition is excluded on purpose — it sets the score, so it is lowest for nearly
-      everyone and would send the whole intake to one coach.</p>
-    </div>
+    <details class="q">
+      <summary>What if a cohort is bigger than one coach? <span class="tag">overflow</span></summary>
+      <div class="qb">
+        <p>Thirty-four Gurgaon Police clients do not fit in a caseload of 25. Drag the cap slider
+        below 34 and watch that cohort break in two.</p>
+        <ul>
+          <li><b>Split it</b> — 25 to one coach, the rest to another.</li>
+          <li><b>Move the whole cohort</b> to someone with room.</li>
+          <li><b>Raise that coach's cap</b> — a deliberate, recorded exception.</li>
+        </ul>
+        <div class="rec">Split, but always to <b>the same second coach</b>, so one station never
+        has more than two.</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary>Does anything rebalance on its own? <span class="tag">drift</span></summary>
+      <div class="qb">
+        <p>If Parina ends on 30 and Manjula on 5, does the system move people?</p>
+        <div class="rec"><b>No.</b> Moving a client mid-programme costs them their coach and gains
+        you a tidier number. Show it on the Coaches screen and let a person decide.</div>
+      </div>
+    </details>
   </section>
 
-  <!-- ───────────────────────────────── 02 -->
+  <!-- ─────────────────────────────── -->
   <section>
-    <div class="shead"><span class="snum">02</span><h2>The same 100 clients, four ways</h2></div>
-    <p>Six real cohorts — 34, 22, 16, 12, 9, 7 — five coaches, a cap of 25 each.
-    The last column is the one that matters.</p>
-    <div class="tscroll">
-      <table>
-        <thead>
-          <tr><th>Strategy</th><th>Caseloads</th><th class="num">Cohorts split apart</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><b>Keep organisations together</b></td>
-              <td class="num">25 · 22 · 19 · 18 · 16</td>
-              <td class="num win">1 of 6</td></tr>
-          <tr><td>Give to whoever has fewest</td>
-              <td class="num">20 · 20 · 20 · 20 · 20</td>
-              <td class="num">6 of 6</td></tr>
-          <tr><td>Strict rotation</td>
-              <td class="num">20 · 20 · 20 · 20 · 20</td>
-              <td class="num">6 of 6</td></tr>
-          <tr><td>Match specialism</td>
-              <td class="num">depends on the intake</td>
-              <td class="num">6 of 6</td></tr>
-        </tbody>
-      </table>
+    <h2>Already built</h2>
+    <div class="built">
+      <div class="bcard"><b>Every assignment records why</b><span>A bad bulk run can be found and
+        reversed instead of guessed at.</span></div>
+      <div class="bcard"><b>Capacity is a hard stop</b><span>Full coaches are skipped. If everyone
+        is full it errors rather than queueing someone silently.</span></div>
+      <div class="bcard"><b>Everything falls back</b><span>No history, no specialism, no room — it
+        drops to fewest-clients rather than leaving a person unassigned.</span></div>
+      <div class="bcard"><b>Transfers keep history</b><span>The old assignment ends, a new one
+        starts. Who held them in July stays answerable.</span></div>
+      <div class="bcard"><b>Safe to re-run</b><span>Anyone who already has a coach keeps them.</span></div>
+      <div class="bcard"><b>Admins never get clients</b><span>Only coaches can be assigned.</span></div>
     </div>
-    <p style="margin-top:14px">Perfectly even caseloads cost you every cohort. Organisation-first
-    keeps five of six whole, and the one it splits — Gurgaon Police at 34 — only splits because
-    34 does not fit in a cap of 25. <b>The evenness the other three buy is worth less than the
-    context they spend.</b></p>
-  </section>
-
-  <!-- ───────────────────────────────── 03 -->
-  <section>
-    <div class="shead"><span class="snum">03</span><h2>Five rules still to settle</h2></div>
-    <p>The strategy is the easy half. These are the decisions that actually shape the work,
-    and none of them are mine to make.</p>
-
-    <div class="q">
-      <h3>1 · What is a real caseload?</h3>
-      <p>The cap is currently 25, which is a number I invented. It is a hard stop: a coach at
-      capacity is skipped, and if every coach is full the assignment refuses rather than
-      quietly overloading someone.</p>
-      <p class="rec">Ask Parina and Manjula where coaching turns into admin. Their answer is the
-      number.</p>
-    </div>
-
-    <div class="q">
-      <h3>2 · When does someone get a coach?</h3>
-      <ul class="opts">
-        <li><b>On sign-up</b> — everyone has a coach at once, including people who never take a
-          check-in. Caseloads fill with ghosts.</li>
-        <li><b>On first check-in</b> — only people who actually engaged get assigned.</li>
-        <li><b>Manually</b> — you work the queue yourself. Most control, stops scaling around fifty.</li>
-      </ul>
-      <p class="rec">On first check-in. A coach's caseload should be people, not sign-ups.</p>
-    </div>
-
-    <div class="q">
-      <h3>3 · What happens when a cohort outgrows one coach?</h3>
-      <p>Thirty-four Gurgaon Police clients do not fit in a caseload of 25.</p>
-      <ul class="opts">
-        <li><b>Split it</b> — 25 to the first coach, 9 to the next. Two coaches now hold one station.</li>
-        <li><b>Move the whole thing</b> to a coach with room. Keeps it whole, needs someone free.</li>
-        <li><b>Raise the cap for that coach</b> — a deliberate exception, recorded.</li>
-      </ul>
-      <p class="rec">Split, but always to the <em>same</em> second coach, so a station never has
-      more than two. Splitting is what the cap is for.</p>
-    </div>
-
-    <div class="q">
-      <h3>4 · Can a client ask for a particular coach?</h3>
-      <p>Not built, and this matters more than the strategy does. Some clients will want a female
-      coach, or someone who speaks their language. If a request like that arrives after assignment
-      it becomes a transfer, which costs the client the relationship they had started.</p>
-      <p class="rec">Decide this before switching automatic assignment on. If clients can ask,
-      the strategy becomes a <em>default</em> rather than a rule — and that is a different build.</p>
-    </div>
-
-    <div class="q">
-      <h3>5 · Does anything rebalance on its own?</h3>
-      <p>If Parina ends on 30 and Manjula on 5, does the system move people?</p>
-      <p class="rec">No. Moving a client mid-programme costs them their coach and gains you a
-      tidier number. Surface it on the Coaches screen and let a person decide.</p>
-    </div>
-  </section>
-
-  <!-- ───────────────────────────────── 04 -->
-  <section>
-    <div class="shead"><span class="snum">04</span><h2>What is already built</h2></div>
-    <div class="tscroll">
-      <table>
-        <thead><tr><th>Behaviour</th><th>How it works</th></tr></thead>
-        <tbody>
-          <tr><td><b>Every assignment records why</b></td>
-              <td>Each row stores the strategy that produced it, so a bad bulk run can be found
-                  and reversed instead of guessed at.</td></tr>
-          <tr><td><b>Capacity is a hard stop</b></td>
-              <td>A full coach is skipped. If everyone is full it raises an error rather than
-                  putting someone in a queue nobody watches.</td></tr>
-          <tr><td><b>Every strategy falls back</b></td>
-              <td>No organisation history, no matching specialism, nobody with room — it drops to
-                  lowest-load rather than leaving a person unassigned.</td></tr>
-          <tr><td><b>Transfers keep the history</b></td>
-              <td>Moving a client ends the old assignment and starts a new one, so who held them
-                  in July stays answerable. Their unstarted sessions with the old coach are cancelled.</td></tr>
-          <tr><td><b>Assignment is idempotent</b></td>
-              <td>A client who already has a coach keeps them. Re-running the bulk assign is safe.</td></tr>
-          <tr><td><b>Admins are never assigned</b></td>
-              <td>Only <code>role = 'coach'</code> can receive clients.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="margin-top:14px">In the dashboard: <b>All clients → Assign everyone waiting</b> for a
-    bulk run, or <b>Move</b> on any client to reassign one. Both are admin-only.</p>
+    <p style="margin-top:14px">In the dashboard: <b>All clients → Assign everyone waiting</b>, or
+    <b>Move</b> on any client. Both admin-only.</p>
   </section>
 
   <p class="foot">UFAS · UF Index · The strategy can change later. Who is already with whom cannot,
-  without a transfer — which is why questions 3 and 4 are worth answering first.</p>
-
+  without a transfer.</p>
 </div>
+
+<script>
+// Real cohort sizes from Harini's sheet, so the simulation argues from fact.
+const COHORTS = [
+  { name: 'Gurgaon Police', n: 34, c: '#D29133' },
+  { name: 'PPS',            n: 22, c: '#A8501A' },
+  { name: 'PPS Aug',        n: 16, c: '#E0B36B' },
+  { name: 'IOU',            n: 12, c: '#741610' },
+  { name: 'Everon',         n:  9, c: '#8A6A1F' },
+  { name: 'UFS',            n:  7, c: '#B8341F' },
+];
+
+const STRATS = [
+  { id:'org',   label:'Keep organisations together' },
+  { id:'load',  label:'Whoever has fewest' },
+  { id:'robin', label:'Strict rotation' },
+];
+
+let strat = 'org', nCoaches = 5, cap = 25;
+
+const $ = s => document.querySelector(s);
+const coachNames = n => ['Parina','Manjula','Coach 3','Coach 4','Coach 5','Coach 6','Coach 7','Coach 8'].slice(0, n);
+
+/** Returns, per coach, how many clients of each cohort they hold. */
+function allocate() {
+  const names = coachNames(nCoaches);
+  const held = names.map(() => ({}));
+  const size = () => held.map(h => Object.values(h).reduce((a, b) => a + b, 0));
+  const spare = i => cap - size()[i];
+
+  if (strat === 'robin') {
+    let i = 0;
+    COHORTS.forEach(co => { for (let k = 0; k < co.n; k++) { held[i % nCoaches][co.name] = (held[i % nCoaches][co.name] || 0) + 1; i++; } });
+  } else if (strat === 'load') {
+    COHORTS.forEach(co => {
+      for (let k = 0; k < co.n; k++) {
+        const s = size();
+        let best = 0; for (let j = 1; j < nCoaches; j++) if (s[j] < s[best]) best = j;
+        held[best][co.name] = (held[best][co.name] || 0) + 1;
+      }
+    });
+  } else {
+    // biggest cohorts first, each to the coach who already has that cohort,
+    // otherwise the emptiest coach with room
+    [...COHORTS].sort((a, b) => b.n - a.n).forEach(co => {
+      let left = co.n;
+      while (left > 0) {
+        const s = size();
+        let pick = -1;
+        for (let j = 0; j < nCoaches; j++) {
+          if (spare(j) <= 0) continue;
+          const hasIt = !!held[j][co.name];
+          if (pick === -1) { pick = j; continue; }
+          const pickHas = !!held[pick][co.name];
+          if (hasIt && !pickHas) pick = j;
+          else if (hasIt === pickHas && s[j] < s[pick]) pick = j;
+        }
+        if (pick === -1) {                       // everybody full — overflow evenly
+          let best = 0; const s2 = size();
+          for (let j = 1; j < nCoaches; j++) if (s2[j] < s2[best]) best = j;
+          held[best][co.name] = (held[best][co.name] || 0) + left; left = 0; break;
+        }
+        const take = Math.min(spare(pick), left);
+        held[pick][co.name] = (held[pick][co.name] || 0) + take;
+        left -= take;
+      }
+    });
+  }
+  return { names, held };
+}
+
+function render() {
+  const { names, held } = allocate();
+  const totals = held.map(h => Object.values(h).reduce((a, b) => a + b, 0));
+  const widest = Math.max(cap, ...totals);
+
+  // how many cohorts ended up spread over more than one coach
+  const splitNames = COHORTS.filter(co => held.filter(h => h[co.name]).length > 1).map(co => co.name);
+  const split = splitNames.length;
+
+  $('#vNum').textContent = `${split} of ${COHORTS.length}`;
+  $('#vNum').className = 'big' + (split > 2 ? ' bad' : '');
+  $('#vSay').innerHTML = split === 0
+    ? 'cohorts broken up. Every organisation has one coach who knows it.'
+    : split <= 2
+      ? `cohorts broken up — ${splitNames.join(' and ')}, because ${split === 1 ? 'it is' : 'they are'} bigger than one caseload.`
+      : 'cohorts broken up. Colleagues from one station end up with different coaches and different answers.';
+
+  $('#coaches').innerHTML = names.map((nm, i) => {
+    const segs = COHORTS.filter(co => held[i][co.name]).map(co =>
+      `<div class="seg" style="width:${(held[i][co.name] / widest) * 100}%;background:${co.c}"
+            title="${held[i][co.name]} from ${co.name}"></div>`).join('');
+    const over = totals[i] > cap;
+    return `<div class="coach">
+      <div class="cTop"><b>${nm}</b>
+        <span class="n${over ? ' over' : ''}">${totals[i]}${over ? ` over ${cap}` : ` / ${cap}`}</span></div>
+      <div class="bar">${segs}<div class="empty"></div></div>
+    </div>`;
+  }).join('');
+
+  $('#legend').innerHTML = COHORTS.map(co => {
+    const isSplit = splitNames.includes(co.name);
+    return `<span class="lg${isSplit ? ' split' : ''}"><i style="background:${co.c}"></i>${co.name}
+      <em>${co.n}${isSplit ? ' · split' : ''}</em></span>`;
+  }).join('');
+}
+
+$('#strategies').innerHTML = STRATS.map(s =>
+  `<button class="pill${s.id === strat ? ' on' : ''}" data-s="${s.id}">${s.label}</button>`).join('');
+document.querySelectorAll('#strategies .pill').forEach(b => b.addEventListener('click', () => {
+  strat = b.dataset.s;
+  document.querySelectorAll('#strategies .pill').forEach(x => x.classList.toggle('on', x === b));
+  render();
+}));
+$('#rC').addEventListener('input', e => { nCoaches = +e.target.value; $('#lC').textContent = nCoaches; render(); });
+$('#rK').addEventListener('input', e => { cap = +e.target.value; $('#lK').textContent = cap; render(); });
+render();
+</script>
 </body>
 </html>

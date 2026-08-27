@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Open UF Index · UFAS</title>
+<meta name="description" content="Open the UF Index app on your phone.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
+<style>
+:root{--gold:#D29133;--auburn:#741610;--bg:#0D0D0D;--ink:#FFFFFF;
+  --mut:rgba(255,255,255,.66);--dim:rgba(255,255,255,.44);
+  --card:rgba(116,22,16,.20);--line:#741610;--hair:rgba(255,255,255,.09);
+  --disp:Georgia,'Times New Roman',serif;
+  --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:44px 20px 70px}
+.eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
+  font-weight:700;margin:0 0 10px}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(26px,6vw,34px);
+  line-height:1.15;margin:0 0 10px}
+p{color:var(--mut);margin:0 0 14px}
+b{color:var(--ink);font-weight:650}
+h2{font-family:var(--disp);font-size:18px;font-weight:600;color:var(--gold);margin:34px 0 10px}
+.big{display:block;width:100%;text-align:center;background:var(--gold);color:#0D0D0D;
+  border:0;border-radius:13px;padding:17px 20px;font:inherit;font-size:17px;font-weight:700;
+  text-decoration:none;margin:22px 0 10px}
+.big:active{filter:brightness(.94)}
+.ghost{display:block;width:100%;text-align:center;background:transparent;color:var(--mut);
+  border:1px solid var(--line);border-radius:13px;padding:13px 20px;font:inherit;font-size:14px;
+  text-decoration:none;margin-bottom:10px}
+.urlbox{display:flex;gap:8px;align-items:stretch;margin:10px 0 4px}
+.urlbox code{flex:1;min-width:0;font-family:var(--mono);font-size:11px;color:var(--mut);
+  background:rgba(13,13,13,.6);border:1px solid var(--hair);border-radius:10px;
+  padding:11px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;
+  padding:0 15px;font:inherit;font-size:13px;cursor:pointer;flex:none}
+.qrbox{background:#fff;border-radius:14px;padding:16px;margin:16px auto 6px;
+  width:min(260px,72vw);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.qrbox canvas,.qrbox img{width:100%;height:auto;image-rendering:pixelated}
+.qrnote{text-align:center;font-size:12.5px;color:var(--dim);margin:0}
+.card{border:1px solid var(--line);background:var(--card);border-radius:13px;padding:16px 18px;margin:14px 0}
+.card h3{font-size:14px;margin:0 0 8px}
+.cred{font-family:var(--mono);font-size:13px;color:var(--gold);line-height:1.9}
+ol{color:var(--mut);padding-left:20px;margin:8px 0 0}
+ol li{margin:7px 0}
+.warn{border-left:3px solid var(--gold);background:rgba(210,145,51,.09);
+  border-radius:0 10px 10px 0;padding:13px 15px;font-size:13.5px;margin:16px 0}
+.foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">UFAS · UF Index</p>
+  <h1>Open the app on your phone</h1>
+  <p>You need <b>Expo Go</b> installed first — it is free, and it is what runs the app until
+  UF Index is on the stores.</p>
+
+  <a class="ghost" href="https://play.google.com/store/apps/details?id=host.exp.exponent">1 · Install Expo Go — Android</a>
+  <a class="ghost" href="https://apps.apple.com/app/expo-go/id982107779">1 · Install Expo Go — iPhone</a>
+
+  <a class="big" id="open" href="exp://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3?runtime-version=exposdk:54.0.0&channel-name=preview">2 · Open UF Index</a>
+  <p class="qrnote">Tap that on the phone itself. It opens Expo Go directly.</p>
+
+  <h2>If the button does nothing</h2>
+  <p>Some Android browsers block <code>exp://</code> links. Open Expo Go, and either scan this
+  or paste the address by hand.</p>
+
+  <div class="qrbox"><canvas id="qr"></canvas></div>
+  <p class="qrnote">Scan from <b>inside Expo Go</b> — its own scanner, not the camera app.</p>
+
+  <div class="urlbox">
+    <code id="u">exp://u.expo.dev/90004b25-e083-4ec4-bca3-5516db4182f3?runtime-version=exposdk:54.0.0&amp;channel-name=preview</code>
+    <button class="copy" id="c">Copy</button>
+  </div>
+
+  <div class="card">
+    <h3>Sign in to see a full account</h3>
+    <p style="margin:0 0 6px;font-size:13.5px">Tap <b>I already have an account</b>.</p>
+    <p class="cred" style="margin:0">demo@ufaslive.com<br>UFIndexDemo2026</p>
+    <p style="margin:8px 0 0;font-size:13px">Ten weeks of history, Depleted through to Energized.
+    Or create your own account to see the first-run flow.</p>
+  </div>
+
+  <div class="warn">
+    <b>Notifications will not work in Expo Go.</b> It cannot take a push token, so the weekly
+    reminder only fires in a real installed build. Everything else works normally.
+  </div>
+
+  <h2>Still stuck?</h2>
+  <ol>
+    <li>Check Expo Go is up to date — it must support <b>SDK 54</b>.</li>
+    <li>Force-close Expo Go and open it again.</li>
+    <li>On Android, use Expo Go's own <b>Enter URL manually</b> rather than the browser.</li>
+  </ol>
+
+  <p class="foot">UFAS · UF Index · This page updates whenever a new build is published.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+const LINK = document.getElementById('open').getAttribute('href');
+
+// Draw the QR in the browser. Sending a QR as an image kept arriving blank;
+// generating it here means what you see is what the link actually is.
+function drawQR() {
+  if (!window.QRCode) return fallback();
+  window.QRCode.toCanvas(document.getElementById('qr'), LINK,
+    { width: 520, margin: 1, color: { dark: '#0D0D0D', light: '#FFFFFF' } },
+    err => { if (err) fallback(); });
+}
+function fallback() {
+  // No library, no problem — the address below is the thing that matters.
+  document.querySelector('.qrbox').outerHTML =
+    '<p class="qrnote" style="margin:18px 0">QR could not be drawn — paste the address below instead.</p>';
+}
+drawQR();
+
+document.getElementById('c').addEventListener('click', async e => {
+  try {
+    await navigator.clipboard.writeText(LINK);
+    e.target.textContent = 'Copied';
+    setTimeout(() => { e.target.textContent = 'Copy'; }, 1600);
+  } catch { 
+    const r = document.createRange();
+    r.selectNodeContents(document.getElementById('u'));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    e.target.textContent = 'Select & copy';
+  }
+});
+</script>
+</body>
+</html>
