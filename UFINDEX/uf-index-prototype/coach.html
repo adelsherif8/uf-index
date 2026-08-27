@@ -195,6 +195,29 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── calendar redesign ── */
+.calCell{background-image:linear-gradient(to bottom, transparent calc(50% - 1px),
+  rgba(255,255,255,.035) calc(50% - 1px), rgba(255,255,255,.035) 50%, transparent 50%)}
+.calCell.work{background-color:rgba(210,145,51,.055)}
+.calCell.work.todayCol{background-color:rgba(210,145,51,.09)}
+.calCell.wkend:not(.work){background-color:rgba(13,13,13,.35)}
+.calCell:not(.past):hover::after{content:'+';position:absolute;inset:0;display:grid;
+  place-items:center;color:var(--gold);font-size:17px;background:rgba(210,145,51,.10);
+  pointer-events:none}
+.calHead .isToday .dd{display:inline-grid;place-items:center;width:28px;height:28px;
+  border-radius:50%;background:var(--gold);margin:0 auto}
+.calHead .isToday .dd, .calHead .isToday .dd *{color:#0D0D0D!important;font-weight:700}
+.calHead > div:nth-child(7):not(.isToday),.calHead > div:nth-child(8):not(.isToday){opacity:.55}
+.nowSpan{position:absolute;left:56px;right:0;height:2px;background:var(--gold);z-index:2;
+  pointer-events:none;box-shadow:0 0 8px rgba(210,145,51,.55)}
+.nowSpan i{position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;
+  background:var(--gold);margin-left:-5px}
+.appt .an i{font-style:normal;font-size:10px;margin-right:4px}
+.appt .an i.ok{color:#0D0D0D;background:var(--gold);border-radius:50%;
+  display:inline-grid;place-items:center;width:13px;height:13px;vertical-align:1px}
+.appt .an i.qm{color:var(--gold);border:1px solid var(--gold);border-radius:50%;
+  display:inline-grid;place-items:center;width:13px;height:13px;vertical-align:1px}
+
 /* ── timeline + handoff ── */
 .handoff{border:1px solid var(--gold);border-left:3px solid var(--gold);
   background:rgba(210,145,51,.09);border-radius:0 12px 12px 0;padding:13px 16px;margin:12px 0}
@@ -415,7 +438,6 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .calHead .dd{font-family:var(--disp);font-size:18px;line-height:1.15;color:var(--ink)}
 .calHead .isToday .dw{color:var(--gold)}
 .calHead .isToday{background:rgba(210,145,51,.10)}
-.calHead .isToday .dd{color:var(--gold);font-weight:700}
 
 /* body: one row per hour */
 .calBody{display:grid;grid-template-columns:56px repeat(7,minmax(84px,1fr));position:relative}
@@ -423,6 +445,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   text-align:right;padding-right:8px;border-right:1px solid var(--line);
   border-top:1px solid rgba(255,255,255,.05);position:relative}
 .calHr span{position:absolute;right:8px;top:-7px;background:#140b09;padding:0 2px}
+.calBody .calHr:first-child span{top:1px}
 .calCell{height:46px;border-top:1px solid rgba(255,255,255,.04);
   border-left:1px solid rgba(255,255,255,.07);position:relative;cursor:pointer}
 .calCell:hover{background:rgba(210,145,51,.10)}
@@ -1649,7 +1672,7 @@ async function createSession(clientId, startsAt, mins) {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
     $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span>
-      <div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>
+      <div><b>${S.coach}</b><span>${isAdmin() ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>
       <button class="bell" id="bellBtn" title="What happened since you last looked">◔<em id="bellN" hidden>0</em></button>`;
     $('#bellBtn').addEventListener('click', bellFlow);
     buildNav();
@@ -2723,18 +2746,16 @@ async function createSession(clientId, startsAt, mins) {
       .map(a => new Date(a.startsAt).getHours());
     let lo, hi;
     if (hrs.length) {
+      // every booked hour stays visible — a tall grid beats a hidden call
       lo = Math.max(DAY0, Math.min(...hrs) - 1);
       hi = Math.min(DAY1, Math.max(...hrs) + 2);
-      if (hi - lo > 9) {            // one outlier should not stretch the whole grid
-        const mid = Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length);
-        lo = Math.max(DAY0, mid - 4); hi = Math.min(DAY1, mid + 5);
-      }
     } else { lo = 17; hi = 21; }    // the evening slots coaches actually work
     if (hi - lo < 4) hi = Math.min(DAY1, lo + 4);
 
-    $('#calSub').textContent = isAdmin()
-      ? 'Every coach, overlaid. Read-only — coaches schedule their own calls.'
-      : `Your sessions only — ${S.coach}'s sub-calendar.`;
+    const rangeLbl = `${days[0].getDate()} ${days[0].toLocaleDateString('en-GB',{month:'short'})} – ${days[6].getDate()} ${days[6].toLocaleDateString('en-GB',{month:'short'})}`;
+    $('#calSub').textContent =
+      `${rangeLbl} · ${appts.length} confirmed${pendCount ? ` · ${pendCount} pending above` : ''}` +
+      (isAdmin() ? ' · every coach, read-only' : ' · your hours are the lighter band');
 
     $('#gcal').innerHTML = `<span class="gdot"></span>
       <span>UFAS Workspace calendar · <b>${isAdmin() ? 'all coaches' : S.coach + "'s sub-calendar"}</b></span>
@@ -2745,6 +2766,25 @@ async function createSession(clientId, startsAt, mins) {
     if (!isAdmin()) $('#hoursBtn').addEventListener('click', hoursFlow);
 
     await renderPending();
+
+    // the coach's own hours shade the grid — free time reads as the lighter
+    // band, and everything outside it recedes
+    let avail = {};
+    if (!isAdmin()) {
+      let rows2 = null;
+      if (S.live) {
+        const me = await sb.auth.getUser();
+        const { data } = await sb.from('coach_availability')
+          .select('dow, starts, ends').eq('coach_id', me.data.user.id);
+        rows2 = data;
+      } else rows2 = S.hours;
+      (rows2 || [{dow:1,starts:'17:00',ends:'20:00'},{dow:2,starts:'17:00',ends:'20:00'},
+                 {dow:3,starts:'17:00',ends:'20:00'},{dow:4,starts:'17:00',ends:'20:00'},
+                 {dow:5,starts:'17:00',ends:'19:00'},{dow:6,starts:'09:00',ends:'12:00'}])
+        .forEach(r => { (avail[r.dow] ||= []).push([
+          parseInt(String(r.starts).slice(0,2),10), parseInt(String(r.ends).slice(0,2),10)]); });
+    }
+    const inHours = (d, h) => (avail[d.getDay()] || []).some(([a, b]) => h >= a && h < b);
 
     const head = '<div class="calHead"><div></div>' + days.map(d => {
       const t = d.toDateString() === todayKey;
@@ -2761,7 +2801,9 @@ async function createSession(clientId, startsAt, mins) {
         const t = d.toDateString() === todayKey;
         const cellEnd = new Date(d); cellEnd.setHours(h + 1, 0, 0, 0);
         const past = cellEnd < now;
-        body += `<div class="calCell${t ? ' todayCol' : ''}${past ? ' past' : ''}" data-day="${di}" data-hr="${h}"></div>`;
+        const wknd = d.getDay() === 0 || d.getDay() === 6;
+        body += `<div class="calCell${t ? ' todayCol' : ''}${past ? ' past' : ''}${
+          !isAdmin() && inHours(d, h) ? ' work' : ''}${wknd ? ' wkend' : ''}" data-day="${di}" data-hr="${h}"></div>`;
       });
     }
     body += '</div>';
@@ -2794,7 +2836,7 @@ async function createSession(clientId, startsAt, mins) {
         el.style.width = `calc(${w}% - 4px)`;
         if (isAdmin()) el.style.borderLeftColor = hueFor(a.coach);
         el.title = `${who} · ${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting the client' : ''}`;
-        el.innerHTML = `<div class="an">${who.split(' ')[0]}</div>
+        el.innerHTML = `<div class="an">${a.status === 'confirmed' ? '<i class="ok">✓</i>' : '<i class="qm">?</i>'}${who.split(' ')[0]}</div>
           <div class="at">${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</div>`;
         el.addEventListener('click', ev => {
           ev.stopPropagation();
@@ -2805,16 +2847,20 @@ async function createSession(clientId, startsAt, mins) {
       });
     });
 
-    // a line where we are now
+    // the now-line runs the full width of the week, dot on today's column
     const ti = days.findIndex(d => d.toDateString() === todayKey);
-    if (ti >= 0 && now.getHours() >= lo && now.getHours() < hi) {
-      const cell = $(`.calCell[data-day="${ti}"][data-hr="${now.getHours()}"]`);
-      if (cell) {
+    const nowH = now.getHours() + now.getMinutes() / 60;
+    if (ti >= 0 && nowH >= lo && nowH < hi) {
+      const bodyEl = $('#cal .calBody') || $('.calBody');
+      if (bodyEl) {
         const ln = document.createElement('div');
-        ln.className = 'nowLine';
-        ln.style.top = `${(now.getMinutes() / 60) * SLOT}px`;
-        ln.style.left = '0'; ln.style.right = '0';
-        cell.appendChild(ln);
+        ln.className = 'nowSpan';
+        ln.style.top = `${(nowH - lo) * SLOT}px`;
+        const dot = document.createElement('i');
+        // the dot sits at the left edge of today's column
+        dot.style.left = `calc((100% - 0px) * ${ti} / 7)`;
+        ln.appendChild(dot);
+        bodyEl.appendChild(ln);
       }
     }
 
@@ -2853,6 +2899,7 @@ async function createSession(clientId, startsAt, mins) {
    * waiting on the admin — so they get one oversight list naming the coach,
    * because "you proposed" is false when Parina proposed it.
    */
+  let pendCount = 0;
   async function renderPending() {
     const box = $('#pend');
     const when = t => new Date(t).toLocaleString('en-GB',
@@ -2872,6 +2919,7 @@ async function createSession(clientId, startsAt, mins) {
         .map(a => ({ id: a.id, who: (byId(a.clientId) || {}).name || 'Client',
                      coach: a.coach, at: a.startsAt, status: a.status }));
     }
+    pendCount = rows.length;
     if (!rows.length) { box.innerHTML = ''; return; }
 
     const list = inner => `<div class="pList">${inner}</div>`;
