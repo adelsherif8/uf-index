@@ -4,83 +4,96 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Who Coaches Whom · UFAS</title>
-<meta name="description" content="Play with how UF Index clients are split between coaches, and see what each way does to a cohort.">
+<meta name="description" content="Three ways to split UF Index clients between coaches, explained simply, then a simulator to compare them.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230D0D0D'/><text y='.9em' x='50' text-anchor='middle' font-size='62' fill='%23D29133' font-family='Georgia,serif'>UF</text></svg>">
 <style>
-:root{
-  --gold:#D29133; --auburn:#741610; --bg:#0D0D0D; --ink:#FFFFFF;
-  --mut:rgba(255,255,255,.66); --dim:rgba(255,255,255,.42);
-  --card:rgba(116,22,16,.20); --line:#741610; --hair:rgba(255,255,255,.09);
+:root{--gold:#D29133;--auburn:#741610;--bg:#0D0D0D;--ink:#FFFFFF;
+  --mut:rgba(255,255,255,.68);--dim:rgba(255,255,255,.44);
+  --card:rgba(116,22,16,.20);--line:#741610;--hair:rgba(255,255,255,.09);
   --disp:Georgia,'Times New Roman',serif;
   --ui:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
-}
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);
-  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.wrap{max-width:820px;margin:0 auto;padding:40px 20px 80px}
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px}
 
-.eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--gold);font-weight:700;margin:0 0 10px}
+.eyebrow{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
+  font-weight:700;margin:0 0 10px}
 h1{font-family:var(--disp);font-weight:600;font-size:clamp(27px,5.6vw,38px);
-  line-height:1.14;margin:0 0 10px;text-wrap:balance}
-.lede{font-size:16px;color:var(--mut);margin:0;max-width:56ch}
-h2{font-family:var(--disp);font-weight:600;font-size:21px;margin:0 0 14px;color:var(--gold)}
-p{margin:0 0 12px;color:var(--mut);max-width:66ch}
+  line-height:1.14;margin:0 0 12px}
+.lede{font-size:17px;color:var(--mut);margin:0;max-width:52ch}
+h2{font-family:var(--disp);font-weight:600;font-size:23px;margin:0 0 8px}
+p{margin:0 0 14px;color:var(--mut);max-width:60ch}
 p:last-child{margin-bottom:0}
 b{color:var(--ink);font-weight:650}
-section{margin-top:46px}
+section{margin-top:52px}
+.rule{height:1px;background:var(--line);margin:0 0 22px}
 
-/* ── the simulator ── */
-.sim{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);margin-top:26px}
+/* the setup */
+.setup{border:1px solid var(--line);background:var(--card);border-radius:14px;
+  padding:20px 22px;margin-top:26px}
+.setup h3{font-family:var(--disp);font-size:18px;font-weight:600;color:var(--gold);margin:0 0 8px}
+.groups{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.grp{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hair);
+  border-radius:999px;padding:5px 12px;font-size:13px;color:var(--mut)}
+.grp i{width:11px;height:11px;border-radius:3px;flex:none;font-style:normal}
+.grp em{font-style:normal;color:var(--dim)}
+
+/* one way of splitting */
+.way{border:1px solid var(--line);border-radius:15px;padding:22px;margin-bottom:18px;
+  background:var(--card)}
+.way .num{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em}
+.way h3{font-family:var(--disp);font-size:21px;font-weight:600;margin:4px 0 10px}
+.way p{font-size:15px;margin-bottom:0}
+.demo{margin:16px 0 0;padding:15px;border-radius:11px;background:rgba(13,13,13,.5);
+  border:1px solid var(--hair)}
+.demo .cap{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 11px}
+.mini{display:flex;gap:10px;flex-wrap:wrap}
+.mc{flex:1;min-width:96px}
+.mc .nm{font-size:11.5px;color:var(--dim);margin-bottom:4px}
+.mc .dots{display:flex;flex-wrap:wrap;gap:3px}
+.dot{width:11px;height:11px;border-radius:3px}
+.verdict{margin-top:13px;padding-top:12px;border-top:1px solid var(--hair);font-size:14px}
+.verdict.good{color:var(--gold)}
+.verdict.bad{color:#E0B36B}
+
+/* simulator */
+.sim{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);margin-top:20px}
 .simBar{display:flex;gap:8px;flex-wrap:wrap;padding:14px;border-bottom:1px solid var(--line);
   background:rgba(13,13,13,.45)}
-.pill{border:1px solid var(--line);background:transparent;color:var(--mut);
-  border-radius:999px;padding:8px 15px;font:inherit;font-size:13.5px;cursor:pointer;
-  transition:background .15s,color .15s,border-color .15s}
+.pill{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;
+  padding:8px 15px;font:inherit;font-size:13.5px;cursor:pointer;transition:all .15s}
 .pill:hover{color:var(--ink)}
 .pill.on{background:var(--gold);border-color:var(--gold);color:#0D0D0D;font-weight:650}
-
 .simBody{padding:18px 16px 20px}
-.verdict{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.verdict .big{font-family:var(--disp);font-size:34px;line-height:1;color:var(--gold)}
-.verdict .big.bad{color:#E0B36B}
-.verdict .say{font-size:14px;color:var(--mut);max-width:44ch}
-
-.coach{margin-bottom:13px}
+.headline{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.headline .big{font-family:var(--disp);font-size:32px;line-height:1;color:var(--gold)}
+.headline .big.bad{color:#E0B36B}
+.headline .say{font-size:14px;color:var(--mut);max-width:42ch}
+.coach{margin-bottom:12px}
 .cTop{display:flex;align-items:baseline;gap:8px;font-size:13px;margin-bottom:5px}
-.cTop b{font-size:14px}
 .cTop .n{margin-left:auto;color:var(--dim);font-variant-numeric:tabular-nums}
 .cTop .over{color:var(--gold)}
-.bar{display:flex;height:26px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.05)}
-.seg{position:relative;transition:width .35s cubic-bezier(.4,0,.2,1)}
-.seg:hover{filter:brightness(1.25)}
+.bar{display:flex;height:24px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.05)}
+.seg{transition:width .35s cubic-bezier(.4,0,.2,1)}
 .bar .empty{flex:1;background:repeating-linear-gradient(45deg,
   rgba(255,255,255,.03) 0 6px,transparent 6px 12px)}
-
-.legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px;padding-top:14px;
-  border-top:1px solid var(--hair)}
-.lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);
-  border:1px solid var(--hair);border-radius:999px;padding:4px 10px;cursor:default}
-.lg i{width:10px;height:10px;border-radius:3px;flex:none;font-style:normal}
-.lg em{font-style:normal;color:var(--dim)}
-.lg.split{border-color:var(--gold);color:var(--gold)}
-.lg.split em{color:var(--gold)}
-
 .knobs{display:flex;gap:22px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid var(--line);
   background:rgba(13,13,13,.45)}
-.knob{flex:1;min-width:190px}
-.knob label{display:flex;justify-content:space-between;font-size:11.5px;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.knob{flex:1;min-width:180px}
+.knob label{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:7px}
 .knob label span{color:var(--gold);font-family:var(--mono);letter-spacing:0}
 input[type=range]{width:100%;accent-color:var(--gold);height:20px}
 
-/* ── decisions ── */
+/* decisions */
 .q{border:1px solid var(--hair);border-radius:13px;padding:16px 18px;margin-bottom:11px}
-.q summary{cursor:pointer;font-size:15px;font-weight:650;color:var(--ink);
-  list-style:none;display:flex;align-items:center;gap:10px}
+.q summary{cursor:pointer;font-size:15.5px;font-weight:650;color:var(--ink);list-style:none;
+  display:flex;align-items:center;gap:10px}
 .q summary::-webkit-details-marker{display:none}
 .q summary::before{content:'+';font-family:var(--mono);color:var(--gold);font-size:17px;flex:none}
 .q[open] summary::before{content:'−'}
@@ -89,18 +102,11 @@ input[type=range]{width:100%;accent-color:var(--gold);height:20px}
 .q summary .tag.first{color:var(--gold);border-color:var(--gold)}
 .qb{padding-top:12px}
 .qb ul{margin:8px 0 0;padding-left:18px}
-.qb li{color:var(--mut);font-size:14px;margin:5px 0}
+.qb li{color:var(--mut);font-size:14.5px;margin:6px 0}
 .rec{margin-top:11px;padding:10px 13px;border-left:2px solid var(--gold);
-  background:rgba(210,145,51,.09);border-radius:0 8px 8px 0;font-size:13.5px;color:var(--ink)}
+  background:rgba(210,145,51,.09);border-radius:0 8px 8px 0;font-size:14px;color:var(--ink)}
 .rec b{color:var(--gold)}
-
-.built{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
-.bcard{border:1px solid var(--hair);border-radius:11px;padding:13px 15px}
-.bcard b{display:block;font-size:13.5px;margin-bottom:3px}
-.bcard span{font-size:12.5px;color:var(--mut);line-height:1.5}
-
-.foot{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);
-  font-size:12px;color:var(--dim)}
+.foot{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
 @media (prefers-reduced-motion:reduce){.seg{transition:none}}
 </style>
@@ -110,60 +116,143 @@ input[type=range]{width:100%;accent-color:var(--gold);height:20px}
 
   <p class="eyebrow">UFAS · UF Index</p>
   <h1>Who coaches whom</h1>
-  <p class="lede">A hundred people sign up. There are five coaches. Try each way of splitting
-  them and watch what it does to a cohort.</p>
+  <p class="lede">People sign up. Somebody has to decide which coach each one gets.
+  There are three sensible ways to do it, and they give very different answers.</p>
 
-  <div class="sim">
-    <div class="simBar" id="strategies"></div>
-
-    <div class="simBody">
-      <div class="verdict">
-        <span class="big" id="vNum">—</span>
-        <span class="say" id="vSay"></span>
-      </div>
-      <div id="coaches"></div>
-      <div class="legend" id="legend"></div>
-    </div>
-
-    <div class="knobs">
-      <div class="knob">
-        <label>Coaches <span id="lC">5</span></label>
-        <input type="range" id="rC" min="2" max="8" value="5">
-      </div>
-      <div class="knob">
-        <label>Clients each coach can hold <span id="lK">25</span></label>
-        <input type="range" id="rK" min="10" max="40" value="25">
-      </div>
+  <div class="setup">
+    <h3>The situation</h3>
+    <p style="margin-bottom:0">People do not join UF Index one at a time. They arrive in
+    <b>groups</b> — a whole police station, a whole school. Six groups have signed up so far,
+    a hundred people between them, and there are five coaches.</p>
+    <div class="groups">
+      <span class="grp"><i style="background:#D29133"></i>Gurgaon Police <em>34</em></span>
+      <span class="grp"><i style="background:#A8501A"></i>PPS <em>22</em></span>
+      <span class="grp"><i style="background:#E0B36B"></i>PPS Aug <em>16</em></span>
+      <span class="grp"><i style="background:#741610"></i>IOU <em>12</em></span>
+      <span class="grp"><i style="background:#8A6A1F"></i>Everon <em>9</em></span>
+      <span class="grp"><i style="background:#B8341F"></i>UFS <em>7</em></span>
     </div>
   </div>
 
-  <p style="margin-top:18px;font-size:13.5px">Each block is one organisation. When a coach's bar
-  is one colour, one person understands that whole group. When it is five colours, nobody does.</p>
-
-  <!-- ─────────────────────────────── -->
+  <!-- ══════════════ the three ways, explained ══════════════ -->
   <section>
-    <h2>Five things to decide</h2>
-    <p>The strategy is the easy half, and it can be changed later. These cannot, once people are
-    already with coaches.</p>
+    <h2>The three ways</h2>
+    <div class="rule"></div>
+    <p>To keep it simple, each example below shows <b>one group of 12 people</b> and
+    <b>three coaches</b>. Same twelve people every time — only the rule changes.</p>
+
+    <div class="way">
+      <p class="num">WAY 1</p>
+      <h3>Whoever has fewest clients</h3>
+      <p>Each new person goes to whichever coach currently has the smallest caseload.
+      Numbers stay even. Nobody is ever overloaded.</p>
+      <div class="demo">
+        <p class="cap">12 people from one police station</p>
+        <div class="mini" id="d-load"></div>
+        <p class="verdict bad">All twelve are split three ways. Colleagues who sit in the same
+        room now have three different coaches, and get three different answers.</p>
+      </div>
+    </div>
+
+    <div class="way">
+      <p class="num">WAY 2</p>
+      <h3>Take it in turns</h3>
+      <p>First person to the first coach, second to the second, and round again. A strict
+      rotation. Nobody can claim they were treated unfairly.</p>
+      <div class="demo">
+        <p class="cap">the same 12 people</p>
+        <div class="mini" id="d-robin"></div>
+        <p class="verdict bad">The same problem, arrived at more predictably. It also ignores
+        how hard each caseload is — ten quiet clients count the same as ten in crisis.</p>
+      </div>
+    </div>
+
+    <div class="way">
+      <p class="num">WAY 3</p>
+      <h3>Keep each group together</h3>
+      <p>Everyone from one organisation goes to the same coach, as long as that coach has room.
+      That coach learns how a police shift rota works <b>once</b>.</p>
+      <div class="demo">
+        <p class="cap">the same 12 people</p>
+        <div class="mini" id="d-org"></div>
+        <p class="verdict good">One coach, one group. She learns the shift pattern once, and
+        everyone in that station gets the same answer. Caseloads end up uneven.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ now compare ══════════════ -->
+  <section>
+    <h2>Now try it with the real numbers</h2>
+    <div class="rule"></div>
+    <p>All 100 people, all six groups, five coaches. Switch between the three ways and watch
+    the bars change. <b>Each coloured block is one group.</b> A bar of one colour means one coach
+    understands that whole group. A bar of five colours means nobody does.</p>
+
+    <div class="sim">
+      <div class="simBar" id="strategies"></div>
+      <div class="simBody">
+        <div class="headline">
+          <span class="big" id="vNum">—</span>
+          <span class="say" id="vSay"></span>
+        </div>
+        <div id="coaches"></div>
+      </div>
+      <div class="knobs">
+        <div class="knob">
+          <label>Coaches <span id="lC">5</span></label>
+          <input type="range" id="rC" min="2" max="8" value="5">
+        </div>
+        <div class="knob">
+          <label>Most clients one coach can hold <span id="lK">25</span></label>
+          <input type="range" id="rK" min="10" max="40" value="25">
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:16px"><b>Worth trying:</b> drag the cap below 34 and watch Gurgaon
+    Police break in two. That is the overflow problem — a group bigger than one caseload has to
+    split, whichever rule you pick.</p>
+  </section>
+
+  <!-- ══════════════ recommendation ══════════════ -->
+  <section>
+    <h2>What I would pick</h2>
+    <div class="rule"></div>
+    <p><b>Way 3 — keep each group together</b>, falling back to Way 1 when there is no room or
+    no history to go on.</p>
+    <p>Even caseloads look tidier on a screen. But a coach who already understands how a police
+    shift rota wrecks sleep is worth more than a coach with exactly twenty clients. And people
+    in the same group talk to each other — "who's your coach" having one answer is easier for
+    everyone.</p>
+  </section>
+
+  <!-- ══════════════ decisions ══════════════ -->
+  <section>
+    <h2>Five things only you can decide</h2>
+    <div class="rule"></div>
+    <p>The rule above can be changed later. These cannot, once people are already with coaches.</p>
 
     <details class="q" open>
       <summary>Can a client ask for a particular coach? <span class="tag first">answer first</span></summary>
       <div class="qb">
-        <p>Not built. This matters more than the strategy: some clients will want a female coach,
-        or someone who speaks their language. Asked after assignment, it becomes a transfer — and
-        that costs them the relationship they had started.</p>
-        <div class="rec"><b>Answer this before switching automatic assignment on.</b> If clients
-        can ask, the strategy becomes a default rather than a rule, and that is a different build.</div>
+        <p>Not built. This matters more than the rule does — some clients will want a female
+        coach, or someone who speaks their language. Asked after they have been assigned, it
+        becomes a transfer, and that costs them the relationship they had started.</p>
+        <div class="rec"><b>Decide this before automatic assignment is switched on.</b> If clients
+        can ask, the rule becomes a starting point rather than the answer — and that is a
+        different thing to build.</div>
       </div>
     </details>
 
     <details class="q">
-      <summary>What is a real caseload? <span class="tag">the cap</span></summary>
+      <summary>How many clients is too many? <span class="tag">the cap</span></summary>
       <div class="qb">
-        <p>Currently 25, which is a number I invented. It is a hard stop — a full coach is skipped,
-        and if everyone is full the assignment refuses rather than quietly overloading someone.</p>
-        <div class="rec">Ask Parina and Manjula where coaching turns into admin. <b>Their answer
-        is the number.</b></div>
+        <p>It is set to 25, which is a number I made up. It is a hard limit — a full coach is
+        skipped, and if every coach is full the system refuses rather than quietly overloading
+        somebody.</p>
+        <div class="rec">Ask Parina and Manjula where coaching turns into admin.
+        <b>Their answer is the number.</b></div>
       </div>
     </details>
 
@@ -171,65 +260,59 @@ input[type=range]{width:100%;accent-color:var(--gold);height:20px}
       <summary>When does someone get a coach? <span class="tag">timing</span></summary>
       <div class="qb">
         <ul>
-          <li><b>On sign-up</b> — everyone has a coach immediately, including people who never
-            check in. Caseloads fill with ghosts.</li>
-          <li><b>On first check-in</b> — only people who actually engaged.</li>
-          <li><b>Manually</b> — you work the queue. Most control, stops scaling around fifty.</li>
+          <li><b>The moment they sign up</b> — everyone has a coach straight away, including
+            people who never take a single check-in.</li>
+          <li><b>After their first check-in</b> — only people who actually started.</li>
+          <li><b>When you decide</b> — you work through the queue yourself.</li>
         </ul>
-        <div class="rec"><b>On first check-in.</b> A caseload should be people, not sign-ups.</div>
+        <div class="rec"><b>After their first check-in.</b> A caseload should be people, not
+        sign-ups.</div>
       </div>
     </details>
 
     <details class="q">
-      <summary>What if a cohort is bigger than one coach? <span class="tag">overflow</span></summary>
+      <summary>What if a group is bigger than one coach? <span class="tag">overflow</span></summary>
       <div class="qb">
-        <p>Thirty-four Gurgaon Police clients do not fit in a caseload of 25. Drag the cap slider
-        below 34 and watch that cohort break in two.</p>
+        <p>Thirty-four Gurgaon Police clients do not fit in a caseload of 25.</p>
         <ul>
-          <li><b>Split it</b> — 25 to one coach, the rest to another.</li>
-          <li><b>Move the whole cohort</b> to someone with room.</li>
-          <li><b>Raise that coach's cap</b> — a deliberate, recorded exception.</li>
+          <li><b>Split it</b> — 25 to one coach, 9 to another.</li>
+          <li><b>Move the whole group</b> to someone with room.</li>
+          <li><b>Let that coach go over</b> — a deliberate exception.</li>
         </ul>
-        <div class="rec">Split, but always to <b>the same second coach</b>, so one station never
-        has more than two.</div>
+        <div class="rec">Split it, but always to <b>the same second coach</b>, so one station
+        never has more than two.</div>
       </div>
     </details>
 
     <details class="q">
-      <summary>Does anything rebalance on its own? <span class="tag">drift</span></summary>
+      <summary>If it goes lopsided, does it fix itself? <span class="tag">drift</span></summary>
       <div class="qb">
-        <p>If Parina ends on 30 and Manjula on 5, does the system move people?</p>
-        <div class="rec"><b>No.</b> Moving a client mid-programme costs them their coach and gains
-        you a tidier number. Show it on the Coaches screen and let a person decide.</div>
+        <p>Say Parina ends up with 30 and Manjula with 5. Should the system move people across?</p>
+        <div class="rec"><b>No.</b> Moving a client halfway through costs them their coach and
+        gains you a tidier number. Show it on the Coaches screen and let a person decide.</div>
       </div>
     </details>
   </section>
 
-  <!-- ─────────────────────────────── -->
-  <section>
-    <h2>Already built</h2>
-    <div class="built">
-      <div class="bcard"><b>Every assignment records why</b><span>A bad bulk run can be found and
-        reversed instead of guessed at.</span></div>
-      <div class="bcard"><b>Capacity is a hard stop</b><span>Full coaches are skipped. If everyone
-        is full it errors rather than queueing someone silently.</span></div>
-      <div class="bcard"><b>Everything falls back</b><span>No history, no specialism, no room — it
-        drops to fewest-clients rather than leaving a person unassigned.</span></div>
-      <div class="bcard"><b>Transfers keep history</b><span>The old assignment ends, a new one
-        starts. Who held them in July stays answerable.</span></div>
-      <div class="bcard"><b>Safe to re-run</b><span>Anyone who already has a coach keeps them.</span></div>
-      <div class="bcard"><b>Admins never get clients</b><span>Only coaches can be assigned.</span></div>
-    </div>
-    <p style="margin-top:14px">In the dashboard: <b>All clients → Assign everyone waiting</b>, or
-    <b>Move</b> on any client. Both admin-only.</p>
-  </section>
-
-  <p class="foot">UFAS · UF Index · The strategy can change later. Who is already with whom cannot,
-  without a transfer.</p>
+  <p class="foot">UFAS · UF Index · All three ways are already built. Switching between them is one
+  setting. Who is already with whom cannot be changed without a transfer.</p>
 </div>
 
 <script>
-// Real cohort sizes from Harini's sheet, so the simulation argues from fact.
+/* ─── the small illustrations: 12 people, 3 coaches ─── */
+const ONE = '#D29133';
+function illustrate(id, counts) {
+  const names = ['Parina', 'Manjula', 'Coach 3'];
+  document.getElementById(id).innerHTML = names.map((nm, i) => `
+    <div class="mc"><div class="nm">${nm} · ${counts[i]}</div>
+      <div class="dots">${Array.from({length: counts[i]},
+        () => `<span class="dot" style="background:${ONE}"></span>`).join('')}</div></div>`).join('');
+}
+illustrate('d-load',  [4, 4, 4]);
+illustrate('d-robin', [4, 4, 4]);
+illustrate('d-org',   [12, 0, 0]);
+
+/* ─── the simulator: real cohort sizes ─── */
 const COHORTS = [
   { name: 'Gurgaon Police', n: 34, c: '#D29133' },
   { name: 'PPS',            n: 22, c: '#A8501A' },
@@ -238,19 +321,15 @@ const COHORTS = [
   { name: 'Everon',         n:  9, c: '#8A6A1F' },
   { name: 'UFS',            n:  7, c: '#B8341F' },
 ];
-
 const STRATS = [
-  { id:'org',   label:'Keep organisations together' },
-  { id:'load',  label:'Whoever has fewest' },
-  { id:'robin', label:'Strict rotation' },
+  { id:'org',   label:'Way 3 · Keep groups together' },
+  { id:'load',  label:'Way 1 · Whoever has fewest' },
+  { id:'robin', label:'Way 2 · Take it in turns' },
 ];
-
 let strat = 'org', nCoaches = 5, cap = 25;
-
 const $ = s => document.querySelector(s);
 const coachNames = n => ['Parina','Manjula','Coach 3','Coach 4','Coach 5','Coach 6','Coach 7','Coach 8'].slice(0, n);
 
-/** Returns, per coach, how many clients of each cohort they hold. */
 function allocate() {
   const names = coachNames(nCoaches);
   const held = names.map(() => ({}));
@@ -259,23 +338,18 @@ function allocate() {
 
   if (strat === 'robin') {
     let i = 0;
-    COHORTS.forEach(co => { for (let k = 0; k < co.n; k++) { held[i % nCoaches][co.name] = (held[i % nCoaches][co.name] || 0) + 1; i++; } });
+    COHORTS.forEach(co => { for (let k = 0; k < co.n; k++) {
+      held[i % nCoaches][co.name] = (held[i % nCoaches][co.name] || 0) + 1; i++; } });
   } else if (strat === 'load') {
-    COHORTS.forEach(co => {
-      for (let k = 0; k < co.n; k++) {
-        const s = size();
-        let best = 0; for (let j = 1; j < nCoaches; j++) if (s[j] < s[best]) best = j;
-        held[best][co.name] = (held[best][co.name] || 0) + 1;
-      }
-    });
+    COHORTS.forEach(co => { for (let k = 0; k < co.n; k++) {
+      const s = size(); let best = 0;
+      for (let j = 1; j < nCoaches; j++) if (s[j] < s[best]) best = j;
+      held[best][co.name] = (held[best][co.name] || 0) + 1; } });
   } else {
-    // biggest cohorts first, each to the coach who already has that cohort,
-    // otherwise the emptiest coach with room
     [...COHORTS].sort((a, b) => b.n - a.n).forEach(co => {
       let left = co.n;
       while (left > 0) {
-        const s = size();
-        let pick = -1;
+        const s = size(); let pick = -1;
         for (let j = 0; j < nCoaches; j++) {
           if (spare(j) <= 0) continue;
           const hasIt = !!held[j][co.name];
@@ -284,8 +358,8 @@ function allocate() {
           if (hasIt && !pickHas) pick = j;
           else if (hasIt === pickHas && s[j] < s[pick]) pick = j;
         }
-        if (pick === -1) {                       // everybody full — overflow evenly
-          let best = 0; const s2 = size();
+        if (pick === -1) {
+          const s2 = size(); let best = 0;
           for (let j = 1; j < nCoaches; j++) if (s2[j] < s2[best]) best = j;
           held[best][co.name] = (held[best][co.name] || 0) + left; left = 0; break;
         }
@@ -302,18 +376,16 @@ function render() {
   const { names, held } = allocate();
   const totals = held.map(h => Object.values(h).reduce((a, b) => a + b, 0));
   const widest = Math.max(cap, ...totals);
-
-  // how many cohorts ended up spread over more than one coach
   const splitNames = COHORTS.filter(co => held.filter(h => h[co.name]).length > 1).map(co => co.name);
   const split = splitNames.length;
 
   $('#vNum').textContent = `${split} of ${COHORTS.length}`;
   $('#vNum').className = 'big' + (split > 2 ? ' bad' : '');
   $('#vSay').innerHTML = split === 0
-    ? 'cohorts broken up. Every organisation has one coach who knows it.'
+    ? 'groups broken up. Every organisation has one coach who knows it.'
     : split <= 2
-      ? `cohorts broken up — ${splitNames.join(' and ')}, because ${split === 1 ? 'it is' : 'they are'} bigger than one caseload.`
-      : 'cohorts broken up. Colleagues from one station end up with different coaches and different answers.';
+      ? `groups broken up — ${splitNames.join(' and ')}, because ${split === 1 ? 'it is' : 'they are'} bigger than one caseload.`
+      : 'groups broken up. Colleagues from the same place end up with different coaches.';
 
   $('#coaches').innerHTML = names.map((nm, i) => {
     const segs = COHORTS.filter(co => held[i][co.name]).map(co =>
@@ -322,15 +394,8 @@ function render() {
     const over = totals[i] > cap;
     return `<div class="coach">
       <div class="cTop"><b>${nm}</b>
-        <span class="n${over ? ' over' : ''}">${totals[i]}${over ? ` over ${cap}` : ` / ${cap}`}</span></div>
-      <div class="bar">${segs}<div class="empty"></div></div>
-    </div>`;
-  }).join('');
-
-  $('#legend').innerHTML = COHORTS.map(co => {
-    const isSplit = splitNames.includes(co.name);
-    return `<span class="lg${isSplit ? ' split' : ''}"><i style="background:${co.c}"></i>${co.name}
-      <em>${co.n}${isSplit ? ' · split' : ''}</em></span>`;
+        <span class="n${over ? ' over' : ''}">${totals[i]}${over ? ` — over ${cap}` : ` of ${cap}`}</span></div>
+      <div class="bar">${segs}<div class="empty"></div></div></div>`;
   }).join('');
 }
 
