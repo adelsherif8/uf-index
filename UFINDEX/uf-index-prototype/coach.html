@@ -221,9 +221,10 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .calCell.work{background-color:rgba(210,145,51,.055)}
 .calCell.work.todayCol{background-color:rgba(210,145,51,.09)}
 .calCell.wkend:not(.work){background-color:rgba(13,13,13,.35)}
-.calCell:not(.past):hover::after{content:'+';position:absolute;inset:0;display:grid;
-  place-items:center;color:var(--gold);font-size:17px;background:rgba(210,145,51,.10);
-  pointer-events:none}
+.cal:not(.adminView) .calCell:not(.past):hover::after{content:'+';position:absolute;inset:0;
+  display:grid;place-items:center;color:var(--gold);font-size:17px;
+  background:rgba(210,145,51,.10);pointer-events:none}
+.cal.adminView .calCell{cursor:default}
 .calHead .isToday .dd{display:inline-grid;place-items:center;width:28px;height:28px;
   border-radius:50%;background:var(--gold);margin:0 auto}
 .calHead .isToday .dd, .calHead .isToday .dd *{color:#0D0D0D!important;font-weight:700}
@@ -1380,7 +1381,7 @@ async function createSession(clientId, startsAt, mins) {
 (function () {
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-  const KEY = 'uf-coach-demo-v3';   // bumped: stale saved state was shadowing new code
+  const KEY = 'uf-coach-demo-v4';   // v4: demo finally seeds requests to answer
 
   /* ══════════ seed ══════════ */
   // Which coach is the admin. Adel holds the seat for now — he sees every
@@ -1407,9 +1408,16 @@ async function createSession(clientId, startsAt, mins) {
       { id:'a1', clientId:'c1', coach:'Parina',  startsAt:at(1, 17, 30), mins:45, status:'confirmed' },
       { id:'a2', clientId:'c3', coach:'Parina',  startsAt:at(2, 19,  0), mins:30, status:'confirmed' },
       { id:'a3', clientId:'c4', coach:'Parina',  startsAt:at(4, 10,  0), mins:45, status:'proposed'  },
+      // a request to ANSWER — without one, the Calls tab has nothing to
+      // accept or decline and the whole handshake looks broken
+      { id:'a7', clientId:'c2', coach:'Parina',  startsAt:at(3, 18,  0), mins:45, status:'requested' },
+      // and one asking for a slot that is already taken, so "Offer another
+      // time" is demonstrable without needing two people
+      { id:'a8', clientId:'c5', coach:'Parina',  startsAt:at(1, 17, 30), mins:45, status:'requested' },
       { id:'a4', clientId:'c6', coach:'Manjula', startsAt:at(1, 18,  0), mins:45, status:'confirmed' },
       { id:'a5', clientId:'c7', coach:'Manjula', startsAt:at(3,  9, 30), mins:30, status:'proposed'  },
       { id:'a6', clientId:'c8', coach:'Manjula', startsAt:at(5, 11,  0), mins:45, status:'confirmed' },
+      { id:'a9', clientId:'c7', coach:'Manjula', startsAt:at(4, 19,  0), mins:45, status:'requested' },
     ];
   }
 
@@ -1476,7 +1484,8 @@ async function createSession(clientId, startsAt, mins) {
         const st = JSON.parse(r);
         // appointments are seeded relative to today, so an old saved copy would
         // show an empty week — refresh them rather than leaving a blank grid
-        if (!st.appointments || !st.appointments.length) st.appointments = seedAppointments();
+        const anyCurrent = (st.appointments || []).some(a => new Date(a.startsAt) > new Date());
+        if (!st.appointments || !st.appointments.length || !anyCurrent) st.appointments = seedAppointments();
         return st;
       }
     } catch (e) {}
@@ -2417,7 +2426,8 @@ async function createSession(clientId, startsAt, mins) {
     wireActs(c); show('client');
     const tg = $('#tlGo');
     if (tg) tg.addEventListener('click', async () => {
-      const t = ($('#tlMsg').value || '').trim(); if (!t) return;
+      const t = ($('#tlMsg').value || '').trim();
+      if (!t) { toast('Write something first'); return; }
       tg.disabled = true;
       if (S.live) {
         const ok = await sendMessage(c.id, t);
@@ -2736,10 +2746,16 @@ async function createSession(clientId, startsAt, mins) {
     badge();
   }
 
-  function badge() {
-    const n = mine().filter(c=>c.flag==='call').length;
-    ['#callBadge','#callBadge2'].forEach(s=>{
-      const e=$(s); if(!e) return; e.textContent=n; e.style.display = n?'':'none';
+  async function badge() {
+    // count the requests actually waiting for an answer, not a stale flag
+    let n;
+    if (S.live) {
+      const r = await fetchPendingCalls();
+      n = (r || []).filter(x => x.status === 'requested').length;
+    } else n = (S.appointments || []).filter(a =>
+      (isAdmin() || a.coach === S.coach) && a.status === 'requested').length;
+    ['#callBadge','#callBadge2'].forEach(sel => {
+      const e = $(sel); if (!e) return; e.textContent = n; e.style.display = n ? '' : 'none';
     });
   }
 
@@ -2867,6 +2883,7 @@ async function createSession(clientId, startsAt, mins) {
     }
     body += '</div>';
     $('#cal').innerHTML = head + body;
+    $('#cal').classList.toggle('adminView', isAdmin());
 
     // group by day+hour so two sessions in one slot sit side by side
     const buckets = {};
@@ -3431,6 +3448,10 @@ async function createSession(clientId, startsAt, mins) {
   /* client acts back → dashboard reacts */
   $('#simCheckin').addEventListener('click', () => {
     const c = byId(phoneId); if (!c) return;
+    if (S.live) {
+      toast('Live data — check-ins come from the client\'s own app, not the simulator');
+      return;
+    }
     renderPhone('machine');
     setTimeout(() => {
       const base = c.score == null ? 3.0 : c.score;
