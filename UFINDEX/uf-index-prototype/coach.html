@@ -185,9 +185,9 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .siErr{color:var(--gold);font-size:12.5px;min-height:17px;margin:8px 0 0;text-align:center}
 
 /* ── session detail ── */
-.sdGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+.sdGrid{display:flex;flex-wrap:wrap;gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:4px}
-.sdGrid > div{background:#1b100d;padding:11px 13px}
+.sdGrid > div{flex:1 1 150px;min-width:0;background:#1b100d;padding:11px 13px}
 .sdGrid span{display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
@@ -206,9 +206,9 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .sAgree{grid-column:1/-1;font-size:12.5px;color:var(--gold);margin-top:-2px}
 
 /* ── client tracking ── */
-.track{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:1px;
+.track{display:flex;flex-wrap:wrap;gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0}
-.track > div{background:#1b100d;padding:12px 10px;text-align:center}
+.track > div{flex:1 1 88px;background:#1b100d;padding:12px 10px;text-align:center}
 .track b{display:block;font-family:var(--disp);font-size:23px;line-height:1.1}
 .track b.warnN{color:var(--gold)}
 .track span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
@@ -319,16 +319,17 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .calHead .dw{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .calHead .dd{font-family:var(--disp);font-size:18px;line-height:1.15;color:var(--ink)}
 .calHead .isToday .dw{color:var(--gold)}
+.calHead .isToday{background:rgba(210,145,51,.10)}
 .calHead .isToday .dd{color:var(--gold);font-weight:700}
 
 /* body: one row per hour */
 .calBody{display:grid;grid-template-columns:56px repeat(7,minmax(84px,1fr));position:relative}
-.calHr{grid-column:1;height:42px;font-size:10.5px;color:var(--dim);
+.calHr{grid-column:1;height:46px;font-size:10.5px;color:var(--dim);
   text-align:right;padding-right:8px;border-right:1px solid var(--line);
   border-top:1px solid rgba(255,255,255,.05);position:relative}
 .calHr span{position:absolute;right:8px;top:-7px;background:#140b09;padding:0 2px}
-.calCell{height:42px;border-top:1px solid rgba(255,255,255,.05);
-  border-left:1px solid rgba(255,255,255,.05);position:relative;cursor:pointer}
+.calCell{height:46px;border-top:1px solid rgba(255,255,255,.04);
+  border-left:1px solid rgba(255,255,255,.07);position:relative;cursor:pointer}
 .calCell:hover{background:rgba(210,145,51,.10)}
 .calCell.todayCol{background:rgba(210,145,51,.04)}
 .calCell.past{opacity:.55;cursor:default}
@@ -340,7 +341,7 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   width:6px;height:6px;border-radius:50%;background:var(--gold)}
 
 /* an appointment */
-.appt{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;
+.appt{position:absolute;border-radius:6px;padding:3px 6px;max-width:calc(100% - 4px);
   overflow:hidden;z-index:1;cursor:pointer;border-left:3px solid var(--gold);
   background:#4a3113;color:var(--ink);display:flex;flex-direction:column;justify-content:center}
 .appt:hover{filter:brightness(1.18)}
@@ -1066,6 +1067,47 @@ async function notifyClient(userId, title, body, type = 'coach_message') {
     else toast(error.message);
     return false;
   }
+  return true;
+}
+
+/** The coach's own free slots — for requests and for offering alternatives. */
+async function freeSlotsFor(coachId, days = 14) {
+  if (!sb) return [];
+  const { data, error } = await sb.rpc('coach_free_slots', { p_coach_id: coachId, p_days: days });
+  if (error) { console.warn('slots:', error.message); return []; }
+  return (data || []).map(r => r.slot);
+}
+
+/** Record a request a client made — through the app, or over the phone. */
+async function requestCallFor(userId, startsAt) {
+  if (!sb) return false;
+  const { error } = await sb.rpc('request_call_for', { p_user_id: userId, p_starts_at: startsAt });
+  if (error) { toast(error.message); return false; }
+  return true;
+}
+
+/** Pending calls, each flagged when its slot has since been taken. */
+async function fetchPendingCalls() {
+  if (!sb) return null;
+  const { data, error } = await sb.rpc('pending_calls');
+  if (error) { console.warn('pending:', error.message); return null; }
+  return data;
+}
+
+/** Decline a dead request and propose a different time in one step. */
+async function offerAlternative(id, startsAt) {
+  if (!sb) return false;
+  const { error } = await sb.rpc('offer_alternative', { p_id: id, p_starts_at: startsAt });
+  if (error) { toast(error.message); return false; }
+  return true;
+}
+
+/** Close a specific booked session with its outcome. */
+async function completeSession(id, outcome, notes, agreement) {
+  if (!sb) return false;
+  const { error } = await sb.rpc('complete_session', { p_id: id, p_outcome: outcome,
+    p_notes: notes || null, p_agreement: agreement || null });
+  if (error) { toast(error.message); return false; }
   return true;
 }
 
@@ -1988,39 +2030,56 @@ async function createSession(clientId, startsAt, mins) {
         setTimeout(()=>$$('#modalBody .chip').forEach(ch=>ch.addEventListener('click',()=>{ $('#mX').value = ch.dataset.t; })),0);
       }
 
-      if (a === 'log') modal(`How did the session with ${f} go?`, `
-        <label class="lbl">Outcome</label>
-        <div class="chips out">
-          <button class="chip on" data-o="Went well">Went well</button>
-          <button class="chip" data-o="Needs follow-up">Needs follow-up</button>
-          <button class="chip" data-o="No-show">No-show</button>
-        </div>
-        <label class="lbl">What happened</label>
-        <textarea id="sN" class="inp" rows="3" placeholder="Two lines is plenty…"></textarea>
-        <label class="lbl">What did they agree to?</label>
-        <input id="sA" class="inp" placeholder="Lights out by 11pm on off-days">
-        <p class="tiny">This shows up in the next prep brief — so future-you knows what to check.</p>`,
-        'Save session', async () => {
-          const o = $('#modalBody .chip.on')?.dataset.o || 'Went well';
-          const note = ($('#sN').value || '').trim();
-          const agree = ($('#sA').value || '').trim();
-          const outcome = o === 'No-show' ? 'no_show' : 'done';
-          if (S.live) {
-            const ok = await logSession(c.id, outcome, note, agree);
-            if (!ok) return;
-            await reloadClients();
-            toast(outcome === 'no_show' ? 'Marked as a no-show' : 'Session logged');
-          } else {
-            c.sessions.unshift({ at: new Date().toLocaleDateString('en-GB',{month:'short',day:'numeric'}),
-              outcome:o, note: note || 'No notes.', agreement: agree });
-            if (o === 'Needs follow-up') c.flag = 'call';
-            save(); toast('Session logged');
-          }
-          openClient(c.id);
-        });
-      setTimeout(()=>$$('#modalBody .chips.out .chip').forEach(ch=>ch.addEventListener('click',()=>{
-        $$('#modalBody .chips.out .chip').forEach(x=>x.classList.remove('on')); ch.classList.add('on');
-      })),0);
+      if (a === 'log') {
+        // A session is logged against the booking it belongs to. Only a booked
+        // call that has already started can be closed; anything else is a call
+        // that simply happened — phone, WhatsApp — and is logged ad hoc.
+        const nowT = Date.now();
+        const candidates = (c.sessions || []).filter(x =>
+          String(x.status) === 'confirmed' && x.when && new Date(x.when).getTime() <= nowT);
+        modal(`How did the session with ${f} go?`, `
+          <label class="lbl">Which call?</label>
+          <select id="sW" class="inp">
+            ${candidates.map(x => `<option value="${x.id}">${new Date(x.when).toLocaleString('en-GB',
+              { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })} — booked</option>`).join('')}
+            <option value="">Not booked — it just happened</option>
+          </select>
+          <label class="lbl">Outcome</label>
+          <div class="chips out">
+            <button class="chip on" data-o="done">Attended</button>
+            <button class="chip" data-o="no_show">No-show</button>
+            <button class="chip" data-o="cancelled">Cancelled</button>
+          </div>
+          <label class="lbl">What happened</label>
+          <textarea id="sN" class="inp" rows="3" placeholder="Two lines is plenty…"></textarea>
+          <label class="lbl">What did they agree to?</label>
+          <input id="sA" class="inp" placeholder="Lights out by 11pm on off-days">
+          <p class="tiny">Goes on their record and into the next prep brief. No-shows count on their card.</p>`,
+          'Save session', async () => {
+            const outcome = $('#modalBody .chip.on')?.dataset.o || 'done';
+            const note = ($('#sN').value || '').trim();
+            const agree = ($('#sA').value || '').trim();
+            const picked = $('#sW') ? $('#sW').value : '';
+            if (S.live) {
+              const ok = picked
+                ? await completeSession(picked, outcome, note, agree)
+                : await logSession(c.id, outcome, note, agree);
+              if (!ok) return;
+              await reloadClients();
+              toast(outcome === 'no_show' ? 'Marked as a no-show' : 'Session logged');
+            } else {
+              (c.sessions ||= []).unshift({
+                at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+                when: new Date().toISOString(), status: outcome, outcome,
+                note: note || '—', agreement: agree });
+              save(); toast('Session logged');
+            }
+            openClient(c.id);
+          });
+        setTimeout(() => $$('#modalBody .chips.out .chip').forEach(ch => ch.addEventListener('click', () => {
+          $$('#modalBody .chips.out .chip').forEach(x => x.classList.remove('on')); ch.classList.add('on');
+        })), 0);
+      }
 
       if (a === 'note') modal(`Private note about ${f}`, `
         <p class="tiny">Only you see this. ${f} never does.</p>
@@ -2046,16 +2105,26 @@ async function createSession(clientId, startsAt, mins) {
    * listing clients who happened to have something pending, with no time on it
    * and no way to say yes — the coach had to go to the calendar to act.
    */
+  /**
+   * Where a coach answers call requests. Each shows the time the client asked
+   * for. When two clients asked for the same slot and one was confirmed, the
+   * other request is marked blocked — Confirm becomes "Offer another time",
+   * because a button that always errors is the machine's failure, not theirs.
+   */
   async function renderCalls() {
     let rows;
     if (S.live) {
-      const r = await fetchPending();
-      rows = (r || []).map(x => ({ id: x.id, who: x.profiles?.full_name || 'Client',
-        clientId: x.user_id, at: x.starts_at, status: x.status }));
+      const r = await fetchPendingCalls();
+      rows = (r || []).map(x => ({ id: x.id, who: x.client_name || 'Client',
+        clientId: x.user_id, at: x.starts_at, status: x.status, blocked: !!x.blocked }));
     } else {
-      rows = (S.appointments || []).filter(a => a.coach === S.coach && a.status !== 'confirmed')
-        .map(a => ({ id: a.id, who: (byId(a.clientId) || {}).name || 'Client',
-                     clientId: a.clientId, at: a.startsAt, status: a.status }));
+      const mineA = (S.appointments || []).filter(x => x.coach === S.coach);
+      rows = mineA.filter(x => x.status === 'requested' || x.status === 'proposed')
+        .map(x => ({ id: x.id, who: (byId(x.clientId) || {}).name || 'Client',
+          clientId: x.clientId, at: x.startsAt, status: x.status,
+          blocked: x.status === 'requested' && mineA.some(t =>
+            t.id !== x.id && ['proposed', 'confirmed'].includes(t.status) &&
+            Math.abs(new Date(t.startsAt) - new Date(x.startsAt)) < 45 * 60000) }));
     }
 
     const asked = rows.filter(r => r.status === 'requested');
@@ -2069,12 +2138,15 @@ async function createSession(clientId, startsAt, mins) {
     $('#callList').innerHTML =
       (asked.length ? `<p class="pendH"><b>${asked.length}</b> asked for a time</p>
         <div class="pList">${asked.map(r => `
-          <div class="pRow" data-sid="${r.id}" data-cid="${r.clientId}">
-            <div class="pWho">${r.who}<em>tap the name to see their record</em></div>
+          <div class="pRow" data-sid="${r.id}" data-cid="${r.clientId}" data-who="${r.who}">
+            <div class="pWho">${r.who}<em>${r.blocked
+              ? 'that slot has been taken since' : 'tap the name for their record'}</em></div>
             <div class="pWhen">${when(r.at)}</div>
             <span class="pAct">
               <button class="pNo" data-act="no">Decline</button>
-              <button class="pOk" data-act="yes">Confirm</button>
+              ${r.blocked
+                ? '<button class="pOk" data-act="alt">Offer another time</button>'
+                : '<button class="pOk" data-act="yes">Confirm</button>'}
             </span>
           </div>`).join('')}</div>` : '')
       + (offered.length ? `<p class="pendH" style="margin-top:14px"><b>${offered.length}</b> you proposed</p>
@@ -2082,14 +2154,16 @@ async function createSession(clientId, startsAt, mins) {
           <div class="pRow" data-cid="${r.clientId}">
             <div class="pWho">${r.who}<em>not accepted yet</em></div>
             <div class="pWhen">${when(r.at)}</div>
-            <span class="pWait">waiting on them</span>
+            <span class="pWait">client</span>
           </div>`).join('')}</div>` : '')
       + (!rows.length ? `<div class="empty"><b>Nobody is waiting.</b>
           <span>When a client asks to talk, the time they want appears here to confirm.</span></div>` : '');
 
     $$('#callList .pRow [data-act]').forEach(b => b.addEventListener('click', async e => {
       e.stopPropagation();
-      const rw = b.closest('.pRow'), yes = b.dataset.act === 'yes';
+      const rw = b.closest('.pRow'), act = b.dataset.act;
+      if (act === 'alt') { offerAltFlow(rw.dataset.sid, rw.dataset.who, renderCalls); return; }
+      const yes = act === 'yes';
       rw.querySelectorAll('button').forEach(x => x.disabled = true);
       b.textContent = yes ? 'Confirming…' : 'Declining…';
       if (S.live) {
@@ -2097,8 +2171,8 @@ async function createSession(clientId, startsAt, mins) {
         if (out) toast(out === 'confirmed' ? 'Confirmed — it is on your calendar' : 'Declined');
         await reloadClients();
       } else {
-        const a = (S.appointments || []).find(x => x.id === rw.dataset.sid);
-        if (a) { a.status = yes ? 'confirmed' : 'declined'; save(); }
+        const x = (S.appointments || []).find(t => t.id === rw.dataset.sid);
+        if (x) { x.status = yes ? 'confirmed' : 'declined'; save(); }
         toast(yes ? 'Confirmed' : 'Declined');
       }
       renderCalls();
@@ -2142,7 +2216,7 @@ async function createSession(clientId, startsAt, mins) {
   // only their own sub-calendar; the admin sees every one overlaid, colour-coded.
   // Google is a mirror — the session rows here are the source of truth, so the
   // schedule survives a coach leaving or the integration breaking.
-  const SLOT = 42;                 // px per hour, matches .calCell height
+  const SLOT = 46;                 // px per hour, matches .calCell height
   const DAY0 = 7, DAY1 = 21;       // the widest the grid ever goes
 
   function startOfWeek(d) {
@@ -2172,16 +2246,21 @@ async function createSession(clientId, startsAt, mins) {
     // Only show hours that are actually in use, padded by one either side.
     // A fixed 7am–9pm grid was mostly empty space with the sessions squashed
     // into one corner of it.
-    let lo = 9, hi = 18;
-    appts.forEach(a => {
-      const st = new Date(a.startsAt);
-      if (days.some(d => d.toDateString() === st.toDateString())) {
-        lo = Math.min(lo, st.getHours());
-        hi = Math.max(hi, st.getHours() + Math.ceil(a.mins / 60));
+    // Draw the hours that are in use. A grid from 10am to 8pm with everything
+    // clustered after 5 is mostly empty, and the empty part is what you scroll past.
+    const hrs = appts
+      .filter(a => days.some(d => d.toDateString() === new Date(a.startsAt).toDateString()))
+      .map(a => new Date(a.startsAt).getHours());
+    let lo, hi;
+    if (hrs.length) {
+      lo = Math.max(DAY0, Math.min(...hrs) - 1);
+      hi = Math.min(DAY1, Math.max(...hrs) + 2);
+      if (hi - lo > 9) {            // one outlier should not stretch the whole grid
+        const mid = Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length);
+        lo = Math.max(DAY0, mid - 4); hi = Math.min(DAY1, mid + 5);
       }
-    });
-    lo = Math.max(DAY0, lo - 1); hi = Math.min(DAY1, hi + 1);
-    if (hi - lo < 6) hi = Math.min(DAY1, lo + 6);
+    } else { lo = 17; hi = 21; }    // the evening slots coaches actually work
+    if (hi - lo < 4) hi = Math.min(DAY1, lo + 4);
 
     $('#calSub').textContent = isAdmin()
       ? 'Every coach, overlaid. Read-only — coaches schedule their own calls.'
@@ -2240,12 +2319,16 @@ async function createSession(clientId, startsAt, mins) {
         el.style.height = `${h}px`;
         const w = 100 / list.length;
         el.style.left = `calc(${idx * w}% + 2px)`;
-        el.style.right = `calc(${(list.length - 1 - idx) * w}% + 2px)`;
+        el.style.width = `calc(${w}% - 4px)`;
         if (isAdmin()) el.style.borderLeftColor = hueFor(a.coach);
         el.title = `${who} · ${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting the client' : ''}`;
         el.innerHTML = `<div class="an">${who.split(' ')[0]}</div>
           <div class="at">${hhmm(st)}${isAdmin() ? ' · ' + a.coach : ''}${a.status === 'proposed' ? ' · awaiting' : ''}</div>`;
-        el.addEventListener('click', ev => { ev.stopPropagation(); sessionDetail(a); });
+        el.addEventListener('click', ev => {
+          ev.stopPropagation();
+          try { sessionDetail(a, who); }
+          catch (err) { console.error(err); toast('Could not open that session'); }
+        });
         cell.appendChild(el);
       });
     });
@@ -2372,6 +2455,92 @@ async function createSession(clientId, startsAt, mins) {
     }));
   }
 
+  /**
+   * One appointment, in full. Works with whatever is known — a live session
+   * carries only the client name, the demo carries a whole record — so it
+   * never opens blank.
+   */
+  function sessionDetail(a, whoName) {
+    const c = byId(a.clientId);
+    const who = whoName || a.clientName || (c ? c.name : 'Client');
+    const st = new Date(a.startsAt);
+    const en = new Date(st.getTime() + (a.mins || 45) * 60000);
+    const mineC = c && isMine(c) && !isAdmin();
+    const status = { confirmed: 'Confirmed', proposed: 'Waiting on the client',
+                     requested: 'Waiting on the coach' }[a.status] || a.status;
+
+    const rows = [
+      ['When', st.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })],
+      ['Time', `${hhmm(st)} – ${hhmm(en)}`],
+      ['Coach', a.coach || '—'],
+      ['Status', status],
+    ];
+    if (c) {
+      if (c.org) rows.push(['Organisation', c.org]);
+      if (c.score != null) rows.push(['UF Index', `${c.score.toFixed(1)} · ${c.band}`]);
+      const w = c.pillars && Object.keys(c.pillars).length ? weakest(c) : null;
+      if (w) rows.push(['Lowest pillar', `${w[0]} ${w[1].toFixed(1)}`]);
+      if (c.lastSeen) rows.push(['Last check-in', c.lastSeen]);
+      if (c.done != null) rows.push(['Sessions', `${c.done} attended${c.noShows ? ` · ${c.noShows} no-show` : ''}`]);
+      if (c.lastAgreement) rows.push(['Last agreed', c.lastAgreement]);
+    }
+
+    modal(who, `
+      <div class="sdGrid">${rows.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      ${!c ? '<p class="tiny">Not in the client list — a live session carries only the name.</p>' : ''}
+      ${isAdmin() ? `<p class="tiny">${a.coach}'s client. Oversight only.</p>` : ''}`,
+      mineC ? 'Open client' : 'Close',
+      () => { if (mineC) openClient(c.id); });
+  }
+
+  /** Decline a request whose slot is gone and propose a free time instead. */
+  async function offerAltFlow(sessionId, who, after) {
+    let slots = [];
+    if (S.live) {
+      const me = await sb.auth.getUser();
+      slots = await freeSlotsFor(me.data.user.id);
+    }
+    if (!slots.length) slots = demoSlots();
+    modal(`Offer ${who} another time`, `
+      <p class="tiny">Their slot has been taken. These are yours that are still free.</p>
+      <label class="lbl">Propose</label>
+      <select id="altT" class="inp">${slots.slice(0, 14).map(iso =>
+        `<option value="${iso}">${new Date(iso).toLocaleString('en-GB',
+          { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</option>`).join('')}</select>
+      <p class="tiny">Their original request is declined, and this goes to them to accept.</p>`,
+      'Send the offer', async () => {
+        const iso = $('#altT').value;
+        if (S.live) {
+          const ok = await offerAlternative(sessionId, iso);
+          if (!ok) return;
+          await reloadClients();
+        } else {
+          const old = (S.appointments || []).find(t => t.id === sessionId);
+          if (old) {
+            old.status = 'declined';
+            S.appointments.push({ id: 'a' + Date.now(), clientId: old.clientId, coach: S.coach,
+              startsAt: iso, mins: 45, status: 'proposed' });
+            save();
+          }
+        }
+        toast(`Offered ${who} a different time`);
+        after && after();
+      });
+  }
+
+  function demoSlots() {
+    const out = [], base = new Date(); base.setMinutes(0, 0, 0);
+    for (let d = 1; out.length < 10; d++) {
+      [17, 17.5, 18, 19].forEach(h => {
+        if (out.length >= 10) return;
+        const x = new Date(base); x.setDate(base.getDate() + d);
+        x.setHours(Math.floor(h), (h % 1) * 60);
+        out.push(x.toISOString());
+      });
+    }
+    return out;
+  }
+
   function proposeAt(when) {
     const list = mine();
     if (!list.length) { toast('No clients to schedule'); return; }
@@ -2490,16 +2659,46 @@ async function createSession(clientId, startsAt, mins) {
       badge();
     }, 1700);
   });
-  $('#simCall').addEventListener('click', () => {
+  // A client asking for a call picks a real time from what the coach actually
+  // has free. Asking without a time was what made this feel fake — it left the
+  // coach nothing to confirm.
+  $('#simCall').addEventListener('click', async () => {
     const c = byId(phoneId); if (!c) return;
-    c.flag = 'call'; save();
-    phoneNotif = { t:'Call requested', b:`We've told ${S.coach}. They'll propose a time.` };
-    renderPhone();
-    toast(`${first(c)} asked for a call — it's in your queue`);
-    const v = ($('.view.on')||{}).id;
-    if (v === 'v-today') renderToday(); else if (v === 'v-calls') renderCalls();
-    else if (v === 'v-client' && cur === c.id) openClient(c.id);
-    badge();
+    let slots = [];
+    if (S.live) {
+      const me = await sb.auth.getUser();
+      slots = await freeSlotsFor(me.data.user.id);
+    }
+    if (!slots.length) slots = demoSlots();
+
+    modal(`${first(c)} asks for a call`, `
+      <p class="tiny">These are the times ${S.coach} actually has free.</p>
+      <label class="lbl">When would suit them</label>
+      <select id="rqT" class="inp">${slots.slice(0, 14).map(iso =>
+        `<option value="${iso}">${new Date(iso).toLocaleString('en-GB',
+          { weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</option>`).join('')}</select>
+      <p class="tiny">It lands in Call requests for you to confirm or decline.</p>`,
+      'Ask for this time', async () => {
+        const iso = $('#rqT').value;
+        if (S.live) {
+          const ok = await requestCallFor(c.id, iso);
+          if (!ok) return;
+          await reloadClients();
+        } else {
+          (S.appointments ||= []).push({ id: 'a' + Date.now(), clientId: c.id, coach: S.coach,
+            startsAt: iso, mins: 45, status: 'requested' });
+        }
+        c.flag = 'call'; save();
+        phoneNotif = { t: 'Call requested',
+          b: `Asked ${S.coach} for ${new Date(iso).toLocaleString('en-GB',{weekday:'short',hour:'2-digit',minute:'2-digit'})}. Waiting for them to confirm.` };
+        renderPhone();
+        toast(`${first(c)} asked for a time — it is in Call requests`);
+        const v = ($('.view.on') || {}).id;
+        if (v === 'v-calls') renderCalls();
+        else if (v === 'v-calendar') renderCalendar();
+        else if (v === 'v-today') renderToday();
+        badge();
+      });
   });
 
   /* ══════════ view toggle ══════════ */
