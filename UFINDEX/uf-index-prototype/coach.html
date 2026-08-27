@@ -1229,7 +1229,7 @@ async function createSession(clientId, startsAt, mins) {
 (function () {
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-  const KEY = 'uf-coach-demo-v2';
+  const KEY = 'uf-coach-demo-v3';   // bumped: stale saved state was shadowing new code
 
   /* ══════════ seed ══════════ */
   // Which coach is the admin. Adel holds the seat for now — he sees every
