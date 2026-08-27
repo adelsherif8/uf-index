@@ -1945,14 +1945,75 @@ async function createSession(clientId, startsAt, mins) {
   function log(id, what) { S.inbox.unshift({ id, what, at: Date.now() }); save(); }
 
   /* ══════════ CALLS ══════════ */
-  function renderCalls() {
-    const cs = mine().filter(c=>c.flag==='call');
-    $('#callSub').textContent = cs.length ? `${cs.length} waiting` : 'Nothing waiting';
-    $('#callList').innerHTML = cs.length
-      ? cs.map(c=>row(c)).join('') + `<p class="tiny mt">Open a client to propose a time — they get a notification on their phone.</p>`
-      : `<div class="empty"><b>Nobody is waiting.</b><span>When a client asks to talk, they appear here with their score and what's dragging it.</span></div>`;
-    wireRows(); badge();
+  /**
+   * The tab named Call requests should be where a coach answers them. It was
+   * listing clients who happened to have something pending, with no time on it
+   * and no way to say yes — the coach had to go to the calendar to act.
+   */
+  async function renderCalls() {
+    let rows;
+    if (S.live) {
+      const r = await fetchPending();
+      rows = (r || []).map(x => ({ id: x.id, who: x.profiles?.full_name || 'Client',
+        clientId: x.user_id, at: x.starts_at, status: x.status }));
+    } else {
+      rows = (S.appointments || []).filter(a => a.coach === S.coach && a.status !== 'confirmed')
+        .map(a => ({ id: a.id, who: (byId(a.clientId) || {}).name || 'Client',
+                     clientId: a.clientId, at: a.startsAt, status: a.status }));
+    }
+
+    const asked = rows.filter(r => r.status === 'requested');
+    const offered = rows.filter(r => r.status === 'proposed');
+    $('#callSub').textContent = asked.length
+      ? `${asked.length} waiting on you` : (offered.length ? 'Nothing waiting on you' : 'Nothing waiting');
+
+    const when = t => new Date(t).toLocaleString('en-GB',
+      { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+    $('#callList').innerHTML =
+      (asked.length ? `<p class="pendH"><b>${asked.length}</b> asked for a time</p>
+        <div class="pList">${asked.map(r => `
+          <div class="pRow" data-sid="${r.id}" data-cid="${r.clientId}">
+            <div class="pWho">${r.who}<em>tap the name to see their record</em></div>
+            <div class="pWhen">${when(r.at)}</div>
+            <span class="pAct">
+              <button class="pNo" data-act="no">Decline</button>
+              <button class="pOk" data-act="yes">Confirm</button>
+            </span>
+          </div>`).join('')}</div>` : '')
+      + (offered.length ? `<p class="pendH" style="margin-top:14px"><b>${offered.length}</b> you proposed</p>
+        <div class="pList">${offered.map(r => `
+          <div class="pRow" data-cid="${r.clientId}">
+            <div class="pWho">${r.who}<em>not accepted yet</em></div>
+            <div class="pWhen">${when(r.at)}</div>
+            <span class="pWait">waiting on them</span>
+          </div>`).join('')}</div>` : '')
+      + (!rows.length ? `<div class="empty"><b>Nobody is waiting.</b>
+          <span>When a client asks to talk, the time they want appears here to confirm.</span></div>` : '');
+
+    $$('#callList .pRow [data-act]').forEach(b => b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const rw = b.closest('.pRow'), yes = b.dataset.act === 'yes';
+      rw.querySelectorAll('button').forEach(x => x.disabled = true);
+      b.textContent = yes ? 'Confirming…' : 'Declining…';
+      if (S.live) {
+        const out = await respondToSession(rw.dataset.sid, yes);
+        if (out) toast(out === 'confirmed' ? 'Confirmed — it is on your calendar' : 'Declined');
+        await reloadClients();
+      } else {
+        const a = (S.appointments || []).find(x => x.id === rw.dataset.sid);
+        if (a) { a.status = yes ? 'confirmed' : 'declined'; save(); }
+        toast(yes ? 'Confirmed' : 'Declined');
+      }
+      renderCalls();
+    }));
+    $$('#callList .pRow .pWho').forEach(el => el.addEventListener('click', () => {
+      const cid = el.closest('.pRow').dataset.cid;
+      if (byId(cid)) openClient(cid);
+    }));
+    badge();
   }
+
   function badge() {
     const n = mine().filter(c=>c.flag==='call').length;
     ['#callBadge','#callBadge2'].forEach(s=>{
