@@ -195,6 +195,65 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   color:var(--dim);margin-bottom:3px}
 .sdGrid b{font-size:14px;font-weight:600;line-height:1.3}
 
+/* ── timeline + handoff ── */
+.handoff{border:1px solid var(--gold);border-left:3px solid var(--gold);
+  background:rgba(210,145,51,.09);border-radius:0 12px 12px 0;padding:13px 16px;margin:12px 0}
+.handoff h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 5px}
+.handoff p{margin:0;font-size:14px}
+.tl{margin-top:4px}
+.tlRow{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px}
+.tlRow:last-child{border-bottom:0}
+.tlTag{flex:none;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+  border:1px solid var(--hair);border-radius:999px;padding:2px 9px;color:var(--dim)}
+.tlRow.call .tlTag{border-color:var(--gold);color:var(--gold)}
+.tlRow.log .tlTag{border-color:var(--hair);color:var(--mut)}
+.tlRow.bad .tlTag{border-color:#B8341F;color:#E0B36B;background:rgba(184,52,31,.15)}
+.tlRow.note .tlTag{border-style:dashed}
+.tlRow.msg .tlTag{color:var(--ink)}
+.tlBody{flex:1;min-width:200px;color:var(--mut)}
+.tlX{font-size:12px;color:var(--gold)}
+.tlAt{margin-left:auto;font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.tlSend{display:flex;gap:8px;margin-top:12px}
+.tlSend .inp{flex:1;margin:0}
+
+/* ═══ one row, one chip, one header — the design system (D1–D3) ═══ */
+/* Every list row shares one skeleton, whatever tab it is on. */
+:is(.row,.crow,.pRow,.thr){border:1px solid var(--hair);background:var(--card);
+  border-radius:12px;padding:12px 16px;margin-bottom:8px}
+.pList{border:0;border-radius:0;overflow:visible;background:transparent}
+.pList .pRow:last-child{border-bottom:1px solid var(--hair)}
+
+/* One chip grammar, learnable:
+   solid gold = needs YOU now · gold outline = waiting on someone else
+   quiet grey = settled · auburn = a problem                            */
+:is(.pill,.pWait,.pTag,.sBadge,.mini){font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;border-radius:999px;padding:3px 10px;font-weight:600;
+  border:1px solid var(--hair);background:transparent;color:var(--dim)}
+:is(.pill.r,.mini.warn){border-color:var(--gold);background:var(--gold);color:#0D0D0D}
+:is(.pWait.onCoach,.pTag){border-color:var(--gold);color:var(--gold);background:transparent}
+:is(.sBadge.bad,.pill.o){border-color:#B8341F;color:#E0B36B;background:rgba(184,52,31,.15)}
+:is(.pill.g,.sBadge.ok){border-color:var(--hair);color:var(--mut)}
+
+/* One header anatomy: title left, search then the single primary action right. */
+.head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.head .search{margin-left:auto;max-width:260px}
+.head .calNav{margin-left:auto}
+.head .search + .calNav{margin-left:0}
+
+/* the bell */
+.bell{position:relative;margin-left:auto;background:transparent;border:1px solid var(--line);
+  border-radius:10px;padding:7px 10px;cursor:pointer;color:var(--mut);font-size:15px;line-height:1}
+.bell:hover{color:var(--ink);background:var(--card)}
+.bell em{position:absolute;top:-6px;right:-6px;background:var(--gold);color:#0D0D0D;
+  border-radius:999px;font-size:10px;font-style:normal;font-weight:700;padding:1px 6px}
+.evRow{display:flex;gap:12px;align-items:baseline;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px}
+.evRow:last-child{border-bottom:0}
+.evRow span{flex:1;color:var(--mut)}
+.evRow em{font-style:normal;font-size:11.5px;color:var(--dim);white-space:nowrap}
+.evRow.new span{color:var(--ink)}
+
 /* ── today's calls ── */
 .tCalls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
 .tCall{display:flex;flex-direction:column;align-items:flex-start;gap:2px;font:inherit;
@@ -1000,7 +1059,7 @@ const sb      = LIVE ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
 /** Sessions for a week, straight from the sessions table. RLS scopes them. */
 const SESSION_COLS =
-  'id, coach_id, user_id, starts_at, ends_at, status, coaches(full_name), profiles:user_id(full_name)';
+  'id, coach_id, user_id, starts_at, ends_at, status, coaches(full_name)';
 
 /** Confirmed sessions for one week. Only these are drawn on the grid. */
 async function fetchSessions(mon) {
@@ -1014,7 +1073,7 @@ async function fetchSessions(mon) {
   if (error) { console.warn('sessions:', error.message); return null; }
   return data.map(r => ({
     id: r.id, clientId: r.user_id, coach: r.coaches?.full_name || '—',
-    clientName: r.profiles?.full_name || 'Client',
+    clientName: '',
     startsAt: r.starts_at, status: r.status,
     mins: Math.round((new Date(r.ends_at) - new Date(r.starts_at)) / 60000),
   }));
@@ -1027,6 +1086,7 @@ async function fetchClients() {
   if (error) { console.warn('clients:', error.message); return null; }
   return data.map(r => ({
     id: r.user_id, name: r.full_name || 'Client', coach: r.coach_name,
+    assignedBy: r.assigned_by, handoff: r.handoff_reason,
     org: r.organization || '—', since: r.assigned_at ? new Date(r.assigned_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '',
     score: r.latest_score != null ? Number(r.latest_score) : null,
     band: r.latest_band ? r.latest_band[0].toUpperCase() + r.latest_band.slice(1) : null,
@@ -1177,10 +1237,11 @@ async function fetchClientRecord(userId) {
       by: r.acted_by_role, coach: r.coaches?.full_name,
     })),
     notes: (notes.data || []).map(r => ({
-      t: r.body, d: new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      t: r.body, iso: r.created_at,
+      d: new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
       who: r.coaches?.full_name })),
     messages: (msgs.data || []).map(r => ({
-      sender: r.sender, body: r.body,
+      sender: r.sender, body: r.body, iso: r.created_at,
       d: new Date(r.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) })),
   };
 }
@@ -1204,11 +1265,11 @@ async function sendMessage(userId, body) {
 }
 
 async function logSession(userId, outcome, notes, agreement) {
-  if (!sb) return false;
-  const { error } = await sb.rpc('log_session', {
+  if (!sb) return null;
+  const { data, error } = await sb.rpc('log_session', {
     p_user_id: userId, p_outcome: outcome, p_notes: notes || null, p_agreement: agreement || null });
-  if (error) { toast(error.message); return false; }
-  return true;
+  if (error) { toast(error.message); return null; }
+  return data;   // the session id, so follow-up and agreement can be stamped on it
 }
 
 /** Assignment, the admin-facing wrappers. */
@@ -1242,7 +1303,7 @@ async function fetchCoachOverview() {
 async function fetchPending() {
   if (!sb) return null;
   const { data, error } = await sb.from('sessions')
-    .select(SESSION_COLS)
+    .select('id, coach_id, user_id, starts_at, ends_at, status, seen_at, coaches(full_name)')
     .in('status', ['requested', 'proposed'])
     .gte('starts_at', new Date().toISOString())
     .order('starts_at');
@@ -1504,6 +1565,68 @@ async function createSession(clientId, startsAt, mins) {
   // A change lands while you watch — a request pops in, a confirmation moves
   // to the calendar — instead of appearing on the next reload. RLS applies to
   // the stream too, so each dashboard only hears about its own rows.
+  /**
+   * What happened since you last looked. Derived from the data itself rather
+   * than a log table: requests arriving, answers landing, replies, and notes
+   * from the admin. The watermark lives per-user in this browser.
+   */
+  const SEEN_KEY = () => 'uf-seen-' + (S.coach || 'x');
+
+  async function buildEvents() {
+    if (!S.live || !sb) return [];
+    const me = (await sb.auth.getUser()).data.user.id;
+    const [ses, msg, ntf] = await Promise.all([
+      sb.from('sessions')
+        .select('status, user_id, created_at, acted_at, acted_by_role, coaches(full_name)')
+        .order('created_at', { ascending: false }).limit(25),
+      sb.from('messages').select('sender, user_id, body, created_at')
+        .order('created_at', { ascending: false }).limit(15),
+      sb.from('notifications').select('title, body, sent_at').eq('user_id', me)
+        .order('sent_at', { ascending: false }).limit(10),
+    ]);
+    const ev = [];
+    (ses.data || []).forEach(x => {
+      const who = (byId(x.user_id) || {}).name || 'A client';
+      if (x.status === 'requested') ev.push({ at: x.created_at, txt: `${who} asked for a time` });
+      if (x.acted_at) {
+        if (x.acted_by_role === 'client')
+          ev.push({ at: x.acted_at, txt: `${who} ${x.status === 'confirmed' ? 'accepted your time' : 'declined your time'}` });
+        else if (x.status === 'no_show') ev.push({ at: x.acted_at, txt: `No-show recorded for ${who}` });
+        else if (x.status === 'cancelled') ev.push({ at: x.acted_at, txt: `Call with ${who} cancelled` });
+        else if (isAdmin() && x.status === 'confirmed')
+          ev.push({ at: x.acted_at, txt: `${x.coaches?.full_name || 'A coach'} confirmed a call with ${who}` });
+      }
+    });
+    (msg.data || []).forEach(m => {
+      if (m.sender === 'client')
+        ev.push({ at: m.created_at, txt: `${(byId(m.user_id) || {}).name || 'A client'}: “${m.body.slice(0, 55)}”` });
+    });
+    (ntf.data || []).forEach(n => ev.push({ at: n.sent_at, txt: `${n.title} — ${n.body.slice(0, 60)}` }));
+    return ev.sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 25);
+  }
+
+  async function updateBell() {
+    const evs = await buildEvents();
+    const seen = +localStorage.getItem(SEEN_KEY()) || 0;
+    const n = evs.filter(e => new Date(e.at).getTime() > seen).length;
+    const b = $('#bellN'); if (b) { b.textContent = n; b.hidden = !n; }
+    return evs;
+  }
+
+  async function bellFlow() {
+    const evs = await buildEvents();
+    const seen = +localStorage.getItem(SEEN_KEY()) || 0;
+    modal('Since you last looked', evs.length
+      ? evs.map(e => `<div class="evRow${new Date(e.at).getTime() > seen ? ' new' : ''}">
+          <span>${e.txt}</span>
+          <em>${new Date(e.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</em>
+        </div>`).join('')
+      : '<p class="tiny">Nothing yet — events appear as clients ask, answer and reply.</p>',
+      'Done', () => {});
+    localStorage.setItem(SEEN_KEY(), String(Date.now()));
+    updateBell();
+  }
+
   let rtOn = false, rtT = null;
   function startRealtime() {
     if (rtOn || !S.live || !sb) return; rtOn = true;
@@ -1513,18 +1636,22 @@ async function createSession(clientId, startsAt, mins) {
       ({ today: renderToday, calls: renderCalls, calendar: renderCalendar,
          allcalls: renderAllCalls, allclients: renderAllClients, inbox: renderInbox,
          week: renderWeek }[v] || (() => {}))();
-      updateInboxBadge(); badge();
+      updateInboxBadge(); updateBell(); badge();
     }, 400); };
     sb.channel('uf-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, kick)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, kick)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, kick)
       .subscribe();
   }
 
   function enter() {
     $('#v-signin').classList.remove('on');
     $('#shell').hidden = false;
-    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span><div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>`;
+    $('#me').innerHTML = `<span class="avatar sm">${S.coach[0]}</span>
+      <div><b>${S.coach}</b><span>${S.isAdmin ? 'Admin' : 'UFAS coach'}${S.live ? ' · live' : ' · demo'}</span></div>
+      <button class="bell" id="bellBtn" title="What happened since you last looked">◔<em id="bellN" hidden>0</em></button>`;
+    $('#bellBtn').addEventListener('click', bellFlow);
     buildNav();
     // An admin has no client phone to simulate — they never take the calls.
     if (isAdmin()) { $('#rail').hidden = true; $('#railShow').hidden = true; }
@@ -1536,7 +1663,7 @@ async function createSession(clientId, startsAt, mins) {
         }
         if (!isAdmin()) { buildPhoneSel(); renderPhone(); }
         show('today');
-        startRealtime(); updateInboxBadge();
+        startRealtime(); updateInboxBadge(); updateBell();
         if (isAdmin()) adminUnassigned().then(w => {
           const ub = $('#unassignedBadge');
           if (ub) { ub.textContent = w.length; ub.hidden = !w.length; }
@@ -1573,19 +1700,58 @@ async function createSession(clientId, startsAt, mins) {
     const cs = mine(), h = new Date().getHours();
     $('#greet').textContent = `Good ${h<12?'morning':h<18?'afternoon':'evening'}, ${S.coach}`;
     $('#todayDate').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-    // today's calls, so the calendar is not the only place they exist
-    let todays = [];
-    if (S.live) { const wk = await fetchSessions(startOfWeek(new Date())); if (wk) todays = wk; }
-    else todays = (S.appointments || []).filter(x => x.coach === S.coach);
+    // Your day, in order (F1): answer what is waiting, take today's calls,
+    // log what ended without an outcome, catch follow-ups that came due, read
+    // what is unread. The coach stops doing this join in her head.
+    let todays = [], q = [];
+    if (S.live) {
+      const nowISO = new Date().toISOString();
+      const [wk, pend, unlogged, fups] = await Promise.all([
+        fetchSessions(startOfWeek(new Date())),
+        fetchPendingCalls(),
+        sb.from('sessions').select('id, user_id, ends_at')
+          .eq('status', 'confirmed').lt('ends_at', nowISO).limit(6),
+        sb.from('sessions').select('id, user_id, agreement, follow_up_at')
+          .eq('status', 'done').not('follow_up_at', 'is', null)
+          .lte('follow_up_at', nowISO).limit(6),
+      ]);
+      if (wk) todays = wk;
+      const nReq = (pend || []).filter(x => x.status === 'requested').length;
+      if (nReq) q.push({ txt: `Answer ${nReq} call request${nReq > 1 ? 's' : ''}`,
+        sub: 'clients are waiting on you', act: 'Open', go: () => show('calls') });
+      (unlogged.data || []).forEach(x => q.push({
+        txt: `Log the call with ${(byId(x.user_id) || {}).name || 'a client'}`,
+        sub: `ended ${new Date(x.ends_at).toLocaleDateString('en-GB', { weekday: 'long' })} with no outcome`,
+        act: 'Log it', go: () => { if (byId(x.user_id)) openClient(x.user_id); } }));
+      (fups.data || []).forEach(x => q.push({
+        txt: `Follow up with ${(byId(x.user_id) || {}).name || 'a client'}`,
+        sub: x.agreement ? `they agreed: ${x.agreement}` : 'you asked to be reminded today',
+        act: 'Open', go: () => { if (byId(x.user_id)) openClient(x.user_id); } }));
+      const unread = await updateInboxBadge();
+      if (unread) q.push({ txt: `${unread} unread message${unread > 1 ? 's' : ''}`,
+        sub: 'a reply nobody reads is a client lost', act: 'Read', go: () => show('inbox') });
+    } else {
+      todays = (S.appointments || []).filter(x => x.coach === S.coach);
+      const nReq = (S.appointments || []).filter(x => x.coach === S.coach && x.status === 'requested').length;
+      if (nReq) q.push({ txt: `Answer ${nReq} call request${nReq > 1 ? 's' : ''}`,
+        sub: 'clients are waiting on you', act: 'Open', go: () => show('calls') });
+    }
     const tk = new Date().toDateString();
     todays = todays.filter(x => x.status === 'confirmed' && new Date(x.startsAt).toDateString() === tk)
       .sort((x, y) => new Date(x.startsAt) - new Date(y.startsAt));
-    $('#todayCalls').innerHTML = todays.length ? `<div class="tCalls">
-      ${todays.map(x => { const cx = byId(x.clientId);
+
+    $('#todayCalls').innerHTML =
+      (q.length ? `<div class="pList">${q.map((x, n) => `
+        <div class="pRow qr" data-q="${n}">
+          <div class="pWho">${x.txt}<em>${x.sub}</em></div>
+          <span class="pAct"><button class="pOk">${x.act}</button></span>
+        </div>`).join('')}</div>` : '') +
+      (todays.length ? `<div class="tCalls">${todays.map(x => { const cx = byId(x.clientId);
         return `<button class="tCall" data-cid="${x.clientId}">
           <b>${hhmm(new Date(x.startsAt))}</b>
-          <span>${x.clientName || (cx ? cx.name.split(' ')[0] : 'Client')}</span></button>`; }).join('')}
-      </div>` : '';
+          <span>${(cx ? cx.name.split(' ')[0] : 'Client')}</span></button>`; }).join('')}</div>` : '');
+    $$('#todayCalls .qr .pOk').forEach(b => b.addEventListener('click',
+      () => q[+b.closest('.qr').dataset.q].go()));
     $$('#todayCalls .tCall').forEach(b => b.addEventListener('click', () => {
       if (byId(b.dataset.cid)) openClient(b.dataset.cid);
     }));
@@ -1628,6 +1794,40 @@ async function createSession(clientId, startsAt, mins) {
       });
     }
 
+    // Decisions only the admin can take (F5). One list, actions inline —
+    // instead of the same facts scattered across five tabs.
+    if (S.live) {
+      const cutoff = new Date(Date.now() - 48 * 36e5).toISOString();
+      const [wq, fl, ag] = await Promise.all([
+        adminUnassigned(),
+        sb.from('client_flags').select('id, user_id, reason, coaches(full_name)').eq('status', 'open'),
+        sb.from('sessions').select('id, user_id, created_at, coaches(full_name)')
+          .eq('status', 'requested').lt('created_at', cutoff),
+      ]);
+      const dec = [];
+      if ((wq || []).length) dec.push({ txt: `${wq.length} client${wq.length > 1 ? 's' : ''} waiting for a coach`,
+        sub: 'they have checked in and belong to nobody', act: 'Assign', go: () => show('allclients') });
+      (fl.data || []).forEach(f => dec.push({
+        txt: `${f.coaches?.full_name || 'A coach'} flagged ${(byId(f.user_id) || {}).name || 'a client'}`,
+        sub: f.reason, act: 'Resolve', go: async () => {
+          await sb.from('client_flags').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', f.id);
+          toast('Resolved'); renderToday();
+        } }));
+      (ag.data || []).forEach(x => dec.push({
+        txt: `A request to ${x.coaches?.full_name || 'a coach'} has sat ${Math.round((Date.now() - new Date(x.created_at)) / 36e5)}h`,
+        sub: `${(byId(x.user_id) || {}).name || 'a client'} is still waiting`, act: 'Cover', go: () => show('allcalls') }));
+      rows.forEach(r => { if (+r.clients > +r.max_clients) dec.push({
+        txt: `${r.full_name} is over capacity`, sub: `${r.clients} of ${r.max_clients}`,
+        act: 'Fix', go: () => show('coaches') }); });
+      $('#todayCalls').innerHTML = dec.length ? `<div class="pList">${dec.map((x, n) => `
+        <div class="pRow qr" data-q="${n}">
+          <div class="pWho">${x.txt}<em>${x.sub}</em></div>
+          <span class="pAct"><button class="pOk">${x.act}</button></span>
+        </div>`).join('')}</div>` : '';
+      $$('#todayCalls .qr .pOk').forEach(b => b.addEventListener('click',
+        () => dec[+b.closest('.qr').dataset.q].go()));
+    } else $('#todayCalls').innerHTML = '';
+
     const tot = (k) => rows.reduce((a,r)=>a+(+r[k]||0),0);
     $('#stats').innerHTML = [
       [rows.length, 'Coaches'],
@@ -1647,9 +1847,16 @@ async function createSession(clientId, startsAt, mins) {
           return `<div class="crow" data-coach="${r.full_name}">
             <span class="avatar sm" style="background:${hueFor(r.full_name)}22;border-color:${hueFor(r.full_name)}">${r.full_name[0]}</span>
             <div class="cinfo"><b>${r.full_name}</b><span>${why.join(' · ')}</span></div>
-            <span class="cnum">${r.clients}<em>clients</em></span></div>`;
+            <span class="cnum">${r.clients}<em>clients</em></span>
+            ${S.live && r.coach_id ? `<span class="pAct"><button class="pNo" data-nudge="${r.coach_id}" data-why="${why[0] || ''}">Nudge</button></span>` : ''}</div>`;
         }).join('')
       : `<div class="empty"><b>Nothing stuck.</b><span>Every request has been answered and nobody is idle.</span></div>`;
+    $$('#attention [data-nudge]').forEach(b => b.addEventListener('click', async e => {
+      e.stopPropagation();
+      const { error } = await sb.rpc('admin_nudge_coach', { p_coach: b.dataset.nudge,
+        p_body: b.dataset.why ? `Gentle nudge: ${b.dataset.why}.` : 'Checking in — anything stuck?' });
+      toast(error ? error.message : 'Nudged — it lands on their bell');
+    }));
 
     $('#restList').innerHTML = rows.map(r => `
       <div class="crow" data-coach="${r.full_name}">
@@ -1665,14 +1872,14 @@ async function createSession(clientId, startsAt, mins) {
     // recent activity — oversight without polling tabs
     if (S.live) {
       const { data: ev } = await sb.from('sessions')
-        .select('status, acted_at, acted_by_role, coaches(full_name), profiles:user_id(full_name)')
+        .select('status, user_id, acted_at, acted_by_role, coaches(full_name)')
         .not('acted_at', 'is', null)
         .order('acted_at', { ascending: false }).limit(8);
       const verbs = { confirmed: 'confirmed a call with', declined: 'declined a request from',
                       done: 'logged a session with', no_show: 'logged a no-show for',
                       cancelled: 'cancelled a call with' };
       const feed = (ev || []).map(e => ({ at: e.acted_at,
-        txt: `${e.coaches?.full_name || '—'} ${verbs[e.status] || e.status} ${e.profiles?.full_name || 'a client'}${e.acted_by_role === 'admin' ? ' — by admin' : ''}` }));
+        txt: `${e.coaches?.full_name || '—'} ${verbs[e.status] || e.status} ${(byId(e.user_id) || {}).name || 'a client'}${e.acted_by_role === 'admin' ? ' — by admin' : ''}` }));
       const checks2 = S.clients.filter(c => c.lastCheckinISO).map(c => ({ at: c.lastCheckinISO,
         txt: `${c.name} checked in${c.score != null ? ` — ${c.score.toFixed(1)}` : ''}` }));
       const all = [...feed, ...checks2]
@@ -1729,8 +1936,22 @@ async function createSession(clientId, startsAt, mins) {
   }
 
   /** Everything about one coach, without leaving the roster. */
-  function coachDetail(name, rows) {
+  async function coachDetail(name, rows) {
     const r = rows.find(x => x.full_name === name) || {};
+    // response time is the health number a caseload count can't show
+    let ansLine = '';
+    if (S.live && r.coach_id) {
+      const { data: sx } = await sb.from('sessions')
+        .select('created_at, acted_at, acted_by_role, status')
+        .eq('coach_id', r.coach_id).not('acted_at', 'is', null);
+      const answered = (sx || []).filter(x => x.acted_by_role === 'coach'
+        && ['confirmed', 'declined'].includes(x.status));
+      if (answered.length) {
+        const h = answered.reduce((a, x) => a + (new Date(x.acted_at) - new Date(x.created_at)), 0)
+          / answered.length / 36e5;
+        ansLine = h < 1 ? '<1h' : `~${Math.round(h)}h`;
+      }
+    }
     const theirs = S.clients.filter(c => c.coach === name);
     const sc = theirs.filter(c => c.score != null);
     const avg = sc.length ? (sc.reduce((a, c) => a + c.score, 0) / sc.length).toFixed(1) : '—';
@@ -1746,6 +1967,7 @@ async function createSession(clientId, startsAt, mins) {
         <div><b>${r.upcoming ?? 0}</b><span>upcoming</span></div>
         <div><b>${r.sessions_done ?? 0}</b><span>done</span></div>
         <div><b class="${+r.no_shows ? 'warnN' : ''}">${r.no_shows ?? 0}</b><span>no-shows</span></div>
+        ${ansLine ? `<div><b>${ansLine}</b><span>answers in</span></div>` : ''}
       </div>
       <div class="card"><h4>Groups they carry</h4>
         <p class="prog">${orgs.join(' · ') || 'none yet'}</p></div>
@@ -2057,6 +2279,8 @@ async function createSession(clientId, startsAt, mins) {
     $('#clientDetail').innerHTML = head(c, other) + `
       ${other?`<div class="ro">You're viewing ${c.coach}'s client. Read-only — you can look, but not act.</div>`:''}
       <div class="brief"><h4>Prep brief</h4><p>${brief}</p></div>
+      ${c.handoff && c.assignedBy === 'admin' ? `<div class="handoff">
+        <h4>Handoff note from the admin</h4><p>${c.handoff}</p></div>` : ''}
 
       <div class="since">
         <h4>Since you last spoke${last?` · ${last.at}`:''}</h4>
@@ -2096,45 +2320,74 @@ async function createSession(clientId, startsAt, mins) {
         <div><b>${(c.notes||[]).length}</b><span>notes</span></div>
       </div>
 
-      ${(c.sessions && c.sessions.length) ? `<div class="card"><h4>Sessions</h4>
-        ${c.sessions.slice(0,8).map(x => {
-          const st = String(x.status || x.outcome);
-          const label = { done:'Attended', no_show:'No-show', cancelled:'Cancelled',
-                          confirmed:'Booked', proposed:'Offered', requested:'Requested',
-                          declined:'Declined' }[st] || st;
-          const tone = st === 'no_show' ? ' bad' : (st === 'done' ? ' ok' : '');
-          const when = x.when ? new Date(x.when) : null;
-          return `<div class="sRow">
-            <span class="sWhen">${when ? when.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : x.at}</span>
-            <span class="sBadge${tone}">${label}</span>
-            <span class="sNote">${x.note || (st === 'confirmed' ? 'upcoming' : '—')}</span>
-            ${x.by === 'admin' ? '<span class="sBy">by admin</span>' : ''}
-            ${x.agreement ? `<span class="sAgree">Agreed — ${x.agreement}</span>` : ''}
-          </div>`;
-        }).join('')}</div>` : ''}
-
-      ${(c.messages && c.messages.length) ? `<div class="card"><h4>Messages</h4>
-        ${c.messages.slice(0,5).map(m=>`<div class="msg ${m.sender}">
-          <b>${m.sender==='coach'?'You':first(c)}</b><span>${m.body}</span><em>${m.d}</em></div>`).join('')}</div>` : ''}
+      ${timelineHTML(c)}
 
       <div class="card"><h4>Programme</h4>
         <p class="prog">${PROGRAMME.n} · <span class="muted">${PROGRAMME.w}</span></p></div>
-
-      ${c.notes.length?`<div class="card"><h4>Your private notes</h4>
-        ${c.notes.map(n=>`<div class="note">${n.t}<span>${n.d}</span></div>`).join('')}</div>`:''}
 
       ${other?'':`<div class="actions">
         <button class="act primary" data-a="call">Propose a call</button>
         <button class="act" data-a="msg">Send a message</button>
         <button class="act" data-a="log">Log a session</button>
         <button class="act" data-a="note">Private note</button>
+        <button class="act" data-a="flag">Flag to admin</button>
       </div>`}`;
     wireActs(c); show('client');
+    const tg = $('#tlGo');
+    if (tg) tg.addEventListener('click', async () => {
+      const t = ($('#tlMsg').value || '').trim(); if (!t) return;
+      tg.disabled = true;
+      if (S.live) {
+        const ok = await sendMessage(c.id, t);
+        if (ok) notifyClient(c.id, `Message from ${S.coach}`, t, 'coach_message');
+      } else (c.messages ||= []).unshift({ sender: 'coach', body: t, iso: new Date().toISOString(),
+        d: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
+      save(); openClient(c.id);
+    });
   }
   const head = (c, other) => `<div class="cHead"><span class="avatar lg">${c.name[0]}</span>
     <div><h2>${c.name}</h2><p class="sub">${c.org} · joined ${c.since}${other?` · ${c.coach}'s client`:''}</p></div>
     ${c.score!=null?`<div class="cScore"><b>${c.score.toFixed(1)}</b>
       <span class="pill ${bandClass(c.band)}">${c.band}</span></div>`:''}</div>`;
+
+  /**
+   * One relationship, one thread (C1). Calls, logs, replies and private notes
+   * interleaved by time — instead of the same relationship scattered across
+   * four cards on four tabs. Notes are marked: the client never sees them.
+   */
+  function timelineHTML(c) {
+    const items = [];
+    (c.sessions || []).forEach(x => {
+      const st = String(x.status || x.outcome);
+      const label = { done: 'Session', no_show: 'No-show', cancelled: 'Cancelled',
+                      confirmed: 'Call booked', proposed: 'You offered a time',
+                      requested: 'They asked for a time', declined: 'Declined' }[st] || st;
+      items.push({ iso: x.when || 0, kind: st === 'no_show' ? 'bad' : (st === 'done' ? 'log' : 'call'),
+        tag: label, body: x.note || (x.when ? new Date(x.when).toLocaleString('en-GB',
+          { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''),
+        extra: [x.agreement ? `Agreed — ${x.agreement}` : '',
+                x.agreement_kept === true ? 'Kept the last agreement' : x.agreement_kept === false ? 'Did not keep the last agreement' : '',
+                x.by === 'admin' ? 'by admin' : ''].filter(Boolean).join(' · ') });
+    });
+    (c.messages || []).forEach(m => items.push({ iso: m.iso || 0, kind: 'msg',
+      tag: m.sender === 'coach' ? 'You' : first(c), body: m.body, extra: m.sender === 'coach' ? '✓ sent' : '' }));
+    (c.notes || []).forEach(n => items.push({ iso: n.iso || 0, kind: 'note',
+      tag: 'Private note', body: n.t, extra: 'only staff see this' }));
+    items.sort((a, b) => new Date(b.iso) - new Date(a.iso));
+
+    return `<div class="card"><h4>Everything with ${first(c)}</h4>
+      <div class="tl">${items.length ? items.slice(0, 20).map(x => `
+        <div class="tlRow ${x.kind}">
+          <span class="tlTag">${x.tag}</span>
+          <span class="tlBody">${x.body}</span>
+          ${x.extra ? `<span class="tlX">${x.extra}</span>` : ''}
+          <span class="tlAt">${x.iso ? new Date(x.iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}</span>
+        </div>`).join('') : '<p class="muted">Nothing yet — it starts with a message or a call.</p>'}</div>
+      <div class="tlSend">
+        <input id="tlMsg" class="inp" placeholder="Message ${first(c)}…">
+        <button class="pOk" id="tlGo">Send</button>
+      </div></div>`;
+  }
 
   /* ══════════ actions ══════════ */
   function wireActs(c) {
@@ -2228,17 +2481,36 @@ async function createSession(clientId, startsAt, mins) {
           <textarea id="sN" class="inp" rows="3" placeholder="Two lines is plenty…"></textarea>
           <label class="lbl">What did they agree to?</label>
           <input id="sA" class="inp" placeholder="Lights out by 11pm on off-days">
+          ${c.lastAgreement ? `<label class="lbl">Last time they agreed: “${c.lastAgreement}” — kept it?</label>
+          <div class="chips kept">
+            <button class="chip" data-k="true">Kept it</button>
+            <button class="chip" data-k="false">Didn't</button>
+          </div>` : ''}
+          <label class="lbl">Follow up</label>
+          <select id="sF" class="inp">
+            <option value="">No follow-up</option>
+            <option value="3">In 3 days</option>
+            <option value="7">In a week</option>
+            <option value="14">In two weeks</option>
+          </select>
           <p class="tiny">Goes on their record and into the next prep brief. No-shows count on their card.</p>`,
           'Save session', async () => {
             const outcome = $('#modalBody .chip.on')?.dataset.o || 'done';
             const note = ($('#sN').value || '').trim();
             const agree = ($('#sA').value || '').trim();
             const picked = $('#sW') ? $('#sW').value : '';
+            const kept = $('#modalBody .chips.kept .chip.on')?.dataset.k;
+            const fu = $('#sF') ? $('#sF').value : '';
             if (S.live) {
-              const ok = picked
-                ? await completeSession(picked, outcome, note, agree)
-                : await logSession(c.id, outcome, note, agree);
-              if (!ok) return;
+              let sid = picked;
+              if (picked) { if (!await completeSession(picked, outcome, note, agree)) return; }
+              else { sid = await logSession(c.id, outcome, note, agree); if (!sid) return; }
+              if (sid && (kept !== undefined || fu)) {
+                await sb.from('sessions').update({
+                  agreement_kept: kept === undefined ? null : kept === 'true',
+                  follow_up_at: fu ? new Date(Date.now() + (+fu) * 864e5).toISOString() : null,
+                }).eq('id', sid);
+              }
               await reloadClients();
               toast(outcome === 'no_show' ? 'Marked as a no-show' : 'Session logged');
             } else {
@@ -2250,9 +2522,14 @@ async function createSession(clientId, startsAt, mins) {
             }
             openClient(c.id);
           });
-        setTimeout(() => $$('#modalBody .chips.out .chip').forEach(ch => ch.addEventListener('click', () => {
-          $$('#modalBody .chips.out .chip').forEach(x => x.classList.remove('on')); ch.classList.add('on');
-        })), 0);
+        setTimeout(() => {
+          $$('#modalBody .chips.out .chip').forEach(ch => ch.addEventListener('click', () => {
+            $$('#modalBody .chips.out .chip').forEach(x => x.classList.remove('on')); ch.classList.add('on');
+          }));
+          $$('#modalBody .chips.kept .chip').forEach(ch => ch.addEventListener('click', () => {
+            $$('#modalBody .chips.kept .chip').forEach(x => x.classList.remove('on')); ch.classList.add('on');
+          }));
+        }, 0);
       }
 
       if (a === 'note') modal(`Private note about ${f}`, `
@@ -2264,6 +2541,24 @@ async function createSession(clientId, startsAt, mins) {
           else c.notes.unshift({ t, d:new Date().toLocaleDateString('en-GB',{month:'short',day:'numeric'}) });
           save(); toast('Note saved'); openClient(c.id);
         });
+
+      if (a === 'flag') {
+        modal(`Flag ${f} to the admin`, `
+          <p class="tiny">Lands in the admin's decisions queue. Use it for "needs reassignment",
+          "at risk", or anything above your pay grade.</p>
+          <label class="lbl">Why</label>
+          <input id="fgR" class="inp" placeholder="Needs a female coach / at risk / reassign me">`,
+          'Flag', async () => {
+            const t = ($('#fgR').value || '').trim(); if (!t) return;
+            if (S.live) {
+              const me = await sb.auth.getUser();
+              const { error } = await sb.from('client_flags')
+                .insert({ coach_id: me.data.user.id, user_id: c.id, reason: t });
+              if (error) { toast(error.message); return; }
+            }
+            toast('Flagged — the admin will see it');
+          });
+      }
 
       if (a === 'nudge') {
         log(c.id,'Reminder sent'); toast(`Reminder sent to ${f}`);
@@ -2290,7 +2585,8 @@ async function createSession(clientId, startsAt, mins) {
     if (S.live) {
       const r = await fetchPendingCalls();
       rows = (r || []).map(x => ({ id: x.id, who: x.client_name || 'Client',
-        clientId: x.user_id, at: x.starts_at, status: x.status, blocked: !!x.blocked }));
+        clientId: x.user_id, at: x.starts_at, status: x.status,
+        blocked: !!x.blocked, seen: !!x.seen }));
     } else {
       const mineA = (S.appointments || []).filter(x => x.coach === S.coach);
       rows = mineA.filter(x => x.status === 'requested' || x.status === 'proposed')
@@ -2326,7 +2622,7 @@ async function createSession(clientId, startsAt, mins) {
       + (offered.length ? `<p class="pendH" style="margin-top:14px"><b>${offered.length}</b> you proposed</p>
         <div class="pList">${offered.map(r => `
           <div class="pRow" data-cid="${r.clientId}">
-            <div class="pWho">${r.who}<em>not accepted yet</em></div>
+            <div class="pWho">${r.who}<em>${r.seen ? 'seen — not answered yet' : 'not seen yet'}</em></div>
             <div class="pWhen">${when(r.at)}</div>
             <span class="pWait">client</span>
           </div>`).join('')}</div>` : '')
@@ -2567,7 +2863,7 @@ async function createSession(clientId, startsAt, mins) {
       rows = await fetchPending();
       if (!rows) { box.innerHTML = ''; return; }
       rows = rows.map(r => ({
-        id: r.id, who: r.profiles?.full_name || 'Client',
+        id: r.id, who: (byId(r.user_id) || {}).name || 'Client',
         coach: r.coaches?.full_name || '—', at: r.starts_at, status: r.status,
       }));
     } else {
@@ -2810,6 +3106,7 @@ async function createSession(clientId, startsAt, mins) {
     const { count } = await sb.from('messages').select('id', { count: 'exact', head: true })
       .eq('sender', 'client').is('read_at', null);
     const ib = $('#inboxBadge'); if (ib) { ib.textContent = count || 0; ib.hidden = !count; }
+    return count || 0;
   }
 
   /** Decline a request whose slot is gone and propose a free time instead. */
@@ -2936,6 +3233,7 @@ async function createSession(clientId, startsAt, mins) {
     // accept" and offered nothing to tap.
     const prop = (S.appointments || []).find(x =>
       x.clientId === c.id && x.status === 'proposed');
+    if (prop && !prop.seen) { prop.seen = true; save(); }
 
     $('#cscreen').innerHTML = `
       <div class="cTime">${t}</div>
