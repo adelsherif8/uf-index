@@ -121,13 +121,33 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
   font-weight:700;margin:26px 0 10px}
 
 /* ── rows ── */
-.row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--line);
-  border-radius:14px;padding:13px 15px;margin-bottom:9px;cursor:pointer}
+.row{display:grid;align-items:center;gap:12px;cursor:pointer;
+  grid-template-columns:28px minmax(150px,1fr) 112px 96px 64px minmax(96px,auto) 14px;
+  background:var(--card);border:1px solid var(--hair);border-radius:11px;
+  padding:8px 14px;margin-bottom:6px}
+.row:has(.chk){grid-template-columns:auto 28px minmax(150px,1fr) 112px 96px 64px minmax(96px,auto) 14px}
+@media (max-width:760px){
+  .row,.row:has(.chk){display:flex;flex-wrap:wrap;gap:10px}
+}
 .row:hover{border-color:var(--gold);background:rgba(210,145,51,.07)}
-.rowMain{flex:1;min-width:120px}
-.rowMain b{display:block;font-size:14.5px}
-.rowSub{font-size:11.5px;color:var(--dim)}
-.rowScore{text-align:right;min-width:78px}
+.rowMain{min-width:0}
+.rowMain b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rowSub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rowScore{display:flex;align-items:baseline;gap:7px;justify-content:flex-end;min-width:0}
+.rowScore > b{font-family:var(--disp);font-size:17px}
+.rowScore .pill{padding:2px 8px}
+.rowLast{font-size:11.5px;color:var(--dim);text-align:right;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .avatar{width:28px;height:28px;font-size:12px}
+.row > .pill{justify-self:end}
+.row .chev{justify-self:end}
+.lTools{display:flex;gap:8px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.lTools select{background:var(--card);border:1px solid var(--line);color:var(--ink);
+  border-radius:9px;padding:7px 10px;font:inherit;font-size:12.5px}
+.lTools .fchip{border:1px solid var(--line);background:transparent;color:var(--mut);
+  border-radius:999px;padding:6px 13px;font:inherit;font-size:12.5px;cursor:pointer}
+.lTools .fchip.on{background:var(--gold);border-color:var(--gold);color:#0D0D0D;font-weight:650}
+.lTools .lCount{margin-left:auto;font-size:12px;color:var(--dim)}
 .rowScore b{display:block;font-family:var(--disp);font-size:20px;color:var(--gold);line-height:1.1}
 .rowScore.muted{font-size:20px;color:var(--dim);font-family:var(--disp)}
 .rowTrend{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:74px}
@@ -363,7 +383,8 @@ h1,h2,h3,h4{font-family:var(--disp);font-weight:600;margin:0}
 .assignRow .move{flex:none;align-self:center;font-size:12px;padding:7px 13px}
 
 /* ── grouped lists ── */
-.grpH{display:flex;align-items:center;gap:9px;font-size:14px;margin:20px 0 9px;color:var(--ink)}
+.grpH{display:flex;align-items:center;gap:9px;font-size:14px;margin:20px 0 9px;color:var(--ink);
+  position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 0 6px}
 .grpH:first-child{margin-top:0}
 .grpH em{font-style:normal;font-size:12px;color:var(--dim);margin-left:auto;font-family:var(--ui)}
 .dotc{width:9px;height:9px;border-radius:50%;flex:none}
@@ -1708,11 +1729,12 @@ async function createSession(clientId, startsAt, mins) {
         <input type="checkbox" data-pick="${c.id}"><span></span></label>` : ''}
       <span class="avatar">${c.name[0]}</span>
       <div class="rowMain"><b>${c.name}</b>
-        <span class="rowSub">${c.org}${other?` · ${c.coach}'s client`:''}${w?` · lowest: ${w[0].toLowerCase()}`:' · no check-in yet'}</span></div>
+        <span class="rowSub">${c.org}${other?` · ${c.coach}'s client`:''}${w?` · lowest: ${w[0].toLowerCase()}`:''}</span></div>
       ${c.score!=null?`<div class="rowScore"><b>${c.score.toFixed(1)}</b>
-        <span class="pill ${bandClass(c.band)}">${c.band}</span></div>`:'<div class="rowScore muted">—</div>'}
-      <div class="rowTrend">${spark(c.trend)}${d?`<span class="delta ${d>0?'up':'down'}">${d>0?'▲ +':'▼ '}${Math.abs(d).toFixed(1)}</span>`:''}</div>
-      ${f?`<span class="pill ${f[1]}">${f[0]}</span>`:`<span class="pill q">${opts.stale?c.lastSeen:'On track'}</span>`}
+        <span class="pill ${bandClass(c.band)}">${c.band}</span></div>`:'<div class="rowScore muted">no score</div>'}
+      <div class="rowTrend">${spark(c.trend)}${d?`<span class="delta ${d>0?'up':'down'}">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}</span>`:''}</div>
+      <span class="rowLast">${c.lastSeen || '—'}</span>
+      ${f?`<span class="pill ${f[1]}">${f[0]}</span>`:`<span class="pill q">On track</span>`}
       <span class="chev">›</span></div>`;
   }
   function wireRows() { $$('.row').forEach(r => r.addEventListener('click', () => openClient(r.dataset.id))); }
@@ -2080,8 +2102,8 @@ async function createSession(clientId, startsAt, mins) {
     const pool = q ? S.clients.filter(c => c.name.toLowerCase().includes(q)
       || (c.org || '').toLowerCase().includes(q)) : S.clients;
     const byCoach = {};
-    pool.forEach(c => { (byCoach[c.coach || 'Unassigned'] ||= []).push(c); });
-    $('#allClientList').innerHTML = Object.entries(byCoach).map(([coach, cs]) => `
+    sortClients(pool).forEach(c => { (byCoach[c.coach || 'Unassigned'] ||= []).push(c); });
+    $('#allClientList').innerHTML = TOOLBAR('ac') + Object.entries(byCoach).map(([coach, cs]) => `
       <h3 class="grpH"><span class="dotc" style="background:${hueFor(coach)}"></span>${coach}
         <em>${cs.length} client${cs.length === 1 ? '' : 's'}</em></h3>
       ${cs.map(c => `<div class="assignRow">${row(c, { readonly: true })}
@@ -2093,6 +2115,8 @@ async function createSession(clientId, startsAt, mins) {
       const c = byId(b.dataset.move);
       pickCoach(b.dataset.move, c ? c.coach : null);
     }));
+    $('#acCount').textContent = `${pool.length} client${pool.length === 1 ? '' : 's'}`;
+    wireToolbar('ac', () => renderAllClients());
     const as = $('#allSearch');
     if (as && !as._w) { as._w = 1; as.addEventListener('input', () => renderAllClients()); }
   }
@@ -2213,15 +2237,50 @@ async function createSession(clientId, startsAt, mins) {
 
   /* ══════════ CLIENTS + bulk ══════════ */
   let picked = new Set();
+  // One sorter for every client list. "Needs attention first" is the default
+  // a coach actually wants: flagged people float, then the lowest scores.
+  let listSort = 'attn', attnOnly = false;
+  function sortClients(list) {
+    const v = [...list];
+    const score = c => c.score == null ? -1 : c.score;
+    if (listSort === 'attn') v.sort((a, b) => (b.flag ? 1 : 0) - (a.flag ? 1 : 0) || score(a) - score(b));
+    else if (listSort === 'low') v.sort((a, b) => score(a) - score(b));
+    else if (listSort === 'high') v.sort((a, b) => score(b) - score(a));
+    else if (listSort === 'name') v.sort((a, b) => a.name.localeCompare(b.name));
+    else if (listSort === 'recent') v.sort((a, b) =>
+      new Date(b.lastCheckinISO || 0) - new Date(a.lastCheckinISO || 0));
+    return attnOnly ? v.filter(c => c.flag) : v;
+  }
+  const TOOLBAR = (id) => `<div class="lTools">
+    <select id="${id}Sort">
+      <option value="attn">Needs attention first</option>
+      <option value="low">Lowest score first</option>
+      <option value="high">Highest score first</option>
+      <option value="recent">Latest check-in first</option>
+      <option value="name">By name</option>
+    </select>
+    <button class="fchip${attnOnly ? ' on' : ''}" id="${id}Attn">Needs attention</button>
+    <span class="lCount" id="${id}Count"></span>
+  </div>`;
+  function wireToolbar(id, rerender) {
+    const sel = $(`#${id}Sort`); if (sel) { sel.value = listSort;
+      sel.addEventListener('change', () => { listSort = sel.value; rerender(); }); }
+    const at = $(`#${id}Attn`); if (at) at.addEventListener('click',
+      () => { attnOnly = !attnOnly; rerender(); });
+  }
+
   function renderClients(q) {
-    const all = q
+    const all = sortClients(q
       ? S.clients.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.org.toLowerCase().includes(q.toLowerCase()))
-      : mine();
+      : mine());
     $('#clientCount').textContent = q
       ? `${all.length} match${all.length===1?'':'es'} across all coaches`
       : `${mine().length} client${mine().length===1?'':'s'} · search to find anyone at UFAS`;
-    $('#clientList').innerHTML = all.length ? all.map(c=>row(c,{check:isMine(c)})).join('')
-      : `<div class="empty"><b>Nobody by that name.</b><span>Try a different search.</span></div>`;
+    $('#clientList').innerHTML = TOOLBAR('cl') + (all.length
+      ? all.map(c=>row(c,{check:isMine(c)})).join('')
+      : `<div class="empty"><b>${attnOnly ? 'Nobody needs attention.' : 'Nobody by that name.'}</b><span>${attnOnly ? 'Clear the filter to see everyone.' : 'Try a different search.'}</span></div>`);
+    $('#clCount').textContent = `${all.length} shown`;
+    wireToolbar('cl', () => renderClients($('#search').value));
     wireRows(); wirePicks();
   }
   function wirePicks() {
